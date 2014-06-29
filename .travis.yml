@@ -1,4 +1,12 @@
 language: cpp
 compiler: gcc
-install: sudo apt-get install premake libglfw3-dev
-scglfwript: ./build.sh
+install: sudo apt-get install premake libXxf86vm-dev 
+script: 
+    - git clone https://github.com/glfw/glfw.git
+    - cd glfw
+    - git checkout 3.0.3
+    - cmake -DBUILD_SHARED_LIBS=ON
+    - make
+    - sudo make install
+    - cd ..
+    - ./build.sh
