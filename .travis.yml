@@ -1,6 +1,9 @@
 language: cpp
 compiler: gcc
-install: sudo apt-get install premake4 libXxf86vm-dev 
+before_install:
+    - sudo add-apt-repository ppa:codegear/ppa -y
+    - sudo apt-get update -y
+install: sudo apt-get install premake4 libXxf86vm-dev -y 
 script: 
     - git clone https://github.com/glfw/glfw.git
     - cd glfw
