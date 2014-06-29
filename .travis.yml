@@ -1,5 +1,5 @@
 language: cpp
-compiler: gcc
+compiler: clang 
 before_install:
     - sudo add-apt-repository ppa:codegear/release -y 
     - sudo apt-get update -q
