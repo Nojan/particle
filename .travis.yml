@@ -1,0 +1,4 @@
+language: cpp
+compiler: gcc
+install: sudo apt-get install premake libglfw-dev
+script: build.sh
