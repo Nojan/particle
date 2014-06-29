@@ -9,8 +9,8 @@ using namespace std;
 
 namespace
 {
-//    const double M_PI = 3.14159265358979323846264338327;
-    const float F_PI = static_cast<float>(M_PI);
+    const double m_pi = 3.14159265358979323846264338327;
+    const float f_pi = static_cast<float>(m_pi);
 }
 
 namespace Color
@@ -37,7 +37,7 @@ bool valid(hsv in)
     assert(in.h >= 0.f);
     assert(in.s >= 0.f);
     assert(in.v >= 0.f);
-    assert(in.h <= 2.f*F_PI);
+    assert(in.h <= 2.f*f_pi);
     assert(in.s <= 1.f);
     assert(in.v <= 1.f);
     return true;
@@ -98,10 +98,10 @@ hsv rgbp2hsv(rgbp in)
             out.h = 4.f + ( in.r - in.g ) / delta;  // between magenta & cyan
     }
 
-    out.h *= F_PI/3.f;
+    out.h *= f_pi/3.f;
 
     if( out.h < 0.0 )
-        out.h += F_PI*2.f;
+        out.h += f_pi*2.f;
 
     assert(valid(out));
     return out;
@@ -120,7 +120,7 @@ rgbp hsv2rgbp(hsv in)
     rgbp        out;
 
     hh = in.h;
-    hh /= F_PI/3.f;
+    hh /= f_pi/3.f;
     i = (long)hh;
     ff = hh - i;
     p = in.v * (1.f - in.s);
