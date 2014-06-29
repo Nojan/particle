@@ -1,6 +1,6 @@
 language: cpp
 compiler: gcc
-install: sudo apt-get install premake libXxf86vm-dev 
+install: sudo apt-get install premake4 libXxf86vm-dev 
 script: 
     - git clone https://github.com/glfw/glfw.git
     - cd glfw
