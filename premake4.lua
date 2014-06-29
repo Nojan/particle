@@ -3,7 +3,7 @@ solution "Particle"
     configurations { "Debug", "Release" }
     location "build"
     libdirs { "externals/**" }
-    includedirs { "externals" }
+    includedirs { "externals/**" }
     defines "GLM_FORCE_RADIANS"
     defines "GLEW_STATIC"
 
