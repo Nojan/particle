@@ -7,9 +7,9 @@
 #include "opengl_includes.hpp"
 
 #include <iostream>
-#include <stdlib.h>	
-
-using namespace std;
+#include <stdlib.h>
+#include <chrono>
+#include <thread>
 
 //
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -77,7 +77,7 @@ void Root::Init()
         // Get GLFW Version
         int majorGLFW, minorGLFW, revGLFW;
         glfwGetVersion(&majorGLFW, &minorGLFW, &revGLFW);
-        cout << "GLFW Version " << majorGLFW << "." << minorGLFW << "." << revGLFW << " loaded." << endl;
+        std::cout << "GLFW Version " << majorGLFW << "." << minorGLFW << "." << revGLFW << " loaded." << std::endl;
     }
 
     // Open an OpenGL window
@@ -93,10 +93,10 @@ void Root::Init()
     GLenum glewInitCode = glewInit();
     if (GLEW_OK != glewInitCode)
     {
-        cout << "GLEW error : " << glewGetErrorString(glewInitCode) << endl;
+        std::cout << "GLEW error : " << glewGetErrorString(glewInitCode) << std::endl;
         exit( EXIT_FAILURE );
     } else {
-        cout << "GLEW Version " << glewGetString(GLEW_VERSION) << " loaded." << endl;
+        std::cout << "GLEW Version " << glewGetString(GLEW_VERSION) << " loaded." << std::endl;
     }
 
     mCamera->Init();
@@ -138,26 +138,29 @@ void glPerspective( GLdouble fovY, GLdouble aspect, GLdouble zNear, GLdouble zFa
 void Root::Update()
 {
     assert(GL_TRUE == mRunning);
-    const double frameLimiter = 1/60;
-
-    const double beginFrame = glfwGetTime();
+    const std::chrono::milliseconds frameLimiter(16);
+    const float lastFrameDuration = mFrameDuration.count() / 1000.f;
+    const auto beginFrame = std::chrono::high_resolution_clock::now();
     glfwPollEvents();
-    mCamera->Update(mFrameDuration);
+    mCamera->Update(lastFrameDuration);
     const glm::vec3 positonInWorldSpace = mCamera->Position() + mCamera->Direction()*100.f;
     mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
-    mRenderer->Update(mFrameDuration);
+    mRenderer->Update(lastFrameDuration);
     glfwSwapBuffers(mWindow); CHECK_OPENGL_ERROR
-    mFrameDuration = glfwGetTime() - beginFrame;
+    const auto endFrame = std::chrono::high_resolution_clock::now();
+    const auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFrame - beginFrame);
 
     ++mFramesCounter;
-    mFramesDuration += mFrameDuration;
-    //glfwSleep( frameLimiter - mFrameDuration);
-    if(mFramesCounter > 1000 && mFramesDuration > 0)
+    mFramesDuration += renderingDuration;
+    std::this_thread::sleep_for(frameLimiter - renderingDuration);
+    const auto endSleep = std::chrono::high_resolution_clock::now();
+    mFrameDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endSleep - beginFrame);
+    if(mFramesCounter > 1000 && mFramesDuration.count() > 0)
     {
-        const double avgFrameDuration = mFramesDuration / static_cast<double>(mFramesCounter);
-        std::cout << "Average frame : " << avgFrameDuration << "s" << std::endl;
+        const float avgFrameDuration = mFramesDuration.count() / static_cast<float>(mFramesCounter);
+        std::cout << "Average frame : " << avgFrameDuration << "ms" << std::endl;
         mFramesCounter = 0;
-        mFramesDuration = 0;
+        mFramesDuration = std::chrono::milliseconds(0);
     }
 }
 

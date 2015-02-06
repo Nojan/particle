@@ -1,6 +1,7 @@
 #ifndef ROOT_HPP
 #define ROOT_HPP
 
+#include <chrono>
 #include <memory>
 
 class Camera;
@@ -34,7 +35,7 @@ private:
 
     // Performance counter
     int mFramesCounter;
-    double mFrameDuration;
-    double mFramesDuration;
+    std::chrono::milliseconds mFrameDuration;
+    std::chrono::milliseconds mFramesDuration;
 };
 #endif

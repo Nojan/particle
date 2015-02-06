@@ -44,10 +44,10 @@ void Camera::Init()
 void Camera::Terminate()
 {}
 
-void Camera::Update(const double frameDuration)
+void Camera::Update(const float frameDuration)
 {
     if( MV_NONE != mMoveMask ) {
-        const float moveSpeed = 0.0000001f/static_cast<float>(frameDuration);
+        const float moveSpeed = 0.0000001f/frameDuration;
         if(MV_LEFT & mMoveMask)
             mPosition -= mOrthoDirection*moveSpeed;
         if(MV_RIGHT & mMoveMask)
