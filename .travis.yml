@@ -13,5 +13,5 @@ script:
     - sudo make install
     - cd ..
     - CC=clang
-    - CXX=clang
+    - CXX=clang++
     - ./build.sh
