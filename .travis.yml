@@ -12,7 +12,7 @@ install:
 script: 
     - git clone https://github.com/glfw/glfw.git
     - cd glfw
-    - git checkout 3.0.3
+    - git checkout -b 3.0.3
     - cmake -DBUILD_SHARED_LIBS=ON
     - make
     - sudo make install
