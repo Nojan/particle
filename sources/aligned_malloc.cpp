@@ -1,5 +1,9 @@
 #include "aligned_malloc.hpp"
 
+#if defined(__linux__)
+#include <stdlib.h>
+#endif
+
 void * malloc_simd(const size_t size) 
 {
 	const size_t alignment = 16;
