@@ -13,6 +13,8 @@ ShaderProgram::ShaderProgram(GLuint programID)
 ShaderProgram::~ShaderProgram()
 {
     glDeleteProgram(mProgramID); CHECK_OPENGL_ERROR
+    if (IsBind())
+        Unbind();
 }
 
 GLuint ShaderProgram::ProgramID() const
