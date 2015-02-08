@@ -20,6 +20,7 @@ solution "Particle"
 
     configuration "linux"
         buildoptions "-std=c++11"
+        defines "__linux__"
         links { "glfw", "GLEW", "GLU", "GL" }
  
     configuration "Debug" 
