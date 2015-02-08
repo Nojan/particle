@@ -4,8 +4,6 @@
 
 GLuint ShaderProgram::mCurrentProgramID = 0;
 
-using namespace std;
-
 ShaderProgram::ShaderProgram(GLuint programID)
 {
     assert(programID != 0);
