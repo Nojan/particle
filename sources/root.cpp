@@ -5,6 +5,8 @@
 #include "renderer.hpp"
 
 #include "opengl_includes.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/random.hpp>
 
 #include <iostream>
 #include <stdlib.h>
@@ -142,6 +144,8 @@ void Root::Update()
     const float lastFrameDuration = mFrameDuration.count() / 1000.f;
     const auto beginFrame = std::chrono::high_resolution_clock::now();
     glfwPollEvents();
+    glClearDepth(1.0f); CHECK_OPENGL_ERROR
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_OPENGL_ERROR
     mCamera->Update(lastFrameDuration);
     const glm::vec3 positonInWorldSpace = mCamera->Position() + mCamera->Direction()*100.f;
     mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
@@ -155,8 +159,9 @@ void Root::Update()
     std::this_thread::sleep_for(frameLimiter - renderingDuration);
     const auto endSleep = std::chrono::high_resolution_clock::now();
     mFrameDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endSleep - beginFrame);
-    if(mFramesCounter > 1000 && mFramesDuration.count() > 0)
+    if(mFramesCounter > 100 && mFramesDuration.count() > 0)
     {
+        mRenderer->spawnBallParticles(500, glm::ballRand(20.f) + glm::vec3(0.f, 60.f, 0.f), 20.f);
         const float avgFrameDuration = mFramesDuration.count() / static_cast<float>(mFramesCounter);
         std::cout << "Average frame : " << avgFrameDuration << "ms" << std::endl;
         mFramesCounter = 0;

@@ -14,11 +14,10 @@
 #include <glm/gtc/random.hpp>
 
 #include <assert.h>
-
-using namespace std;
+#include <algorithm>
 
 Renderer::Renderer()
-: mParticleData(new ParticleData(100000))
+: mParticleData(new ParticleData(1000))
 , mMousePosition(0.f, 0.f, 100.f)
 {}
 
@@ -44,15 +43,15 @@ void Renderer::Init()
         glGenBuffers(1, &vertexBufferId); CHECK_OPENGL_ERROR
         glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId); CHECK_OPENGL_ERROR
         glEnableVertexAttribArray(vertexPosition_modelspaceID); CHECK_OPENGL_ERROR
-        glBufferData(GL_ARRAY_BUFFER, mParticleData->mCount * sizeof(vec4), &(mParticleData->mPosition[0]), GL_STATIC_DRAW); CHECK_OPENGL_ERROR
+        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(vec4), &(mParticleData->mPosition[0]), GL_STATIC_DRAW); CHECK_OPENGL_ERROR
         glVertexAttribPointer(vertexPosition_modelspaceID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); CHECK_OPENGL_ERROR
     }
 
     {
         // TODO
-        std::unique_ptr<float[]> pointsColor(new float[mParticleData->mCount*4]);
-        const bool randomColor = false;
-        for(size_t i=0; i<mParticleData->mCount*3; i+=3) {
+        std::unique_ptr<float[]> pointsColor(new float[mParticleData->mMaxCount * 4]);
+        const bool randomColor = true;
+        for (size_t i = 0; i<mParticleData->mMaxCount * 3; i += 3) {
             if(randomColor) {
                 const float colorHue = glm::linearRand(0.f, 2.f*3.14f);
                 const Color::hsv colorHsv = {colorHue, 0.75f, 0.95f};
@@ -72,7 +71,7 @@ void Renderer::Init()
         glGenBuffers(1, &colorBufferId); CHECK_OPENGL_ERROR
         glBindBuffer(GL_ARRAY_BUFFER, colorBufferId); CHECK_OPENGL_ERROR
         glEnableVertexAttribArray(vertexColorID); CHECK_OPENGL_ERROR
-        glBufferData(GL_ARRAY_BUFFER, mParticleData->mCount * 4 * sizeof (float), pointsColor.get(), GL_STATIC_DRAW); CHECK_OPENGL_ERROR
+        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * 4 * sizeof(float), pointsColor.get(), GL_STATIC_DRAW); CHECK_OPENGL_ERROR
         glVertexAttribPointer(vertexColorID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); CHECK_OPENGL_ERROR
     }
 
@@ -89,9 +88,6 @@ void Renderer::Terminate()
 
 void Renderer::Update(const float deltaTime)
 {
-    glClearDepth(1.0f); CHECK_OPENGL_ERROR
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); CHECK_OPENGL_ERROR
-
     mShaderProgram->Bind();
     GLuint matrixMVP_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "MVP"); CHECK_OPENGL_ERROR
     glm::mat4 MVP = Root::Instance().GetCamera()->ProjectionView();
@@ -103,7 +99,7 @@ void Renderer::Update(const float deltaTime)
 
     // update particule position
     {
-        UpdateParticleSIMD(*(mParticleData.get()), mMousePosition.x, mMousePosition.y, mMousePosition.z, deltaTime);
+        UpdateParticleGravitySIMD(*(mParticleData.get()), mMousePosition.x, mMousePosition.y, mMousePosition.z, deltaTime);
         
         GLuint vertexPosition_modelspaceID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace"); CHECK_OPENGL_ERROR
         glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId); CHECK_OPENGL_ERROR
@@ -112,6 +108,19 @@ void Renderer::Update(const float deltaTime)
         glVertexAttribPointer(vertexPosition_modelspaceID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); CHECK_OPENGL_ERROR
     }
     mShaderProgram->Unbind();
+}
+
+void Renderer::spawnBallParticles(size_t pCount, const glm::vec3 initialPosition, float initialSpeed)
+{
+    const size_t newParticleCount = std::min(mParticleData->mCount + pCount, mParticleData->mMaxCount);
+    for (size_t i = mParticleData->mCount; i<newParticleCount; ++i) {
+        glm::vec3 position(glm::ballRand(1.f) + initialPosition);
+        glm::vec3 speed(glm::ballRand(initialSpeed));
+        mParticleData->mPosition[i] = vec4(position.x, position.y, position.z, 1.f);
+        mParticleData->mSpeed[i] = vec4(speed.x, speed.y, speed.z, 0.f);
+        mParticleData->mTime[i] = glm::linearRand(3.f, 5.f);
+    }
+    mParticleData->mCount = newParticleCount;
 }
 
 void Renderer::HandleMousePosition(float x, float y, float z) {

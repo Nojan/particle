@@ -20,6 +20,8 @@ public:
     void Terminate();
     void Update(const float deltaTime);
 
+    void spawnBallParticles(size_t pCount, const glm::vec3 initialPosition, float initialSpeed);
+
     void HandleMousePosition(float x, float y, float z);
 
 private:

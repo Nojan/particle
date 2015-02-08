@@ -4,6 +4,8 @@
 #include "aligned_malloc.hpp"
 #include "vector.hpp"
 
+#include <glm/glm.hpp>
+
 #include <memory>
 #include <malloc.h>
 
@@ -19,11 +21,14 @@ public:
     std::unique_ptr<float[]> mTime;
     
     size_t mCount;
+    size_t mMaxCount;
     
 public:
     ParticleData(size_t pCount);
+    void spawnBallParticles(size_t pCount, const glm::vec3 initialPosition, float initialSpeed);
+    void swap(const size_t a, const size_t b);
 };
-
+void UpdateParticleGravitySIMD(ParticleData& data, const float gravityPositionX, const float gravityPositionY, const float gravityPositionZ, float deltaTime);
 void UpdateParticleSIMD(ParticleData& data, const float gravityPositionX, const float gravityPositionY, const float gravityPositionZ, float deltaTime);
 
 #endif
