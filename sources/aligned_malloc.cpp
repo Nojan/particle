@@ -2,13 +2,18 @@
 
 #if defined(__linux__)
 #include <stdlib.h>
+#include <malloc.h>
 #endif
 
 void * malloc_simd(const size_t size) 
 {
 	const size_t alignment = 16;
 #if defined(__linux__)
+#ifdef _ISOC11_SOURCE
 	return aligned_alloc(alignment, size);
+#else
+    return memalign(alignment, size);
+#endif
 #elif defined(WIN32)
 	return _aligned_malloc(size, alignment);
 #else
