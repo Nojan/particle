@@ -28,7 +28,6 @@ Renderer::~Renderer()
 void Renderer::Init()
 {
     mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/Simple.vertexshader", "../shaders/Simple.fragmentshader")));
-    mShaderProgram->Bind();
 
     GLuint vertexPosition_modelspaceID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace"); CHECK_OPENGL_ERROR
     GLuint vertexColorID               = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexColor"); CHECK_OPENGL_ERROR
@@ -85,7 +84,6 @@ void Renderer::Init()
 
 void Renderer::Terminate()
 {
-    mShaderProgram->Unbind();
     mShaderProgram.reset();
 }
 
@@ -94,8 +92,7 @@ void Renderer::Update(const float deltaTime)
     glClearDepth(1.0f); CHECK_OPENGL_ERROR
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); CHECK_OPENGL_ERROR
 
-    assert(mShaderProgram->IsBind());
-
+    mShaderProgram->Bind();
     GLuint matrixMVP_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "MVP"); CHECK_OPENGL_ERROR
     glm::mat4 MVP = Root::Instance().GetCamera()->ProjectionView();
     glUniformMatrix4fv(matrixMVP_ID, 1, GL_FALSE, glm::value_ptr(MVP)); CHECK_OPENGL_ERROR
@@ -114,6 +111,7 @@ void Renderer::Update(const float deltaTime)
         glBufferData(GL_ARRAY_BUFFER, mParticleData->mCount * sizeof(vec4), &(mParticleData->mPosition[0]), GL_STATIC_DRAW); CHECK_OPENGL_ERROR
         glVertexAttribPointer(vertexPosition_modelspaceID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); CHECK_OPENGL_ERROR
     }
+    mShaderProgram->Unbind();
 }
 
 void Renderer::HandleMousePosition(float x, float y, float z) {
