@@ -34,7 +34,7 @@ Camera::Camera()
     mPerspective.fov = deg2rad(45.f);
     mPerspective.ratio = 4.f/3.f;
     mPerspective.zNear = 1.f;
-    mPerspective.zFar = 500.f;
+    mPerspective.zFar = 1000.f;
 }
 
 Camera::~Camera()
