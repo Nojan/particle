@@ -83,7 +83,9 @@ void Root::Init()
     }
 
     // Open an OpenGL window
-    mWindow = glfwCreateWindow(800, 600, "Particle", NULL, NULL);
+    const int windowsWidth = 800;
+    const int windowsHeight = 600;
+    mWindow = glfwCreateWindow(windowsWidth, windowsHeight, "Particle", NULL, NULL);
     if (!mWindow) {
         glfwTerminate();
         exit(EXIT_FAILURE);
@@ -102,6 +104,7 @@ void Root::Init()
     }
 
     mCamera->Init();
+    mCamera->HandleWindowResize(windowsWidth, windowsHeight);
     mRenderer->Init();
 
     glfwSetKeyCallback(mWindow, key_callback);

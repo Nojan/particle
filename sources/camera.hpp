@@ -21,6 +21,7 @@ public:
     void Update(const float frameDuration);
 
     perspective const& Perspective() const;
+    glm::ivec2 const& ScreenSize() const;
 
     glm::vec3 const& Position() const;
     void SetPosition(glm::vec3 const& position);
@@ -48,6 +49,8 @@ private:
     bool mMousePan;
 
     int mMoveMask;
+
+    glm::ivec2 mScreenSize;
 
     perspective mPerspective;
 

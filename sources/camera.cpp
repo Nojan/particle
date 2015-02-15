@@ -1,8 +1,9 @@
 #include "camera.hpp"
 
 #include "opengl_includes.hpp"
-
 #include <glm/gtx/transform.hpp>
+
+#include <algorithm>
 #include <iostream>
 
 using namespace std;
@@ -18,10 +19,11 @@ static float deg2rad(const float deg) {
 }
 
 Camera::Camera()
-: mMoveMask(MV_NONE)
-, mUpdateView(true)
+: mUpdateView(true)
 , mUpdateProjection(true)
 , mMousePan(false)
+, mMoveMask(MV_NONE)
+, mScreenSize(1, 1)
 , mMousePosition(0.f)
 , mPosition(0.f, 0.f, 100.f)
 , mDirection(0.f, 0.f, -1.f)
@@ -78,6 +80,11 @@ Camera::perspective const& Camera::Perspective() const
     return mPerspective;
 }
 
+glm::ivec2 const& Camera::ScreenSize() const
+{
+    return mScreenSize;
+}
+
 glm::vec3 const& Camera::Position() const
 {
     return mPosition;
@@ -130,7 +137,8 @@ glm::mat4 const& Camera::ProjectionView() const
 
 void Camera::HandleWindowResize(int width, int height)
 {
-    mPerspective.ratio = static_cast<float>(width)/static_cast<float>(height);
+    mScreenSize = glm::ivec2(max(1, width), max(1, height));
+    mPerspective.ratio = static_cast<float>(mScreenSize.x) / static_cast<float>(mScreenSize.y);
     mUpdateProjection = true;
 }
 
