@@ -27,9 +27,9 @@ public:
 private:
     std::unique_ptr<ParticleData> mParticleData;
     std::unique_ptr<ShaderProgram> mShaderProgram;
-    GLuint vaoId;
-    GLuint vertexBufferId;
-    GLuint colorBufferId;
+    GLuint mVaoId;
+    GLuint mVboPositionId;
+    GLuint mVboColorId;
     glm::vec3 mMousePosition;
 };
 

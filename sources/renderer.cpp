@@ -17,7 +17,10 @@
 #include <algorithm>
 
 Renderer::Renderer()
-: mParticleData(new ParticleData(100000))
+: mParticleData(new ParticleData(10000))
+, mVaoId(0)
+, mVboPositionId(0)
+, mVboColorId(0)
 , mMousePosition(0.f, 0.f, 100.f)
 {}
 
@@ -27,58 +30,46 @@ Renderer::~Renderer()
 void Renderer::Init()
 {
     mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/Simple.vertexshader", "../shaders/Simple.fragmentshader")));
-
+    mShaderProgram->Bind();
     GLuint vertexPosition_modelspaceID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace"); CHECK_OPENGL_ERROR
     GLuint vertexColorID               = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexColor"); CHECK_OPENGL_ERROR
 
+    {
+        glGenBuffers(1, &mVboPositionId); CHECK_OPENGL_ERROR
+        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); CHECK_OPENGL_ERROR
+        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(vec4), 0, GL_STREAM_DRAW); CHECK_OPENGL_ERROR
+        glBindBuffer(GL_ARRAY_BUFFER, 0); CHECK_OPENGL_ERROR
+    }
+    {
+        glGenBuffers(1, &mVboColorId); CHECK_OPENGL_ERROR
+        glBindBuffer(GL_ARRAY_BUFFER, mVboColorId); CHECK_OPENGL_ERROR
+        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(Color::rgbap), 0, GL_STREAM_DRAW); CHECK_OPENGL_ERROR
+        glBindBuffer(GL_ARRAY_BUFFER, 0); CHECK_OPENGL_ERROR
+    }
+
+    glGenVertexArrays(1, &mVaoId); CHECK_OPENGL_ERROR
+    glBindVertexArray(mVaoId); CHECK_OPENGL_ERROR
+
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    //glEnable(GL_DEPTH_TEST); CHECK_OPENGL_ERROR
-    //glDepthFunc(GL_LESS); CHECK_OPENGL_ERROR
     glEnable(GL_BLEND); CHECK_OPENGL_ERROR
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); CHECK_OPENGL_ERROR
-
-    glGenVertexArrays(1, &vaoId); CHECK_OPENGL_ERROR
-    glBindVertexArray(vaoId);
-    {
-        glGenBuffers(1, &vertexBufferId); CHECK_OPENGL_ERROR
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId); CHECK_OPENGL_ERROR
-        glEnableVertexAttribArray(vertexPosition_modelspaceID); CHECK_OPENGL_ERROR
-        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(vec4), &(mParticleData->mPosition[0]), GL_STATIC_DRAW); CHECK_OPENGL_ERROR
-        glVertexAttribPointer(vertexPosition_modelspaceID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); CHECK_OPENGL_ERROR
-    }
-
-    {
-        // TODO
-        std::unique_ptr<float[]> pointsColor(new float[mParticleData->mMaxCount * 4]);
-        const bool randomColor = true;
-        for (size_t i = 0; i<mParticleData->mMaxCount * 3; i += 3) {
-            if(randomColor) {
-                const float colorHue = glm::linearRand(0.f, 2.f*3.14f);
-                const Color::hsv colorHsv = {colorHue, 0.75f, 0.95f};
-                const Color::rgbp color = Color::hsv2rgbp(colorHsv);
-                pointsColor[i+0] = color.r;
-                pointsColor[i+1] = color.g;
-                pointsColor[i+2] = color.b;
-                pointsColor[i+3] = 0.3f;
-            } else {
-                pointsColor[i+0] = 1.f;
-                pointsColor[i+1] = 0.f;
-                pointsColor[i+2] = 0.f;
-                pointsColor[i+3] = 0.1f;
-            }
-        }
-
-        glGenBuffers(1, &colorBufferId); CHECK_OPENGL_ERROR
-        glBindBuffer(GL_ARRAY_BUFFER, colorBufferId); CHECK_OPENGL_ERROR
-        glEnableVertexAttribArray(vertexColorID); CHECK_OPENGL_ERROR
-        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * 4 * sizeof(float), pointsColor.get(), GL_STATIC_DRAW); CHECK_OPENGL_ERROR
-        glVertexAttribPointer(vertexColorID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); CHECK_OPENGL_ERROR
-    }
-
-    glBindVertexArray(0); CHECK_OPENGL_ERROR
-
     glEnable(GL_POINT_SMOOTH); CHECK_OPENGL_ERROR
     glEnable(GL_PROGRAM_POINT_SIZE); CHECK_OPENGL_ERROR
+
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); CHECK_OPENGL_ERROR
+        glVertexAttribPointer(vertexPosition_modelspaceID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); CHECK_OPENGL_ERROR
+        glEnableVertexAttribArray(vertexPosition_modelspaceID); CHECK_OPENGL_ERROR
+    }
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, mVboColorId); CHECK_OPENGL_ERROR
+        glVertexAttribPointer(vertexColorID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); CHECK_OPENGL_ERROR
+        glEnableVertexAttribArray(vertexColorID); CHECK_OPENGL_ERROR
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, 0); CHECK_OPENGL_ERROR
+
+    glBindVertexArray(0); CHECK_OPENGL_ERROR
+    mShaderProgram->Unbind();
 }
 
 void Renderer::Terminate()
@@ -89,6 +80,25 @@ void Renderer::Terminate()
 void Renderer::Update(const float deltaTime)
 {
     mShaderProgram->Bind();
+    {
+        UpdateParticleGravitySIMD(*(mParticleData.get()), mMousePosition.x, mMousePosition.y, mMousePosition.z, deltaTime);
+        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); CHECK_OPENGL_ERROR
+        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(vec4), 0, GL_STREAM_DRAW); CHECK_OPENGL_ERROR
+        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); CHECK_OPENGL_ERROR
+        assert(mappedVbo);
+        memcpy(mappedVbo, &(mParticleData->mPosition[0]), mParticleData->mCount * sizeof(vec4));
+        glUnmapBuffer(GL_ARRAY_BUFFER); CHECK_OPENGL_ERROR
+        glBindBuffer(GL_ARRAY_BUFFER, 0); CHECK_OPENGL_ERROR
+    }
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, mVboColorId); CHECK_OPENGL_ERROR
+        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(Color::rgbap), 0, GL_STREAM_DRAW); CHECK_OPENGL_ERROR
+        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); CHECK_OPENGL_ERROR
+        assert(mappedVbo);
+        memcpy(mappedVbo, &(mParticleData->mColor[0]), mParticleData->mCount * sizeof(Color::rgbap));
+        glUnmapBuffer(GL_ARRAY_BUFFER); CHECK_OPENGL_ERROR
+        glBindBuffer(GL_ARRAY_BUFFER, 0); CHECK_OPENGL_ERROR
+    }
     {
         GLuint matrixView_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "view"); CHECK_OPENGL_ERROR
         glm::mat4 view = Root::Instance().GetCamera()->View();
@@ -110,32 +120,27 @@ void Renderer::Update(const float deltaTime)
         glUniform1f(spriteSize_ID, spriteSize); CHECK_OPENGL_ERROR
     }
 
-    glBindVertexArray(vaoId); CHECK_OPENGL_ERROR
+    glBindVertexArray(mVaoId); CHECK_OPENGL_ERROR
     glDrawArrays(GL_POINTS, 0, mParticleData->mCount); CHECK_OPENGL_ERROR
     glBindVertexArray(0); CHECK_OPENGL_ERROR
-
-    // update particule position
-    {
-        UpdateParticleGravitySIMD(*(mParticleData.get()), mMousePosition.x, mMousePosition.y, mMousePosition.z, deltaTime);
-        
-        GLuint vertexPosition_modelspaceID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace"); CHECK_OPENGL_ERROR
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId); CHECK_OPENGL_ERROR
-        glEnableVertexAttribArray(vertexPosition_modelspaceID); CHECK_OPENGL_ERROR
-        glBufferData(GL_ARRAY_BUFFER, mParticleData->mCount * sizeof(vec4), &(mParticleData->mPosition[0]), GL_STATIC_DRAW); CHECK_OPENGL_ERROR
-        glVertexAttribPointer(vertexPosition_modelspaceID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); CHECK_OPENGL_ERROR
-    }
+    
     mShaderProgram->Unbind();
 }
 
 void Renderer::spawnBallParticles(size_t pCount, const glm::vec3 initialPosition, float initialSpeed)
 {
     const size_t newParticleCount = std::min(mParticleData->mCount + pCount, mParticleData->mMaxCount);
+    const float colorHue = glm::linearRand(0.f, 2.f*3.14f);
+    const Color::hsv colorHsv = { colorHue, 0.75f, 0.95f };
+    const Color::rgbp color = Color::hsv2rgbp(colorHsv);
+    const Color::rgbap colorWalpha = { color.r, color.g, color.b, 1.f };
     for (size_t i = mParticleData->mCount; i<newParticleCount; ++i) {
-        glm::vec3 position(glm::ballRand(1.f) + initialPosition);
+        glm::vec3 position(initialPosition);
         glm::vec3 speed(glm::ballRand(initialSpeed));
         mParticleData->mPosition[i] = vec4(position.x, position.y, position.z, 1.f);
         mParticleData->mSpeed[i] = vec4(speed.x, speed.y, speed.z, 0.f);
-        mParticleData->mTime[i] = glm::linearRand(3.f, 5.f);
+        mParticleData->mColor[i] = colorWalpha;
+        mParticleData->mTime[i] = glm::linearRand(5.f, 10.f);
     }
     mParticleData->mCount = newParticleCount;
 }

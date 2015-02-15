@@ -2,6 +2,7 @@
 #define PARTICLE_HPP
 
 #include "aligned_malloc.hpp"
+#include "color.hpp"
 #include "vector.hpp"
 
 #include <glm/glm.hpp>
@@ -18,6 +19,7 @@ class ParticleData {
 public:
     std::unique_ptr<vec4[], delete_vec4aligned_array> mPosition;
     std::unique_ptr<vec4[], delete_vec4aligned_array> mSpeed;
+    std::unique_ptr<Color::rgbap[]> mColor;
     std::unique_ptr<float[]> mTime;
     
     size_t mCount;

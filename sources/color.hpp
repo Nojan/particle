@@ -21,6 +21,14 @@ namespace Color
 
     bool valid(rgbp in);
 
+    struct rgbap
+    {
+        float r; //[0.f,1.f]
+        float g; //[0.f,1.f]
+        float b; //[0.f,1.f]
+        float a; //[0.f,1.f]
+    };
+
     struct hsv
     {
         float h; //[0.f,2.f*pi]

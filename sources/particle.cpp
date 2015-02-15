@@ -7,6 +7,7 @@ ParticleData::ParticleData(size_t pCount)
 , mMaxCount(pCount)
 , mPosition((vec4*)malloc_simd(pCount*sizeof(vec4)))
 , mSpeed((vec4*)malloc_simd(pCount*sizeof(vec4)))
+, mColor(new Color::rgbap[pCount])
 , mTime(new float[pCount])
 {
 }
@@ -15,6 +16,7 @@ void ParticleData::swap(const size_t a, const size_t b)
 {
     std::swap(mPosition[a], mPosition[b]);
     std::swap(mSpeed[a], mSpeed[b]);
+    std::swap(mColor[a], mColor[b]);
     std::swap(mTime[a], mTime[b]);
 }
 
