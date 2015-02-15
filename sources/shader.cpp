@@ -12,9 +12,9 @@ ShaderProgram::ShaderProgram(GLuint programID)
 
 ShaderProgram::~ShaderProgram()
 {
-    glDeleteProgram(mProgramID); CHECK_OPENGL_ERROR
     if (IsBind())
         Unbind();
+    glDeleteProgram(mProgramID); CHECK_OPENGL_ERROR
 }
 
 GLuint ShaderProgram::ProgramID() const
