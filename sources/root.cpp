@@ -121,11 +121,10 @@ void Root::Init()
 
 void Root::Terminate()
 {
-    glfwDestroyWindow(mWindow); //no callback from mWindow will be fired
-
     mCamera->Terminate();
     mRenderer->Terminate();
     
+    glfwDestroyWindow(mWindow); //no callback from mWindow will be fired
     glfwTerminate();
 }
 
