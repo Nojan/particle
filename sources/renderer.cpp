@@ -17,7 +17,7 @@
 #include <algorithm>
 
 Renderer::Renderer()
-: mParticleData(new ParticleData(1000))
+: mParticleData(new ParticleData(100000))
 , mMousePosition(0.f, 0.f, 100.f)
 {}
 
@@ -75,10 +75,10 @@ void Renderer::Init()
         glVertexAttribPointer(vertexColorID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); CHECK_OPENGL_ERROR
     }
 
-    glBindVertexArray(0);
+    glBindVertexArray(0); CHECK_OPENGL_ERROR
 
-    glEnable(GL_POINT_SMOOTH);
-    glPointSize(3);
+    glEnable(GL_POINT_SMOOTH); CHECK_OPENGL_ERROR
+    glEnable(GL_PROGRAM_POINT_SIZE); CHECK_OPENGL_ERROR
 }
 
 void Renderer::Terminate()
@@ -89,9 +89,26 @@ void Renderer::Terminate()
 void Renderer::Update(const float deltaTime)
 {
     mShaderProgram->Bind();
-    GLuint matrixMVP_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "MVP"); CHECK_OPENGL_ERROR
-    glm::mat4 MVP = Root::Instance().GetCamera()->ProjectionView();
-    glUniformMatrix4fv(matrixMVP_ID, 1, GL_FALSE, glm::value_ptr(MVP)); CHECK_OPENGL_ERROR
+    {
+        GLuint matrixView_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "view"); CHECK_OPENGL_ERROR
+        glm::mat4 view = Root::Instance().GetCamera()->View();
+        glUniformMatrix4fv(matrixView_ID, 1, GL_FALSE, glm::value_ptr(view)); CHECK_OPENGL_ERROR
+    }
+    {
+        GLuint matrixProjection_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "projection"); CHECK_OPENGL_ERROR
+        glm::mat4 projection = Root::Instance().GetCamera()->Projection();
+        glUniformMatrix4fv(matrixProjection_ID, 1, GL_FALSE, glm::value_ptr(projection)); CHECK_OPENGL_ERROR
+    }
+    {
+        GLuint screenSize_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "screenSize"); CHECK_OPENGL_ERROR
+        glm::vec2 screenSize = Root::Instance().GetCamera()->ScreenSize();
+        glUniform2f(screenSize_ID, screenSize.x, screenSize.y); CHECK_OPENGL_ERROR
+    }
+    {
+        GLuint spriteSize_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "spriteSize"); CHECK_OPENGL_ERROR
+        float spriteSize(2);
+        glUniform1f(spriteSize_ID, spriteSize); CHECK_OPENGL_ERROR
+    }
 
     glBindVertexArray(vaoId); CHECK_OPENGL_ERROR
     glDrawArrays(GL_POINTS, 0, mParticleData->mCount); CHECK_OPENGL_ERROR

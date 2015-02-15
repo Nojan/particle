@@ -7,12 +7,19 @@ attribute vec4 vertexColor;
 // Output data ; will be interpolated for each fragment.
 varying vec4 color;
 
-// Values that stay constant for the whole mesh.
-uniform mat4 MVP;
+// Values that stay constant for the whole draw.
+uniform mat4 view;
+uniform mat4 projection;
+uniform vec2 screenSize;
+uniform float spriteSize;
 
 void main()
 {
-    gl_Position = MVP * vertexPosition_modelspace;
+    vec4 eyePos = view * vertexPosition_modelspace;
+    vec4 projVoxel = projection * vec4(spriteSize,spriteSize,eyePos.z,eyePos.w);
+    vec2 projSize = screenSize * projVoxel.xy / projVoxel.w;
+    gl_PointSize = 0.25 * (projSize.x+projSize.y);
+	gl_Position = projection * eyePos;;
     color = vertexColor;
 }
 

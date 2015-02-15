@@ -164,7 +164,7 @@ void Root::Update()
     mFrameDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endSleep - beginFrame);
     if(mFramesCounter > 100 && mFramesDuration.count() > 0)
     {
-        mRenderer->spawnBallParticles(500, glm::ballRand(20.f) + glm::vec3(0.f, 60.f, 0.f), 20.f);
+        mRenderer->spawnBallParticles(500, glm::ballRand(200.f) + glm::vec3(0.f, 300.f, -600.f), 200.f);
         const float avgFrameDuration = mFramesDuration.count() / static_cast<float>(mFramesCounter);
         std::cout << "Average frame : " << avgFrameDuration << "ms" << std::endl;
         mFramesCounter = 0;
