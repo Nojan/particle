@@ -74,6 +74,9 @@ void Renderer::Init()
 
 void Renderer::Terminate()
 {
+    glDeleteBuffers(1, &mVboPositionId); CHECK_OPENGL_ERROR
+    glDeleteBuffers(1, &mVboColorId); CHECK_OPENGL_ERROR
+    glDeleteVertexArrays(1, &mVaoId); CHECK_OPENGL_ERROR
     mShaderProgram.reset();
 }
 
