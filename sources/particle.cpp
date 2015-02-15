@@ -36,11 +36,14 @@ static __m128 normalizeSIMD(const __m128& m)
 void UpdateParticleGravitySIMD(ParticleData& data, const float gravityPositionX, const float gravityPositionY, const float gravityPositionZ, const float deltaTime) {
     const vec4 gravityPosition(gravityPositionX, gravityPositionY, gravityPositionZ, 1.f);
     const float g = 9.8f;
+    const float dragFactor = 1.f - 0.9f*deltaTime;
     const vec4 gravityAccel(0, -g, 0, 0);
+    const vec4 drag(dragFactor, dragFactor, 0, dragFactor);
     const __m128 deltaTimeSIMD = _mm_load_ps1(&deltaTime);
     const __m128 gravitySpeed = _mm_mul_ps(gravityAccel.simd, deltaTimeSIMD);
     for (size_t i = 0; i<data.mCount; ++i) {
         data.mSpeed[i].simd = _mm_add_ps(data.mSpeed[i].simd, gravitySpeed);
+        data.mSpeed[i].simd = _mm_mul_ps(data.mSpeed[i].simd, drag.simd);
         const __m128 displacePos = _mm_mul_ps(data.mSpeed[i].simd, deltaTimeSIMD);
         data.mPosition[i].simd = _mm_add_ps(data.mPosition[i].simd, displacePos);
         data.mTime[i] -= deltaTime;
