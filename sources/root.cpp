@@ -5,6 +5,7 @@
 #include "particle.hpp"
 #include "renderer.hpp"
 #include "meshRenderer.hpp"
+#include "skybox.hpp"
 #include "visualdebug.hpp"
 #include "gameplay/loopmanager.hpp"
 #include "imgui/imgui_header.hpp"
@@ -64,6 +65,7 @@ Root::Root()
 , mMeshRenderer(new MeshRenderer())
 , mFireworkManager(new FireworksManager(mRenderer.get()))
 , mVisualDebugRenderer(new VisualDebugRenderer())
+, mSkybox(nullptr)
 , mGameplayLoopManager(new Gameplay::LoopManager())
 , mWindow(NULL)
 , mRunning(GL_FALSE)
@@ -119,6 +121,8 @@ void Root::Init()
     mRenderer->Init();
     mMeshRenderer->Init();
     mVisualDebugRenderer->Init();
+    mSkybox.reset(Skybox::CreateSkyboxFrom("../asset/skybox/grimmnight"));
+    mSkybox->Init();
     mGameplayLoopManager->Init();
 
     glfwSetKeyCallback(mWindow, key_callback);
@@ -138,6 +142,7 @@ void Root::Terminate()
     mCamera->Terminate();
     mRenderer->Terminate();
     mMeshRenderer->Terminate();
+    mSkybox->Terminate();
     mVisualDebugRenderer->Terminate();
     mGameplayLoopManager->Terminate();
     
@@ -177,6 +182,7 @@ void Root::Update()
     while (frameDuration <= lastFrameDuration) {
         lastFrameDuration -= frameDuration;
         mCamera->Update(frameDuration);
+        mSkybox->Update();
         const glm::vec3 positonInWorldSpace = mCamera->Position() + mCamera->Direction()*100.f;
         mGameplayLoopManager->Update(frameDuration);
         mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);

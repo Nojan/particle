@@ -9,6 +9,7 @@ class FireworksManager;
 class ParticleUpdater;
 class Renderer;
 class MeshRenderer;
+class Skybox;
 class VisualDebugRenderer;
 struct GLFWwindow;
 
@@ -41,6 +42,7 @@ private:
     std::unique_ptr<MeshRenderer> mMeshRenderer;
     std::unique_ptr<FireworksManager> mFireworkManager;
     std::unique_ptr<VisualDebugRenderer> mVisualDebugRenderer;
+    std::unique_ptr<Skybox> mSkybox;
     std::unique_ptr<Gameplay::LoopManager> mGameplayLoopManager;
     GLFWwindow* mWindow;
 
