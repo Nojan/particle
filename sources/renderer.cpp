@@ -21,6 +21,8 @@ Renderer::Renderer()
 , mVaoId(0)
 , mVboPositionId(0)
 , mVboColorId(0)
+, mTextureId(0)
+, mSamplerId(0)
 , mMousePosition(0.f, 0.f, 100.f)
 {}
 
@@ -29,11 +31,23 @@ Renderer::~Renderer()
 
 void Renderer::Init()
 {
+    Texture2D::loadBMP_custom("../asset/particle_mask.bmp", mParticleMask);
     mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/Simple.vertexshader", "../shaders/Simple.fragmentshader")));
     mShaderProgram->Bind();
     GLuint vertexPosition_modelspaceID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace"); CHECK_OPENGL_ERROR
     GLuint vertexColorID               = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexColor"); CHECK_OPENGL_ERROR
 
+    {
+        glGenTextures(1, &mTextureId); CHECK_OPENGL_ERROR
+        glBindTexture(GL_TEXTURE_2D, mTextureId); CHECK_OPENGL_ERROR
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mParticleMask.getWidth(), mParticleMask.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE, mParticleMask.getData()); CHECK_OPENGL_ERROR
+
+        glGenSamplers(1, &mSamplerId);
+        glSamplerParameteri(mSamplerId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); CHECK_OPENGL_ERROR
+        glSamplerParameteri(mSamplerId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); CHECK_OPENGL_ERROR
+        glSamplerParameteri(mSamplerId, GL_TEXTURE_MIN_FILTER, GL_LINEAR); CHECK_OPENGL_ERROR
+        glSamplerParameteri(mSamplerId, GL_TEXTURE_MAG_FILTER, GL_LINEAR); CHECK_OPENGL_ERROR
+    }
     {
         glGenBuffers(1, &mVboPositionId); CHECK_OPENGL_ERROR
         glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); CHECK_OPENGL_ERROR
@@ -53,8 +67,9 @@ void Renderer::Init()
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glEnable(GL_BLEND); CHECK_OPENGL_ERROR
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); CHECK_OPENGL_ERROR
-    glEnable(GL_POINT_SMOOTH); CHECK_OPENGL_ERROR
+    glEnable(GL_POINT_SPRITE); CHECK_OPENGL_ERROR
     glEnable(GL_PROGRAM_POINT_SIZE); CHECK_OPENGL_ERROR
+    glEnable(GL_TEXTURE_2D); CHECK_OPENGL_ERROR
 
     {
         glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); CHECK_OPENGL_ERROR
@@ -83,6 +98,13 @@ void Renderer::Terminate()
 void Renderer::Update(const float deltaTime)
 {
     mShaderProgram->Bind();
+    {
+        GLuint textureID = glGetUniformLocation(mShaderProgram->ProgramID(), "uTexture"); CHECK_OPENGL_ERROR
+        glActiveTexture(GL_TEXTURE0); CHECK_OPENGL_ERROR
+        glBindTexture(GL_TEXTURE_2D, mTextureId); CHECK_OPENGL_ERROR
+        glUniform1i(textureID, 0); CHECK_OPENGL_ERROR
+        glBindSampler(0, mSamplerId); CHECK_OPENGL_ERROR
+    }
     {
         UpdateParticleGravitySIMD(*(mParticleData.get()), mMousePosition.x, mMousePosition.y, mMousePosition.z, deltaTime);
         glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); CHECK_OPENGL_ERROR
@@ -126,7 +148,7 @@ void Renderer::Update(const float deltaTime)
     glBindVertexArray(mVaoId); CHECK_OPENGL_ERROR
     glDrawArrays(GL_POINTS, 0, mParticleData->mCount); CHECK_OPENGL_ERROR
     glBindVertexArray(0); CHECK_OPENGL_ERROR
-    
+    glBindTexture(GL_TEXTURE_2D, 0); CHECK_OPENGL_ERROR
     mShaderProgram->Unbind();
 }
 

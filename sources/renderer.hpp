@@ -1,6 +1,7 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 
+#include "texture.hpp"
 #include "vector.hpp"
 
 #include "glm/common.hpp"
@@ -30,7 +31,10 @@ private:
     GLuint mVaoId;
     GLuint mVboPositionId;
     GLuint mVboColorId;
+    GLuint mTextureId;
+    GLuint mSamplerId;
     glm::vec3 mMousePosition;
+    Texture2D mParticleMask;
 };
 
 #endif
