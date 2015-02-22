@@ -147,6 +147,9 @@ void Root::Update()
     const std::chrono::milliseconds frameLimiter(16);
     const float lastFrameDuration = mFrameDuration.count() / 1000.f;
     const auto beginFrame = std::chrono::high_resolution_clock::now();
+    char windowTitle[256];
+    sprintf(windowTitle, "Particle : %dms", mFrameDuration.count());
+    glfwSetWindowTitle(mWindow, windowTitle);
     glfwPollEvents();
     glClearDepth(1.0f); CHECK_OPENGL_ERROR
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_OPENGL_ERROR
