@@ -30,7 +30,14 @@ public:
     void spawnBallParticles(size_t pCount, const glm::vec3 initialPosition, float initialSpeed);
     void swap(const size_t a, const size_t b);
 };
-void UpdateParticleGravitySIMD(ParticleData& data, const float gravityPositionX, const float gravityPositionY, const float gravityPositionZ, float deltaTime);
-void UpdateParticleSIMD(ParticleData& data, const float gravityPositionX, const float gravityPositionY, const float gravityPositionZ, float deltaTime);
+
+namespace Particle {
+    const float gravity = 9.8f;
+    const float drag = 1.f;
+
+    void UpdateParticleGravity(glm::vec3& position, glm::vec3& speed, float deltaTime);
+    void UpdateParticleGravitySIMD(ParticleData& data, float deltaTime);
+    void UpdateParticleSIMD(ParticleData& data, const float gravityPositionX, const float gravityPositionY, const float gravityPositionZ, float deltaTime);
+}
 
 #endif

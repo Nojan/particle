@@ -24,7 +24,9 @@ void ParticleData::swap(const size_t a, const size_t b)
 #include <immintrin.h>
 #include <emmintrin.h>
 
-static __m128 normalizeSIMD(const __m128& m)
+namespace Particle {
+
+__m128 normalizeSIMD(const __m128& m)
 {
     const __m128 squared = _mm_mul_ps(m, m);
     const __m128 wwww = _mm_shuffle_ps(squared, squared, 0xff);
@@ -35,11 +37,18 @@ static __m128 normalizeSIMD(const __m128& m)
     return _mm_div_ps(m, _mm_sqrt_ps(squaredSum));
 }
 
-void UpdateParticleGravitySIMD(ParticleData& data, const float gravityPositionX, const float gravityPositionY, const float gravityPositionZ, const float deltaTime) {
-    const vec4 gravityPosition(gravityPositionX, gravityPositionY, gravityPositionZ, 1.f);
-    const float g = 9.8f;
-    const float dragFactor = 1.f - 0.9f*deltaTime;
-    const vec4 gravityAccel(0, -g, 0, 0);
+void UpdateParticleGravity(glm::vec3& position, glm::vec3& speed, float deltaTime) {
+    const float dragFactor = 1.f - drag*deltaTime;
+    const glm::vec3 drag(dragFactor, dragFactor, 0);
+    const glm::vec3 gravitySpeed(0, -gravity*deltaTime, 0);
+    speed += gravitySpeed;
+    speed *= drag;
+    position += speed*deltaTime;
+}
+
+void UpdateParticleGravitySIMD(ParticleData& data, const float deltaTime) {
+    const float dragFactor = 1.f -drag*deltaTime;
+    const vec4 gravityAccel(0, -gravity, 0, 0);
     const vec4 drag(dragFactor, dragFactor, 0, dragFactor);
     const __m128 deltaTimeSIMD = _mm_load_ps1(&deltaTime);
     const __m128 gravitySpeed = _mm_mul_ps(gravityAccel.simd, deltaTimeSIMD);
@@ -58,8 +67,7 @@ void UpdateParticleGravitySIMD(ParticleData& data, const float gravityPositionX,
 
 void UpdateParticleSIMD(ParticleData& data, const float gravityPositionX, const float gravityPositionY, const float gravityPositionZ, const float deltaTime) {
     const vec4 gravityPosition(gravityPositionX, gravityPositionY, gravityPositionZ, 1.f);
-    const float g = 10.f;
-    const vec4 gravitySpeed(g, g, g, g);
+    const vec4 gravitySpeed(gravity, gravity, gravity, gravity);
     const __m128 deltaTimeSIMD = _mm_load_ps1(&deltaTime);
     const __m128 displaceSpeed = _mm_mul_ps(gravitySpeed.simd, deltaTimeSIMD);
     for (size_t i = 0; i<data.mCount; ++i) {
@@ -76,3 +84,4 @@ void UpdateParticleSIMD(ParticleData& data, const float gravityPositionX, const 
     }
 }
 
+} //namespace Particle
