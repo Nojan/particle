@@ -159,8 +159,9 @@ void Renderer::spawnBallParticles(size_t pCount, const glm::vec3& initialPositio
     const Color::rgbp color = Color::hsv2rgbp(colorHsv);
     const Color::rgbap colorWalpha = { color.r, color.g, color.b, 1.f };
     const vec4 position(initialPosition.x, initialPosition.y, initialPosition.z, 1.f);
+    float speedNonConst = speed; //glm bug on gcc?
     for (size_t i = mParticleData->mCount; i<newParticleCount; ++i) {
-        glm::vec3 speed(glm::ballRand(speed) + initialSpeed);
+        const glm::vec3 speed(glm::ballRand(speedNonConst) + initialSpeed);
         mParticleData->mPosition[i] = position;
         mParticleData->mSpeed[i] = vec4(speed.x, speed.y, speed.z, 0.f);
         mParticleData->mColor[i] = colorWalpha;
