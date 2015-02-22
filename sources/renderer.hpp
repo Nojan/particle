@@ -1,6 +1,7 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 
+#include "color.hpp"
 #include "texture.hpp"
 #include "vector.hpp"
 
@@ -8,6 +9,7 @@
 #include "opengl_includes.hpp"
 
 #include <memory>
+#include <vector>
 
 class ParticleData;
 class ShaderProgram; 
@@ -21,7 +23,8 @@ public:
     void Terminate();
     void Update(const float deltaTime);
 
-    void spawnBallParticles(size_t pCount, const glm::vec3 initialPosition, float initialSpeed);
+    void spawnBallParticles(size_t pCount, const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float speed, const float lifetime);
+    void spawnParticle(const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float lifetime, const Color::rgbp color);
 
     void HandleMousePosition(float x, float y, float z);
 

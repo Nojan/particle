@@ -1,6 +1,7 @@
 #include "root.hpp"
 
 #include "camera.hpp"
+#include "firework.hpp"
 #include "particle.hpp"
 #include "renderer.hpp"
 
@@ -56,10 +57,11 @@ Root& Root::Instance()
 Root::Root()
 : mCamera(new Camera())
 , mRenderer(new Renderer())
+, mFireworkManager(new FireworksManager(mRenderer.get()))
 , mWindow(NULL)
 , mRunning(GL_FALSE)
 , mFramesCounter(0)
-, mFrameDuration(0)
+, mFrameDuration(1)
 , mFramesDuration(0)
 {
 }
@@ -152,6 +154,7 @@ void Root::Update()
     const glm::vec3 positonInWorldSpace = mCamera->Position() + mCamera->Direction()*100.f;
     mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
     mRenderer->Update(lastFrameDuration);
+    mFireworkManager->Update(lastFrameDuration);
     glfwSwapBuffers(mWindow); CHECK_OPENGL_ERROR
     const auto endFrame = std::chrono::high_resolution_clock::now();
     const auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFrame - beginFrame);
@@ -163,7 +166,7 @@ void Root::Update()
     mFrameDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endSleep - beginFrame);
     if(mFramesCounter > 100 && mFramesDuration.count() > 0)
     {
-        mRenderer->spawnBallParticles(500, glm::ballRand(200.f) + glm::vec3(0.f, 300.f, -600.f), 200.f);
+        mFireworkManager->spawnPeony(glm::ballRand(200.f) + glm::vec3(0.f, 400.f, -500.f), 100.f, 3.f);
         const float avgFrameDuration = mFramesDuration.count() / static_cast<float>(mFramesCounter);
         std::cout << "Average frame : " << avgFrameDuration << "ms" << std::endl;
         mFramesCounter = 0;

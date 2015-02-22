@@ -10,14 +10,13 @@
 #include "glm/gtc/type_ptr.hpp"
 
 // TODO
-#include "color.hpp"
 #include <glm/gtc/random.hpp>
 
 #include <assert.h>
 #include <algorithm>
 
 Renderer::Renderer()
-: mParticleData(new ParticleData(10000))
+: mParticleData(new ParticleData(100000))
 , mVaoId(0)
 , mVboPositionId(0)
 , mVboColorId(0)
@@ -152,22 +151,35 @@ void Renderer::Update(const float deltaTime)
     mShaderProgram->Unbind();
 }
 
-void Renderer::spawnBallParticles(size_t pCount, const glm::vec3 initialPosition, float initialSpeed)
+void Renderer::spawnBallParticles(size_t pCount, const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float speed, const float lifetime)
 {
     const size_t newParticleCount = std::min(mParticleData->mCount + pCount, mParticleData->mMaxCount);
     const float colorHue = glm::linearRand(0.f, 2.f*3.14f);
     const Color::hsv colorHsv = { colorHue, 0.75f, 0.95f };
     const Color::rgbp color = Color::hsv2rgbp(colorHsv);
     const Color::rgbap colorWalpha = { color.r, color.g, color.b, 1.f };
+    const vec4 position(initialPosition.x, initialPosition.y, initialPosition.z, 1.f);
     for (size_t i = mParticleData->mCount; i<newParticleCount; ++i) {
-        glm::vec3 position(initialPosition);
-        glm::vec3 speed(glm::ballRand(initialSpeed));
-        mParticleData->mPosition[i] = vec4(position.x, position.y, position.z, 1.f);
+        glm::vec3 speed(glm::ballRand(speed) + initialSpeed);
+        mParticleData->mPosition[i] = position;
         mParticleData->mSpeed[i] = vec4(speed.x, speed.y, speed.z, 0.f);
         mParticleData->mColor[i] = colorWalpha;
-        mParticleData->mTime[i] = glm::linearRand(5.f, 10.f);
+        mParticleData->mTime[i] = glm::linearRand(lifetime*0.9f, lifetime*1.1f);
     }
     mParticleData->mCount = newParticleCount;
+}
+
+void Renderer::spawnParticle(const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float lifetime, const Color::rgbp color)
+{
+    if (mParticleData->mMaxCount <= mParticleData->mCount + 1)
+        return;
+    const size_t i = mParticleData->mCount;
+    const Color::rgbap colorWalpha = { color.r, color.g, color.b, 1.f };
+    mParticleData->mPosition[i] = vec4(initialPosition.x, initialPosition.y, initialPosition.z, 1.f);
+    mParticleData->mSpeed[i] = vec4(initialSpeed.x, initialSpeed.y, initialSpeed.z, 0.f);
+    mParticleData->mColor[i] = colorWalpha;
+    mParticleData->mTime[i] = glm::linearRand(lifetime*0.9f, lifetime*1.1f);
+    mParticleData->mCount += 1;
 }
 
 void Renderer::HandleMousePosition(float x, float y, float z) {

@@ -5,6 +5,7 @@
 #include <memory>
 
 class Camera;
+class FireworksManager;
 class ParticleUpdater;
 class Renderer;
 struct GLFWwindow;
@@ -29,6 +30,7 @@ private:
 private:
     std::unique_ptr<Camera> mCamera;
     std::unique_ptr<Renderer> mRenderer;
+    std::unique_ptr<FireworksManager> mFireworkManager;
     GLFWwindow* mWindow;
 
     int mRunning;
