@@ -23,7 +23,7 @@ public:
     void Terminate();
     void Update(const float deltaTime);
 
-    void spawnBallParticles(size_t pCount, const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float speed, const float lifetime);
+    void spawnBallParticles(size_t pCount, const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float speed, const Color::rgbp color, const float lifetime);
     void spawnParticle(const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float lifetime, const Color::rgbp color);
 
     void HandleMousePosition(float x, float y, float z);

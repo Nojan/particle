@@ -151,12 +151,9 @@ void Renderer::Update(const float deltaTime)
     mShaderProgram->Unbind();
 }
 
-void Renderer::spawnBallParticles(size_t pCount, const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float speed, const float lifetime)
+void Renderer::spawnBallParticles(size_t pCount, const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float speed, const Color::rgbp color, const float lifetime)
 {
     const size_t newParticleCount = std::min(mParticleData->mCount + pCount, mParticleData->mMaxCount);
-    const float colorHue = glm::linearRand(0.f, 2.f*3.14f);
-    const Color::hsv colorHsv = { colorHue, 0.75f, 0.95f };
-    const Color::rgbp color = Color::hsv2rgbp(colorHsv);
     const Color::rgbap colorWalpha = { color.r, color.g, color.b, 1.f };
     const vec4 position(initialPosition.x, initialPosition.y, initialPosition.z, 1.f);
     float speedNonConst = speed; //glm bug on gcc?

@@ -21,9 +21,10 @@ void FireworkShellDescriptor::Update(const glm::vec3& position, const glm::vec3&
 }
 
 void PeonyDescriptor::Update(const glm::vec3& position, const glm::vec3& speed, const float deltaTime, Renderer* renderer) const {
-    const float particulePerMs = 1000.f;
-    const size_t particuleCount = 1;// static_cast<size_t>(particulePerMs * deltaTime);
-    renderer->spawnBallParticles(particuleCount, position, speed, 10.f, 0.5f);
+    const float particulePerMs = 100.f;
+    const size_t particuleCount = static_cast<size_t>(particulePerMs * deltaTime);
+    const Color::rgbp color = { 1.f, 1.f, 1.f};
+    renderer->spawnBallParticles(particuleCount, position, speed, 10.f, color, 0.5f);
 }
 
 FireworkShell::FireworkShell(const FireworkShellDescriptor* descriptor)
@@ -32,11 +33,11 @@ FireworkShell::FireworkShell(const FireworkShellDescriptor* descriptor)
 
 }
 
-FireworkShell::FireworkShell(const FireworkShellDescriptor* descriptor, const glm::vec3& position, const glm::vec3& speed, const float lifetime)
+FireworkShell::FireworkShell(const FireworkShellDescriptor* descriptor, const glm::vec3& position, const glm::vec3& speed, const float beginTime, const float lifetime)
     : mDescriptor(descriptor)
     , mPosition(position)
     , mSpeed(speed)
-    , mBeginTime(0.f)
+    , mBeginTime(beginTime)
     , mTimeToLive(lifetime)
 {
 
@@ -53,7 +54,8 @@ void FireworkShell::update(const float deltaTime, FireworksManager* manager, Ren
         for (size_t i = 0; i < mSubShell.size(); ++i) {
             FireworkShell* shell = mSubShell[i].get();
             shell->update(deltaTime, manager, renderer);
-            if (beginTime() < 0.f) {
+            if (shell->beginTime() < 0.f) {
+                shell->mPosition += mPosition;
                 manager->addShell(std::move(mSubShell[i]));
                 const size_t newSize = mSubShell.size() - 1;
                 std::swap(mSubShell[i], mSubShell[newSize]);
@@ -66,7 +68,7 @@ void FireworkShell::update(const float deltaTime, FireworksManager* manager, Ren
     }
 }
 
-void FireworkShell::addShell(std::unique_ptr<FireworkShell>& shell)
+void FireworkShell::addShell(std::unique_ptr<FireworkShell> shell)
 {
     mSubShell.push_back(std::move(shell));
 }
@@ -99,8 +101,8 @@ PeonyShell::PeonyShell(const FireworkShellDescriptor* descriptor)
 
 }
 
-PeonyShell::PeonyShell(const FireworkShellDescriptor* descriptor, const glm::vec3& position, const glm::vec3& speed, const float lifetime)
-    : parentType(descriptor, position, speed, lifetime)
+PeonyShell::PeonyShell(const FireworkShellDescriptor* descriptor, const glm::vec3& position, const glm::vec3& speed, const float beginTime, const float lifetime)
+    : parentType(descriptor, position, speed, beginTime, lifetime)
 {
 
 }
@@ -148,7 +150,7 @@ void FireworksManager::spawnPeony(const glm::vec3& initialPosition, const float 
     for (size_t i = 0; i < trailCount; ++i) {
         const glm::vec3 initialSpeed = glm::ballRand(speed);
         mRenderer->spawnParticle(initialPosition, initialSpeed, lifetime, color);
-        std::unique_ptr<PeonyShell> peonyShell(new PeonyShell(mPeonyDescriptor.get(), initialPosition, initialSpeed, lifetime));
+        std::unique_ptr<PeonyShell> peonyShell(new PeonyShell(mPeonyDescriptor.get(), initialPosition, initialSpeed, 0.f, lifetime));
         addShell(std::move(peonyShell));
     }
 }
