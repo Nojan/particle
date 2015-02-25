@@ -28,11 +28,11 @@ typedef std::vector<std::unique_ptr<FireworkShell> > SubShells;
 class FireworkShell {
 public:
     FireworkShell(const FireworkShellDescriptor* descriptor);
-    FireworkShell(const FireworkShellDescriptor* descriptor, const glm::vec3& position, const glm::vec3& speed, const float lifetime);
+    FireworkShell(const FireworkShellDescriptor* descriptor, const glm::vec3& position, const glm::vec3& speed, const float beginTime, const float lifetime);
     virtual ~FireworkShell() {}
 
     void update(const float deltaTime, FireworksManager* manager, Renderer* renderer);
-    void addShell(std::unique_ptr<FireworkShell>& shell);
+    void addShell(std::unique_ptr<FireworkShell> shell);
 
     float beginTime() const;
     float timeToLive() const;
@@ -54,7 +54,7 @@ class PeonyShell : public FireworkShell {
     typedef FireworkShell parentType;
 public:
     PeonyShell(const FireworkShellDescriptor* descriptor);
-    PeonyShell(const FireworkShellDescriptor* descriptor, const glm::vec3& position, const glm::vec3& speed, const float lifetime);
+    PeonyShell(const FireworkShellDescriptor* descriptor, const glm::vec3& position, const glm::vec3& speed, const float beginTime, const float lifetime);
     virtual ~PeonyShell() {}
 
 protected:
