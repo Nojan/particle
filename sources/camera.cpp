@@ -194,7 +194,7 @@ void Camera::HandleMousePosition(int x, int y)
 
 void Camera::HandleMouseButton(int button, int state)
 {
-    mMousePan = (button == GLFW_MOUSE_BUTTON_LEFT) && (state == GLFW_PRESS);
+    mMousePan = (button == GLFW_MOUSE_BUTTON_RIGHT) && (state == GLFW_PRESS);
 }
 
 void Camera::HandleMouseWheel(int wheel)
