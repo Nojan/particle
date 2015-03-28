@@ -8,6 +8,7 @@ class Camera;
 class FireworksManager;
 class ParticleUpdater;
 class Renderer;
+class VisualDebugRenderer;
 struct GLFWwindow;
 
 class Root {
@@ -31,6 +32,7 @@ private:
     std::unique_ptr<Camera> mCamera;
     std::unique_ptr<Renderer> mRenderer;
     std::unique_ptr<FireworksManager> mFireworkManager;
+    std::unique_ptr<VisualDebugRenderer> mVisualDebugRenderer;
     GLFWwindow* mWindow;
 
     int mRunning;

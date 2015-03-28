@@ -4,6 +4,7 @@
 #include "firework.hpp"
 #include "particle.hpp"
 #include "renderer.hpp"
+#include "visualdebug_renderer.hpp"
 #include "imgui/imgui_header.hpp"
 
 #include "opengl_includes.hpp"
@@ -59,6 +60,7 @@ Root::Root()
 : mCamera(new Camera())
 , mRenderer(new Renderer())
 , mFireworkManager(new FireworksManager(mRenderer.get()))
+, mVisualDebugRenderer(new VisualDebugRenderer())
 , mWindow(NULL)
 , mRunning(GL_FALSE)
 , mFramesCounter(0)
@@ -111,6 +113,7 @@ void Root::Init()
     mCamera->Init();
     mCamera->HandleWindowResize(windowsWidth, windowsHeight);
     mRenderer->Init();
+    mVisualDebugRenderer->Init();
 
     glfwSetKeyCallback(mWindow, key_callback);
 
@@ -128,6 +131,7 @@ void Root::Terminate()
 {
     mCamera->Terminate();
     mRenderer->Terminate();
+    mVisualDebugRenderer->Terminate();
     
     IMGUI_ONLY(ImGui_ImplGlfwGL3_Shutdown());
     glfwDestroyWindow(mWindow); //no callback from mWindow will be fired
@@ -156,6 +160,7 @@ void Root::Update()
     glfwSetWindowTitle(mWindow, windowTitle);
     glfwPollEvents();
     IMGUI_ONLY(ImGui_ImplGlfwGL3_NewFrame());
+    mVisualDebugRenderer->BeginFrame();
     glClearDepth(1.0f); CHECK_OPENGL_ERROR
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_OPENGL_ERROR
     mCamera->Update(lastFrameDuration);
@@ -163,6 +168,7 @@ void Root::Update()
     mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
     mRenderer->Update(lastFrameDuration);
     mFireworkManager->Update(lastFrameDuration);
+    mVisualDebugRenderer->Render();
     static bool autoSpawnParticle = true;
     static int autoSpawnParticleFrame = 100;
 #ifdef IMGUI_ENABLE
