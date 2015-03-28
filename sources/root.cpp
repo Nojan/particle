@@ -4,6 +4,8 @@
 #include "firework.hpp"
 #include "particle.hpp"
 #include "renderer.hpp"
+#include "imgui/imgui.hpp"
+#include "imgui/imgui_impl_glfw_gl3.hpp"
 
 #include "opengl_includes.hpp"
 #include <glm/glm.hpp>
@@ -95,6 +97,9 @@ void Root::Init()
 
     glfwMakeContextCurrent(mWindow);
 
+    // Setup ImGui binding
+    ImGui_ImplGlfwGL3_Init(mWindow, true);
+
     // Initialize Glew AFTER glfwMakeContextCurrent
     GLenum glewInitCode = glewInit();
     if (GLEW_OK != glewInitCode)
@@ -126,6 +131,7 @@ void Root::Terminate()
     mCamera->Terminate();
     mRenderer->Terminate();
     
+    ImGui_ImplGlfwGL3_Shutdown();
     glfwDestroyWindow(mWindow); //no callback from mWindow will be fired
     glfwTerminate();
 }
@@ -150,14 +156,25 @@ void Root::Update()
     char windowTitle[256];
     sprintf(windowTitle, "Particle : %dms", mFrameDuration.count());
     glfwSetWindowTitle(mWindow, windowTitle);
+    ImGuiIO& io = ImGui::GetIO();
     glfwPollEvents();
+    ImGui_ImplGlfwGL3_NewFrame();
     glClearDepth(1.0f); CHECK_OPENGL_ERROR
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_OPENGL_ERROR
+
+    {
+        static float f;
+        ImGui::Text("Hello, world!");
+        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    }
+
     mCamera->Update(lastFrameDuration);
     const glm::vec3 positonInWorldSpace = mCamera->Position() + mCamera->Direction()*100.f;
     mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
     mRenderer->Update(lastFrameDuration);
     mFireworkManager->Update(lastFrameDuration);
+    ImGui::Render();
     glfwSwapBuffers(mWindow); CHECK_OPENGL_ERROR
     const auto endFrame = std::chrono::high_resolution_clock::now();
     const auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFrame - beginFrame);
