@@ -4,8 +4,7 @@
 #include "firework.hpp"
 #include "particle.hpp"
 #include "renderer.hpp"
-#include "imgui/imgui.hpp"
-#include "imgui/imgui_impl_glfw_gl3.hpp"
+#include "imgui/imgui_header.hpp"
 
 #include "opengl_includes.hpp"
 #include <glm/glm.hpp>
@@ -64,7 +63,6 @@ Root::Root()
 , mRunning(GL_FALSE)
 , mFramesCounter(0)
 , mFrameDuration(1)
-, mFramesDuration(0)
 {
 }
 
@@ -98,7 +96,7 @@ void Root::Init()
     glfwMakeContextCurrent(mWindow);
 
     // Setup ImGui binding
-    ImGui_ImplGlfwGL3_Init(mWindow, true);
+    IMGUI_ONLY(ImGui_ImplGlfwGL3_Init(mWindow, true));
 
     // Initialize Glew AFTER glfwMakeContextCurrent
     GLenum glewInitCode = glewInit();
@@ -131,7 +129,7 @@ void Root::Terminate()
     mCamera->Terminate();
     mRenderer->Terminate();
     
-    ImGui_ImplGlfwGL3_Shutdown();
+    IMGUI_ONLY(ImGui_ImplGlfwGL3_Shutdown());
     glfwDestroyWindow(mWindow); //no callback from mWindow will be fired
     glfwTerminate();
 }
@@ -156,41 +154,44 @@ void Root::Update()
     char windowTitle[256];
     sprintf(windowTitle, "Particle : %dms", mFrameDuration.count());
     glfwSetWindowTitle(mWindow, windowTitle);
-    ImGuiIO& io = ImGui::GetIO();
     glfwPollEvents();
-    ImGui_ImplGlfwGL3_NewFrame();
+    IMGUI_ONLY(ImGui_ImplGlfwGL3_NewFrame());
     glClearDepth(1.0f); CHECK_OPENGL_ERROR
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_OPENGL_ERROR
-
-    {
-        static float f;
-        ImGui::Text("Hello, world!");
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    }
-
     mCamera->Update(lastFrameDuration);
     const glm::vec3 positonInWorldSpace = mCamera->Position() + mCamera->Direction()*100.f;
     mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
     mRenderer->Update(lastFrameDuration);
     mFireworkManager->Update(lastFrameDuration);
-    ImGui::Render();
+    static bool autoSpawnParticle = true;
+    static int autoSpawnParticleFrame = 100;
+#ifdef IMGUI_ENABLE
+    if (ImGui::Begin("Debug_Info"))
+    {
+        ImGui::Text("Frame %.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::Text("Last frame %.3f ms", lastFrameDuration * 1000.f);
+        if (ImGui::CollapsingHeader("Particle Renderer"))
+        {
+            mRenderer->debug_GUI();
+            ImGui::Checkbox("auto spawn", &autoSpawnParticle);
+            ImGui::SliderInt("spawn each frame", &autoSpawnParticleFrame, 10, 500);
+        }
+    }
+    ImGui::End();
+#endif
+    IMGUI_ONLY(ImGui::Render());
     glfwSwapBuffers(mWindow); CHECK_OPENGL_ERROR
     const auto endFrame = std::chrono::high_resolution_clock::now();
     const auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFrame - beginFrame);
 
     ++mFramesCounter;
-    mFramesDuration += renderingDuration;
     std::this_thread::sleep_for(frameLimiter - renderingDuration);
     const auto endSleep = std::chrono::high_resolution_clock::now();
     mFrameDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endSleep - beginFrame);
-    if(mFramesCounter > 100 && mFramesDuration.count() > 0)
+    if (autoSpawnParticle && mFramesCounter > autoSpawnParticleFrame)
     {
         mFireworkManager->spawnPeony(glm::ballRand(200.f) + glm::vec3(0.f, 400.f, -500.f), 100.f, 3.f);
-        const float avgFrameDuration = mFramesDuration.count() / static_cast<float>(mFramesCounter);
-        std::cout << "Average frame : " << avgFrameDuration << "ms" << std::endl;
         mFramesCounter = 0;
-        mFramesDuration = std::chrono::milliseconds(0);
     }
 }
 

@@ -1,6 +1,7 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 
+#include "config.hpp"
 #include "color.hpp"
 #include "texture.hpp"
 #include "vector.hpp"
@@ -27,6 +28,10 @@ public:
     void spawnParticle(const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float lifetime, const Color::rgbp color);
 
     void HandleMousePosition(float x, float y, float z);
+
+#ifdef IMGUI_ENABLE
+    void debug_GUI() const;
+#endif
 
 private:
     std::unique_ptr<ParticleData> mParticleData;

@@ -7,6 +7,7 @@
 
 #include "opengl_includes.hpp"
 #include "shader_loader.hpp"
+#include "imgui/imgui_header.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
 // TODO
@@ -183,3 +184,9 @@ void Renderer::spawnParticle(const glm::vec3& initialPosition, const glm::vec3& 
 void Renderer::HandleMousePosition(float x, float y, float z) {
     mMousePosition = glm::vec3(x, y, z);
 }
+
+#ifdef IMGUI_ENABLE
+void Renderer::debug_GUI() const {
+    ImGui::Text("Particle %d/%d", mParticleData->mCount, mParticleData->mMaxCount);
+}
+#endif
