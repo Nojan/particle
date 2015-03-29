@@ -1,6 +1,8 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
+#include "config.hpp"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -42,6 +44,10 @@ public:
     void HandleMousePosition(int x, int y);
     void HandleMouseButton(int button, int state);
     void HandleMouseWheel(int wheel);
+
+#ifdef IMGUI_ENABLE
+    void debug_GUI();
+#endif
 
 private:
     bool mUpdateView;

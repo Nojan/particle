@@ -1,7 +1,9 @@
 #include "camera.hpp"
 
 #include "opengl_includes.hpp"
+#include "imgui/imgui_header.hpp"
 #include <glm/gtx/transform.hpp>
+#include <glm/ext.hpp>
 
 #include <algorithm>
 #include <iostream>
@@ -206,3 +208,10 @@ void Camera::HandleMouseWheel(int wheel)
     mUpdateProjection = true;
 }
 
+#ifdef IMGUI_ENABLE
+void Camera::debug_GUI()
+{
+    ImGui::Text("Position %s", glm::to_string(mPosition).c_str());
+    ImGui::Text("Direction %s", glm::to_string(mDirection).c_str());
+}
+#endif

@@ -176,6 +176,10 @@ void Root::Update()
     {
         ImGui::Text("Frame %.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::Text("Last frame %.3f ms", lastFrameDuration * 1000.f);
+        if (ImGui::CollapsingHeader("Main camera"))
+        {
+            mCamera->debug_GUI();
+        }
         if (ImGui::CollapsingHeader("Particle Renderer"))
         {
             mRenderer->debug_GUI();
