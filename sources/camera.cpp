@@ -25,6 +25,7 @@ Camera::Camera()
 , mUpdateProjection(true)
 , mMousePan(false)
 , mMoveMask(MV_NONE)
+, mSpeed(0.01f)
 , mScreenSize(1, 1)
 , mMousePosition(0.f)
 , mPosition(0.f, 0.f, 100.f)
@@ -51,7 +52,7 @@ void Camera::Terminate()
 void Camera::Update(const float frameDuration)
 {
     if( MV_NONE != mMoveMask ) {
-        const float moveSpeed = 0.0000001f/frameDuration;
+        const float moveSpeed = mSpeed / frameDuration;
         if(MV_LEFT & mMoveMask)
             mPosition -= mOrthoDirection*moveSpeed;
         if(MV_RIGHT & mMoveMask)
@@ -213,5 +214,6 @@ void Camera::debug_GUI()
 {
     ImGui::Text("Position %s", glm::to_string(mPosition).c_str());
     ImGui::Text("Direction %s", glm::to_string(mDirection).c_str());
+    ImGui::SliderFloat("Move Speed", &mSpeed, 0.05f, 0.5f);
 }
 #endif

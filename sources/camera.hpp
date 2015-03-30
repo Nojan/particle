@@ -55,6 +55,7 @@ private:
     bool mMousePan;
 
     int mMoveMask;
+    float mSpeed;
 
     glm::ivec2 mScreenSize;
 
