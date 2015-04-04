@@ -1,17 +1,12 @@
 #include "visualdebug_renderer.hpp"
 
-#include "camera.hpp"
-#include "particle.hpp"
-#include "shader.hpp"
-#include "root.hpp"
+#include "../camera.hpp"
+#include "../shader.hpp"
+#include "../shader_loader.hpp"
+#include "../root.hpp"
 
-#include "opengl_includes.hpp"
-#include "shader_loader.hpp"
-#include "imgui/imgui_header.hpp"
-#include "glm/gtc/type_ptr.hpp"
-
-// TODO
-#include <glm/gtc/random.hpp>
+#include "../imgui/imgui_header.hpp"
+#include <glm/gtc/type_ptr.hpp>
 
 #include <assert.h>
 #include <algorithm>

@@ -4,7 +4,7 @@
 #include "firework.hpp"
 #include "particle.hpp"
 #include "renderer.hpp"
-#include "visualdebug_renderer.hpp"
+#include "visualdebug.hpp"
 #include "imgui/imgui_header.hpp"
 
 #include "opengl_includes.hpp"
@@ -224,4 +224,9 @@ void Root::HandleWindowKeyEvent(GLFWwindow* window, int key, int scancode, int a
 Camera *const Root::GetCamera()
 {
     return mCamera.get();
+}
+
+VisualDebugRenderer* Root::GetVisualDebugRenderer()
+{
+    return mVisualDebugRenderer.get();
 }

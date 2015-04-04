@@ -15,6 +15,7 @@ class Root {
 public:
     static Root& Instance();
     Camera*const  GetCamera();
+    VisualDebugRenderer* GetVisualDebugRenderer();
 
     void Init();
     void Terminate();

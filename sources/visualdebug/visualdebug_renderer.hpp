@@ -1,17 +1,15 @@
 #pragma once
 
-#include "config.hpp"
-#include "color.hpp"
-#include "types.hpp"
-#include "vector.hpp"
+#include "../config.hpp"
+#include "../color.hpp"
+#include "../types.hpp"
 
-#include "glm/common.hpp"
-#include "opengl_includes.hpp"
+#include "../opengl_includes.hpp"
+#include <glm/common.hpp>
 
 #include <memory>
 #include <vector>
 
-class ParticleData;
 class ShaderProgram; 
 
 class IVisualDebugCommand {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../visualdebug_renderer.hpp"
+#include "visualdebug_renderer.hpp"
 
 #include <memory>
 
