@@ -2,6 +2,7 @@
 
 #include "config.hpp"
 #include "color.hpp"
+#include "types.hpp"
 #include "vector.hpp"
 
 #include "glm/common.hpp"
@@ -12,6 +13,21 @@
 
 class ParticleData;
 class ShaderProgram; 
+
+class IVisualDebugCommand {
+public:
+    virtual void ApplyCommand(std::vector<glm::vec3>& vertex, std::vector<uint>& index) const = 0;
+};
+
+class VisualDebugCubeCommand : public IVisualDebugCommand {
+public:
+    VisualDebugCubeCommand(const glm::vec3& position, const float size);
+
+    void ApplyCommand(std::vector<glm::vec3>& vertex, std::vector<uint>& index) const override;
+private:
+    glm::vec3 mPosition;
+    float mSize;
+};
 
 class VisualDebugRenderer {
 public:
@@ -26,14 +42,24 @@ public:
 
     void HandleMousePosition(float x, float y, float z);
 
+    void PushCommand(const IVisualDebugCommand& command);
+
 #ifdef IMGUI_ENABLE
     void debug_GUI() const;
 #endif
 
 private:
+    void GrowGPUBufferIFN();
+
+private:
     std::unique_ptr<ShaderProgram> mShaderProgram;
+    std::vector<glm::vec3> mVertex;
+    std::vector<uint> mIndex;
     GLuint mVaoId;
     GLuint mVboPositionId;
+    size_t mVboPositionSize;
+    GLuint mVboIndexId;
+    size_t mVboIndexSize;
     GLuint mVboColorId;
     glm::vec3 mMousePosition;
 };

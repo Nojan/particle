@@ -1,0 +1,14 @@
+#version 120
+
+attribute vec3 vertexPositionMS;
+
+varying vec4 color;
+
+uniform mat4 mvp;
+
+void main()
+{
+    gl_Position = mvp * vec4(vertexPositionMS, 1);
+    color = vec4(1, 1, 0, 1);
+}
+
