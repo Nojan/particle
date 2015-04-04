@@ -11,6 +11,10 @@ class Renderer;
 class VisualDebugRenderer;
 struct GLFWwindow;
 
+namespace Gameplay {
+    class LoopManager;
+}
+
 class Root {
 public:
     static Root& Instance();
@@ -34,6 +38,7 @@ private:
     std::unique_ptr<Renderer> mRenderer;
     std::unique_ptr<FireworksManager> mFireworkManager;
     std::unique_ptr<VisualDebugRenderer> mVisualDebugRenderer;
+    std::unique_ptr<Gameplay::LoopManager> mGameplayLoopManager;
     GLFWwindow* mWindow;
 
     int mRunning;

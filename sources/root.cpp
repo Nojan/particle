@@ -5,6 +5,7 @@
 #include "particle.hpp"
 #include "renderer.hpp"
 #include "visualdebug.hpp"
+#include "gameplay/loopmanager.hpp"
 #include "imgui/imgui_header.hpp"
 
 #include "opengl_includes.hpp"
@@ -61,6 +62,7 @@ Root::Root()
 , mRenderer(new Renderer())
 , mFireworkManager(new FireworksManager(mRenderer.get()))
 , mVisualDebugRenderer(new VisualDebugRenderer())
+, mGameplayLoopManager(new Gameplay::LoopManager())
 , mWindow(NULL)
 , mRunning(GL_FALSE)
 , mFramesCounter(0)
@@ -165,6 +167,7 @@ void Root::Update()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_OPENGL_ERROR
     mCamera->Update(lastFrameDuration);
     const glm::vec3 positonInWorldSpace = mCamera->Position() + mCamera->Direction()*100.f;
+    mGameplayLoopManager->Update(lastFrameDuration);
     mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
     mRenderer->Update(lastFrameDuration);
     mFireworkManager->Update(lastFrameDuration);
