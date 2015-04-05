@@ -1,5 +1,9 @@
 #include "loopmanager.hpp"
 
+#include "../root.hpp"
+#include "../camera.hpp"
+#include "../visualdebug.hpp"
+
 #include <assert.h>
 #include <algorithm>
 
@@ -10,7 +14,21 @@ LoopManager::LoopManager()
 
 void LoopManager::Update(const float deltaTime)
 {
-    
+    const Camera* camera = Root::Instance().GetCamera();
+    const glm::vec3& mouseDirection = camera->MouseDirection();
+    const glm::vec3 planeNormal(0, 0, 1.f);
+    const float cosTheta = glm::dot(mouseDirection, planeNormal);
+    if (0.f == cosTheta)
+        return;
+    const glm::vec3& cameraPosition = camera->Position();
+    const float planeDistance = 25.f;
+    const float t = -(glm::dot(cameraPosition, planeNormal) + planeDistance) / cosTheta;
+    const Camera::perspective& parameter = camera->Perspective();
+    if (t < parameter.zNear || parameter.zFar < t)
+        return;
+    const glm::vec3 intersect = cameraPosition + mouseDirection*t;
+    const VisualDebugCubeCommand cube(intersect, 1.f);
+    VisualDebug()->PushCommand(cube);
 }
 
 } //namespace Gameplay
