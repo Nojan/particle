@@ -31,6 +31,8 @@ public:
     glm::vec3 const& Direction() const;
     void SetDirection(glm::vec3 const& direction);
 
+    glm::vec3 const& MouseDirection() const;
+
     glm::vec3 const& Up() const;
     void SetUp(glm::vec3 const& up);
 
@@ -62,6 +64,7 @@ private:
     perspective mPerspective;
 
     glm::vec2 mMousePosition;
+    glm::vec3 mMouseDirectionWorld;
 
     glm::vec3 mPosition;
     glm::vec3 mDirection;
@@ -71,6 +74,8 @@ private:
     glm::mat4 mView;
     glm::mat4 mProjection;
     glm::mat4 mProjectionView;
+    glm::mat4 mViewInv;
+    glm::mat4 mProjectionInv;
 };
 
 #endif

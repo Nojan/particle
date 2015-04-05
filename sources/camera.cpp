@@ -28,6 +28,7 @@ Camera::Camera()
 , mSpeed(0.01f)
 , mScreenSize(1, 1)
 , mMousePosition(0.f)
+, mMouseDirectionWorld(0.f)
 , mPosition(0.f, 0.f, 100.f)
 , mDirection(0.f, 0.f, -1.f)
 , mUp(0.f, 1.f, 0.f)
@@ -38,6 +39,8 @@ Camera::Camera()
     mPerspective.ratio = 4.f/3.f;
     mPerspective.zNear = 1.f;
     mPerspective.zFar = 1000.f;
+
+    Update(1.f);
 }
 
 Camera::~Camera()
@@ -67,9 +70,11 @@ void Camera::Update(const float frameDuration)
     if(mUpdateView) {
         glm::vec3 center = mPosition+mDirection; 
         mView = glm::lookAt(mPosition, center, mUp);
+        mViewInv = glm::inverse(mView);
     }
     if(mUpdateProjection) {
         mProjection = glm::perspective(mPerspective.fov, mPerspective.ratio, mPerspective.zNear, mPerspective.zFar);
+        mProjectionInv = glm::inverse(mProjection);
     }
     if(mUpdateView || mUpdateProjection) {
         mProjectionView = mProjection*mView;
@@ -109,6 +114,11 @@ void Camera::SetDirection(glm::vec3 const& direction)
     mDirection = glm::normalize(direction);
     mOrthoDirection = glm::cross(mDirection, mUp);
     mUpdateView = true;
+}
+
+glm::vec3 const& Camera::MouseDirection() const
+{
+    return mMouseDirectionWorld;
 }
 
 glm::vec3 const& Camera::Up() const
@@ -193,6 +203,18 @@ void Camera::HandleMousePosition(int x, int y)
         mUpdateView = true;
     }
     mMousePosition = newMousePosition;
+    {
+        const float x = (2.f * mMousePosition.x) / mScreenSize.x - 1.f;
+        const float y = 1.f - (2.f * mMousePosition.y) / mScreenSize.y;
+        const float z = 1.f;
+        const glm::vec3 ray_nds(x, y, z);
+        const glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.f, 1.f);
+        const glm::vec4 ray_proj = mProjectionInv * ray_clip;
+        const glm::vec4 ray_eye(ray_proj.x, ray_proj.y, -1.f, 0.f);
+        const glm::vec4 ray_wor = mViewInv * ray_eye;
+        const glm::vec3 mouse_direction(ray_wor.x, ray_wor.y, ray_wor.z);
+        mMouseDirectionWorld = glm::normalize(mouse_direction);
+    }
 }
 
 void Camera::HandleMouseButton(int button, int state)
@@ -215,5 +237,8 @@ void Camera::debug_GUI()
     ImGui::Text("Position %s", glm::to_string(mPosition).c_str());
     ImGui::Text("Direction %s", glm::to_string(mDirection).c_str());
     ImGui::SliderFloat("Move Speed", &mSpeed, 0.05f, 0.5f);
+    ImGui::Text("Mouse Screen Position %s", glm::to_string(mMousePosition).c_str());
+    ImGui::Text("Mouse World Direction %s", glm::to_string(mMouseDirectionWorld).c_str());
+
 }
 #endif
