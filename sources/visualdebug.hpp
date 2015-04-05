@@ -5,6 +5,6 @@
 #include "visualdebug/cube.hpp"
 #include "visualdebug/sphere.hpp"
 
-VisualDebugRenderer* VisualDebug() {
+inline VisualDebugRenderer* VisualDebug() {
     return Root::Instance().GetVisualDebugRenderer();
 }
