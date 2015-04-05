@@ -12,6 +12,12 @@ namespace Gameplay {
 LoopManager::LoopManager()
 {}
 
+void LoopManager::Init()
+{}
+
+void LoopManager::Terminate()
+{}
+
 void LoopManager::Update(const float deltaTime)
 {
     const Camera* camera = Root::Instance().GetCamera();

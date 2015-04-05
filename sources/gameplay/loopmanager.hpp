@@ -9,6 +9,8 @@ class LoopManager {
 public:
     LoopManager();
 
+    void Init();
+    void Terminate();
     void Update(const float deltaTime);
 
 private:

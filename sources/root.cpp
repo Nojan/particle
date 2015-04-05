@@ -116,6 +116,7 @@ void Root::Init()
     mCamera->HandleWindowResize(windowsWidth, windowsHeight);
     mRenderer->Init();
     mVisualDebugRenderer->Init();
+    mGameplayLoopManager->Init();
 
     glfwSetKeyCallback(mWindow, key_callback);
 
@@ -134,6 +135,7 @@ void Root::Terminate()
     mCamera->Terminate();
     mRenderer->Terminate();
     mVisualDebugRenderer->Terminate();
+    mGameplayLoopManager->Terminate();
     
     IMGUI_ONLY(ImGui_ImplGlfwGL3_Shutdown());
     glfwDestroyWindow(mWindow); //no callback from mWindow will be fired
