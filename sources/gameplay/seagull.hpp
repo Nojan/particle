@@ -4,20 +4,18 @@
 #include <vector>
 
 namespace Gameplay {
-	
-class Seagull;
 
-class LoopManager {
+class Seagull {
 public:
-    LoopManager();
-    ~LoopManager();
+    Seagull();
+    ~Seagull();
 
     void Init();
     void Terminate();
     void Update(const float deltaTime);
 
 private:
-    std::unique_ptr<Seagull> mSeagull;
+
 };
 
 } // namespace
