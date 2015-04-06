@@ -6,10 +6,11 @@
 
 class VisualDebugCubeCommand : public IVisualDebugCommand {
 public:
-    VisualDebugCubeCommand(const glm::vec3& position, const float size);
+    VisualDebugCubeCommand(const glm::vec3& position, const float size, const Color::rgbap& color);
 
     void ApplyCommand(std::vector<glm::vec3>& vertex, std::vector<Color::rgbap>& color, std::vector<uint>& index) const override;
 private:
     glm::vec3 mPosition;
     float mSize;
+    Color::rgbap mColor;
 };

@@ -2,15 +2,15 @@
 
 #include <glm/gtc/constants.hpp>
 
-VisualDebugSphereCommand::VisualDebugSphereCommand(const glm::vec3& position, const float radius) 
+VisualDebugSphereCommand::VisualDebugSphereCommand(const glm::vec3& position, const float radius, const Color::rgbap& color)
 : mPosition(position)
 , mRadius(radius)
+, mColor(color)
 {}
 
 void VisualDebugSphereCommand::ApplyCommand(std::vector<glm::vec3>& vertex, std::vector<Color::rgbap>& color, std::vector<uint>& index) const
 {
     const size_t firstIndex = vertex.size();
-    const Color::rgbap c = { 1.f, 0.f, 0.f, 1.f };
     const uint band = 12;
     const uint latitudeBands = band;
     const uint longitudeBands = band;
@@ -33,7 +33,7 @@ void VisualDebugSphereCommand::ApplyCommand(std::vector<glm::vec3>& vertex, std:
             const glm::vec2 uv(1 - (longNumber * longitudeBandsInv), 1 - (latNumber * latitudeBandsInv));
             const glm::vec3 normal(cosPhi * sinTheta, cosTheta, sinPhi * sinTheta);
             vertex.push_back(mRadius * normal + mPosition);
-            color.push_back(c);
+            color.push_back(mColor);
         }
     }
 

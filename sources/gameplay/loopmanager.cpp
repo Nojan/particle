@@ -44,8 +44,6 @@ void LoopManager::Update(const float deltaTime)
     if (t < parameter.zNear || parameter.zFar < t)
         return;
     const glm::vec3 intersect = cameraPosition + mouseDirection*t;
-    const VisualDebugCubeCommand cube(intersect, 1.f);
-    VisualDebug()->PushCommand(cube);
 }
 
 } //namespace Gameplay

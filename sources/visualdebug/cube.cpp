@@ -1,8 +1,9 @@
 #include "cube.hpp"
 
-VisualDebugCubeCommand::VisualDebugCubeCommand(const glm::vec3& position, const float size)
+VisualDebugCubeCommand::VisualDebugCubeCommand(const glm::vec3& position, const float size, const Color::rgbap& color)
 : mPosition(position)
 , mSize(size)
+, mColor(color)
 {}
 
 void VisualDebugCubeCommand::ApplyCommand(std::vector<glm::vec3>& vertex, std::vector<Color::rgbap>& color, std::vector<uint>& index) const
@@ -21,10 +22,9 @@ void VisualDebugCubeCommand::ApplyCommand(std::vector<glm::vec3>& vertex, std::v
     vertex.push_back(mPosition + glm::vec3( mSize,  mSize, -mSize));
     vertex.push_back(mPosition + glm::vec3(-mSize,  mSize, -mSize));
 
-    const Color::rgbap c = { 1.f, 0.f, 0.f, 1.f };
     for (uint i = 0; i < 8; ++i)
     {
-        color.push_back(c);
+        color.push_back(mColor);
     }
 
     index.push_back(firstIndex + 0);
