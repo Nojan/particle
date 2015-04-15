@@ -44,6 +44,7 @@ void LoopManager::Update(const float deltaTime)
     if (t < parameter.zNear || parameter.zFar < t)
         return;
     const glm::vec3 intersect = cameraPosition + mouseDirection*t;
+    mSeagull->SetTrackPosition(intersect);
 }
 
 } //namespace Gameplay
