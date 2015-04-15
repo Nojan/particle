@@ -67,6 +67,7 @@ Root::Root()
 , mRunning(GL_FALSE)
 , mFramesCounter(0)
 , mFrameDuration(1)
+, mFrameLeftover(0)
 {
 }
 
@@ -157,7 +158,10 @@ void Root::Update()
 {
     assert(GL_TRUE == mRunning);
     const std::chrono::milliseconds frameLimiter(16);
-    const float lastFrameDuration = mFrameDuration.count() / 1000.f;
+    const float frameDuration = frameLimiter.count() / 1000.f;
+    float lastFrameDuration = mFrameDuration.count() / 1000.f;
+    if (std::chrono::milliseconds(100) < mFrameDuration)
+        lastFrameDuration = frameDuration; //abnormal frame duration (breakpoint?)
     const auto beginFrame = std::chrono::high_resolution_clock::now();
     char windowTitle[256];
     sprintf(windowTitle, "Particle : %dms", mFrameDuration.count());
@@ -167,12 +171,16 @@ void Root::Update()
     mVisualDebugRenderer->BeginFrame();
     glClearDepth(1.0f); CHECK_OPENGL_ERROR
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_OPENGL_ERROR
-    mCamera->Update(lastFrameDuration);
-    const glm::vec3 positonInWorldSpace = mCamera->Position() + mCamera->Direction()*100.f;
-    mGameplayLoopManager->Update(lastFrameDuration);
-    mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
-    mRenderer->Update(lastFrameDuration);
-    mFireworkManager->Update(lastFrameDuration);
+    while (frameDuration <= lastFrameDuration) {
+        lastFrameDuration -= frameDuration;
+        mCamera->Update(frameDuration);
+        const glm::vec3 positonInWorldSpace = mCamera->Position() + mCamera->Direction()*100.f;
+        mGameplayLoopManager->Update(frameDuration);
+        mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
+        mRenderer->Update(frameDuration);
+        mFireworkManager->Update(frameDuration);
+    }
+    mFrameLeftover = lastFrameDuration;
     mVisualDebugRenderer->Render();
     static bool autoSpawnParticle = true;
     static int autoSpawnParticleFrame = 100;

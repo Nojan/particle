@@ -46,5 +46,6 @@ private:
     // Performance counter
     int mFramesCounter;
     std::chrono::milliseconds mFrameDuration;
+    float mFrameLeftover;
 };
 #endif
