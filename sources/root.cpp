@@ -237,6 +237,7 @@ void Root::HandleWindowKeyEvent(GLFWwindow* window, int key, int scancode, int a
 void Root::HandleMouseButton(GLFWwindow* window, int button, int action, int mods) {
     assert(window = mWindow);
     mCamera->HandleMouseButton(button, action);
+    mGameplayLoopManager->EventKey(button, action);
 }
 
 Camera *const Root::GetCamera()

@@ -7,6 +7,11 @@
 
 namespace Gameplay {
 
+struct Target {
+    glm::vec3 position;
+    float lifetime;
+};
+
 class Seagull {
 public:
     Seagull();
@@ -15,10 +20,10 @@ public:
     void Init();
     void Terminate();
     void Update(const float deltaTime);
-    void SetTrackPosition(const glm::vec3& trackPosition);
+    void SetTrackPosition(const Target& target);
 
 private:
-    glm::vec3 mTrackPosition;
+    Target mTarget;
     glm::vec3 mSeagullPosition;
     glm::vec3 mSeagullSpeed;
 };

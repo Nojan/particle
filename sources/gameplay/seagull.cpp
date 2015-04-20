@@ -49,8 +49,7 @@ struct VisualDebugHistory {
 static VisualDebugHistory vdHistory;
 
 Seagull::Seagull()
-: mTrackPosition(5, 0, -25.f)
-, mSeagullPosition(0, 0, -25.f)
+: mSeagullPosition(0, 0, -25.f)
 , mSeagullSpeed(1, 0, 0)
 {}
 
@@ -58,40 +57,43 @@ Seagull::~Seagull()
 {}
 
 void Seagull::Init()
-{}
+{
+    mTarget = { glm::vec3(5, 0, -25.f), 10.f };
+}
 
 void Seagull::Terminate()
 {}
 
 void Seagull::Update(const float deltaTime)
 {
-    WanderAround(mTrackPosition, mSeagullPosition, mSeagullSpeed, deltaTime);
-    mSeagullPosition.z = -25.f;
     const Color::rgbap red = { 1.f, 0.f, 0.f, 1.f };
     const Color::rgbap yellow = { 1.f, 1.f, 0.f, 1.f };
-    const VisualDebugCubeCommand tracking(mTrackPosition, 1.f, red);
+    mTarget.lifetime -= deltaTime;
+    if (0 < mTarget.lifetime) {
+        UpdateTowardTarget(mTarget.position, mSeagullPosition, mSeagullSpeed, deltaTime);
+        const VisualDebugCubeCommand tracking(mTarget.position, 1.f, red);
+        VisualDebug()->PushCommand(tracking);
+    }
+    else
+        WanderAround(mTarget.position, mSeagullPosition, mSeagullSpeed, deltaTime);
+    mSeagullPosition.z = -25.f;
     const VisualDebugCubeCommand seagull(mSeagullPosition, 1.f, yellow);
-    VisualDebug()->PushCommand(tracking);
     VisualDebug()->PushCommand(seagull);
-    vdHistory.targetPosition.push_back(mTrackPosition);
     vdHistory.seagullPosition.push_back(mSeagullPosition);
-    if (vdHistory.targetPosition.size() > 50)
+    if (vdHistory.seagullPosition.size() > 50)
     {
-        vdHistory.targetPosition.pop_front();
         vdHistory.seagullPosition.pop_front();
     }
-    for (size_t i = 0; i < vdHistory.targetPosition.size(); ++i)
+    for (size_t i = 0; i < vdHistory.seagullPosition.size(); ++i)
     {
-        const VisualDebugCubeCommand trackingHistory(vdHistory.targetPosition[i], 0.25f, red);
         const VisualDebugCubeCommand seagullHistory(vdHistory.seagullPosition[i], 0.25f, yellow);
-        VisualDebug()->PushCommand(trackingHistory);
         VisualDebug()->PushCommand(seagullHistory);
     }
 }
 
-void Seagull::SetTrackPosition(const glm::vec3& trackPosition)
+void Seagull::SetTrackPosition(const Target& target)
 {
-    mTrackPosition = trackPosition;
+    mTarget = target;
 }
 
 } //namespace Gameplay
