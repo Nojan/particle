@@ -28,6 +28,7 @@ public:
 
     void HandleWindowCursorPosition(GLFWwindow* window, double x, double y);
     void HandleWindowKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods);
+    void HandleMouseButton(GLFWwindow* window, int button, int action, int mods);
 
 private:
     Root();

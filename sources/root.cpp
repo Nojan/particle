@@ -42,7 +42,7 @@ static void handleCursorPosition(GLFWwindow* window, double x, double y)
 //Called when a mouse button state changed
 static void handleMouseButton(GLFWwindow* window, int button, int action, int mods)
 {
-    Root::Instance().GetCamera()->HandleMouseButton(button, action);
+    Root::Instance().HandleMouseButton(window, button, action, mods);
 }
 
 //Called when the mouse move over the window
@@ -232,6 +232,11 @@ void Root::HandleWindowKeyEvent(GLFWwindow* window, int key, int scancode, int a
     assert(window = mWindow);
     mRunning = !(glfwWindowShouldClose(mWindow));
     mCamera->EventKey(key, action);
+}
+
+void Root::HandleMouseButton(GLFWwindow* window, int button, int action, int mods) {
+    assert(window = mWindow);
+    mCamera->HandleMouseButton(button, action);
 }
 
 Camera *const Root::GetCamera()
