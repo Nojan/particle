@@ -41,14 +41,14 @@ private:
 
 private:
     std::unique_ptr<ShaderProgram> mShaderProgram;
-    std::vector<glm::vec3> mVertex;
-    std::vector<Color::rgbap> mColor;
-    std::vector<uint> mIndex;
-    GLuint mVaoId;
-    GLuint mVboPositionId;
-    GLuint mVboColorId;
-    size_t mVboVertexSize;
-    GLuint mVboIndexId;
-    size_t mVboIndexSize;
+    std::vector<glm::vec3> mVertexFill;
+    std::vector<Color::rgbap> mColorFill;
+    std::vector<uint> mIndexFill;
+    GLuint mVaoFillId;
+    GLuint mVboPositionFillId;
+    GLuint mVboColorFillId;
+    size_t mVboVertexFillSize;
+    GLuint mVboIndexFillId;
+    size_t mVboIndexFillSize;
     glm::vec3 mMousePosition;
 };
