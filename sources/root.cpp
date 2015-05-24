@@ -120,7 +120,7 @@ void Root::Init()
     mCamera->HandleWindowResize(windowsWidth, windowsHeight);
     mRenderer->Init();
     mMeshRenderer->Init();
-    mSkybox.reset(Skybox::CreateSkyboxFrom("../asset/skybox/NightPath"));
+    mSkybox.reset(Skybox::GenerateCheckered());
     mVisualDebugRenderer->Init();
     mSkybox->Init();
     mGameplayLoopManager->Init();
