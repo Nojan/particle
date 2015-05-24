@@ -13,6 +13,7 @@ public:
                                     const char * zPosPath, const char * zNegPath);
 
     static Skybox* CreateSkyboxFrom(const char * directory);
+    static Skybox* GenerateCheckered();
 
     Skybox(Texture2D& xPos, Texture2D& xNeg, Texture2D& yPos, Texture2D& yNeg, Texture2D& zPos, Texture2D& zNeg);
     ~Skybox();

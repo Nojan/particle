@@ -1,5 +1,6 @@
 #include "skybox.hpp"
 
+#include "color.hpp"
 #include "camera.hpp"
 #include "root.hpp"
 #include "shader.hpp"
@@ -46,6 +47,12 @@ Skybox* Skybox::CreateSkyboxFrom(const char * directory)
     return CreateSkyboxFrom(skybox_path[0], skybox_path[1],
         skybox_path[2], skybox_path[3],
         skybox_path[4], skybox_path[5]);
+}
+
+Skybox* Skybox::GenerateCheckered()
+{
+    std::unique_ptr<Texture2D> texture = Texture2D::generateCheckeredBoard(8, 128, 128, { 255, 255, 255 }, { 0, 0, 0 });
+    return new Skybox(*texture, *texture, *texture, *texture, *texture, *texture);
 }
 
 Skybox::Skybox(Texture2D& xPos, Texture2D& xNeg, Texture2D& yPos, Texture2D& yNeg, Texture2D& zPos, Texture2D& zNeg)
