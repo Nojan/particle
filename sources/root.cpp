@@ -222,6 +222,10 @@ void Root::Update()
             ImGui::Checkbox("auto spawn", &autoSpawnParticle);
             ImGui::SliderInt("spawn each frame", &autoSpawnParticleFrame, 10, 500);
         }
+        if (ImGui::CollapsingHeader("Skybox Renderer"))
+        {
+            mSkybox->debug_GUI();
+        }
     }
     ImGui::End();
 #endif

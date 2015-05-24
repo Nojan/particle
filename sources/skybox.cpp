@@ -6,9 +6,18 @@
 #include "shader_loader.hpp"
 #include "texture.hpp"
 
+#include "imgui/imgui_header.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
 #include <stdio.h>
+
+static float glo_scale = 100.f;
+
+#ifdef IMGUI_ENABLE
+void Skybox::debug_GUI() const {
+    ImGui::SliderFloat("Scale", &glo_scale, 1.f, 1000.f);
+}
+#endif
 
 Skybox* Skybox::CreateSkyboxFrom(const char  * xPosPath, const char  * xNegPath,
                                  const char  * yPosPath, const char  * yNegPath,
@@ -28,7 +37,6 @@ Skybox* Skybox::CreateSkyboxFrom(const char  * xPosPath, const char  * xNegPath,
 
 Skybox* Skybox::CreateSkyboxFrom(const char * directory)
 {
-    //const char* files[6] = { "xpos.bmp", "xneg.bmp", "ypos.bmp", "yneg.bmp", "zpos.bmp", "zneg.bmp" };
     const char* files[6] = { "xpos.jpg", "xneg.jpg", "ypos.jpg", "yneg.jpg", "zpos.jpg", "zneg.jpg" };
     const size_t string_length = strlen(directory) + strlen(files[0]) + 2;
     assert(string_length < 2048);
@@ -110,7 +118,7 @@ void Skybox::Update()
     GLuint cubemapID = glGetUniformLocation(mShaderProgram->ProgramID(), "cubemapSampler"); CHECK_OPENGL_ERROR
     GLuint matrixMVP_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "MVP"); CHECK_OPENGL_ERROR
 
-    glm::mat4 model = glm::scale(glm::mat4(1.0f),glm::vec3(100,100,100));
+    glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(glo_scale, glo_scale, glo_scale));
     const Camera * camera = Root::Instance().GetCamera();
     glm::mat4 view = camera->View();
     view[3][0] = 0; view[3][1] = 0; view[3][2] = 0; // Pas de translation pour la skybox
