@@ -31,7 +31,7 @@ Renderer::~Renderer()
 
 void Renderer::Init()
 {
-    Texture2D::loadBMP_custom("../asset/particle_mask.bmp", mParticleMask);
+    Texture2D::loadFromFile("../asset/particle_mask.bmp", mParticleMask);
     mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/Simple.vertexshader", "../shaders/Simple.fragmentshader")));
     mShaderProgram->Bind();
     GLuint vertexPosition_modelspaceID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace"); CHECK_OPENGL_ERROR

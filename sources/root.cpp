@@ -120,8 +120,8 @@ void Root::Init()
     mCamera->HandleWindowResize(windowsWidth, windowsHeight);
     mRenderer->Init();
     mMeshRenderer->Init();
+    mSkybox.reset(Skybox::CreateSkyboxFrom("../asset/skybox/NightPath"));
     mVisualDebugRenderer->Init();
-    mSkybox.reset(Skybox::CreateSkyboxFrom("../asset/skybox/grimmnight"));
     mSkybox->Init();
     mGameplayLoopManager->Init();
 

@@ -1,5 +1,6 @@
 #include "texture.hpp"
 
+#include "image.hpp"
 #include "color.hpp"
 #include "opengl_includes.hpp"
 
@@ -107,4 +108,15 @@ std::unique_ptr<Texture2D> Texture2D::generateCheckeredBoard(uint count, uint he
     texture.reset(new Texture2D());
     texture->setTexture(std::move(data), height, width);
     return std::move(texture);
+}
+
+void Texture2D::loadFromFile(const char * imagepath, Texture2D & texture)
+{
+    Image image(imagepath);
+    assert(ColorsChannel::RGB == image.channel());
+    std::unique_ptr<uint8_t[]> data_u8 = std::move(image.data());
+    Color::rgb * color = reinterpret_cast<Color::rgb*>(data_u8.get());
+    std::unique_ptr<Color::rgb[]> data_color(color);
+    data_u8.release();
+    texture.setTexture(std::move(data_color), image.width(), image.height());
 }
