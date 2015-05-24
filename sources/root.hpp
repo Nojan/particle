@@ -8,6 +8,7 @@ class Camera;
 class FireworksManager;
 class ParticleUpdater;
 class Renderer;
+class MeshRenderer;
 class VisualDebugRenderer;
 struct GLFWwindow;
 
@@ -37,6 +38,7 @@ private:
 private:
     std::unique_ptr<Camera> mCamera;
     std::unique_ptr<Renderer> mRenderer;
+    std::unique_ptr<MeshRenderer> mMeshRenderer;
     std::unique_ptr<FireworksManager> mFireworkManager;
     std::unique_ptr<VisualDebugRenderer> mVisualDebugRenderer;
     std::unique_ptr<Gameplay::LoopManager> mGameplayLoopManager;

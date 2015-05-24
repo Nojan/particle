@@ -4,6 +4,7 @@
 #include "firework.hpp"
 #include "particle.hpp"
 #include "renderer.hpp"
+#include "meshRenderer.hpp"
 #include "visualdebug.hpp"
 #include "gameplay/loopmanager.hpp"
 #include "imgui/imgui_header.hpp"
@@ -60,6 +61,7 @@ Root& Root::Instance()
 Root::Root()
 : mCamera(new Camera())
 , mRenderer(new Renderer())
+, mMeshRenderer(new MeshRenderer())
 , mFireworkManager(new FireworksManager(mRenderer.get()))
 , mVisualDebugRenderer(new VisualDebugRenderer())
 , mGameplayLoopManager(new Gameplay::LoopManager())
@@ -112,10 +114,10 @@ void Root::Init()
     } else {
         std::cout << "GLEW Version " << glewGetString(GLEW_VERSION) << " loaded." << std::endl;
     }
-
     mCamera->Init();
     mCamera->HandleWindowResize(windowsWidth, windowsHeight);
     mRenderer->Init();
+    mMeshRenderer->Init();
     mVisualDebugRenderer->Init();
     mGameplayLoopManager->Init();
 
@@ -135,6 +137,7 @@ void Root::Terminate()
 {
     mCamera->Terminate();
     mRenderer->Terminate();
+    mMeshRenderer->Terminate();
     mVisualDebugRenderer->Terminate();
     mGameplayLoopManager->Terminate();
     
@@ -178,6 +181,7 @@ void Root::Update()
         mGameplayLoopManager->Update(frameDuration);
         mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
         mRenderer->Update(frameDuration);
+        mMeshRenderer->Render();
         mFireworkManager->Update(frameDuration);
     }
     mFrameLeftover = lastFrameDuration;
@@ -189,9 +193,22 @@ void Root::Update()
     {
         ImGui::Text("Frame %.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::Text("Last frame %.3f ms", lastFrameDuration * 1000.f);
+        if (ImGui::CollapsingHeader("OpenGL"))
+        {
+            static bool wireframe = false;
+            ImGui::Checkbox("Wireframe", &wireframe);
+            if (wireframe)
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            else
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
         if (ImGui::CollapsingHeader("Main camera"))
         {
             mCamera->debug_GUI();
+        }
+        if (ImGui::CollapsingHeader("Mesh Renderer"))
+        {
+            mMeshRenderer->debug_GUI();
         }
         if (ImGui::CollapsingHeader("Particle Renderer"))
         {
