@@ -16,19 +16,20 @@ Skybox* Skybox::CreateSkyboxFrom(const char  * xPosPath, const char  * xNegPath,
 {
     Texture2D xPos, xNeg, yPos, yNeg, zPos, zNeg;
 
-    Texture2D::loadBMP_custom(xPosPath, xPos);
-    Texture2D::loadBMP_custom(xNegPath, xNeg);
-    Texture2D::loadBMP_custom(yPosPath, yPos);
-    Texture2D::loadBMP_custom(yNegPath, yNeg);
-    Texture2D::loadBMP_custom(zPosPath, zPos);
-    Texture2D::loadBMP_custom(zNegPath, zNeg);
+    Texture2D::loadFromFile(xPosPath, xPos);
+    Texture2D::loadFromFile(xNegPath, xNeg);
+    Texture2D::loadFromFile(yPosPath, yPos);
+    Texture2D::loadFromFile(yNegPath, yNeg);
+    Texture2D::loadFromFile(zPosPath, zPos);
+    Texture2D::loadFromFile(zNegPath, zNeg);
 
     return new Skybox(xPos, xNeg, yPos, yNeg, zPos, zNeg);
 }
 
 Skybox* Skybox::CreateSkyboxFrom(const char * directory)
 {
-    const char* files[6] = { "xpos.bmp", "xneg.bmp", "ypos.bmp", "yneg.bmp", "zpos.bmp", "zneg.bmp" };
+    //const char* files[6] = { "xpos.bmp", "xneg.bmp", "ypos.bmp", "yneg.bmp", "zpos.bmp", "zneg.bmp" };
+    const char* files[6] = { "xpos.jpg", "xneg.jpg", "ypos.jpg", "yneg.jpg", "zpos.jpg", "zneg.jpg" };
     const size_t string_length = strlen(directory) + strlen(files[0]) + 2;
     assert(string_length < 2048);
     char skybox_path[6][2048];
