@@ -18,14 +18,14 @@ public:
 
     static void loadBMP_custom(const char * imagepath, Texture2D & texture);
 
-    void setTexture(std::unique_ptr<Color::rgb> data, uint height, uint width);
+    void setTexture(std::unique_ptr<Color::rgb[]> data, uint height, uint width);
 
     char const * const getData() const;
     uint getHeight() const;
     uint getWidth() const;
 
 private:
-    std::unique_ptr<Color::rgb> mData;
+    std::unique_ptr<Color::rgb[]> mData;
     uint mHeight;
     uint mWidth;
 };

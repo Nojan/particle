@@ -14,7 +14,7 @@ Texture2D::Texture2D()
 , mWidth(0)
 {}
 
-void Texture2D::setTexture(std::unique_ptr<Color::rgb> data, uint height, uint width)
+void Texture2D::setTexture(std::unique_ptr<Color::rgb[]> data, uint height, uint width)
 {
     mData = std::move(data);
     mHeight = height;
