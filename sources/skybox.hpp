@@ -22,6 +22,10 @@ public:
     void Terminate();
     void Update();
 
+#ifdef IMGUI_ENABLE
+    void debug_GUI() const;
+#endif
+
 private:
     std::unique_ptr<ShaderProgram> mShaderProgram;
     GLuint mIndexBufferId;
