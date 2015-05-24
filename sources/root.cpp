@@ -181,8 +181,8 @@ void Root::Update()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_OPENGL_ERROR
     while (frameDuration <= lastFrameDuration) {
         lastFrameDuration -= frameDuration;
-        mSkybox->Update();
         mCamera->Update(frameDuration);
+        mSkybox->Update();
         const glm::vec3 positonInWorldSpace = mCamera->Position() + mCamera->Direction()*100.f;
         mGameplayLoopManager->Update(frameDuration);
         mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
