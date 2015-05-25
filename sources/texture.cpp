@@ -117,6 +117,16 @@ void Texture2D::loadFromFile(const char * imagepath, Texture2D & texture)
     std::unique_ptr<uint8_t[]> data_u8 = std::move(image.data());
     Color::rgb * color = reinterpret_cast<Color::rgb*>(data_u8.get());
     std::unique_ptr<Color::rgb[]> data_color(color);
+    // flip x
+    for (size_t y = 0; y < image.height(); ++y)
+    {
+        const size_t yIndex = y * image.width();
+        for (size_t x = 0; x < (image.width() / 2); ++x)
+        {
+            const size_t xInvert = image.width() - x -1;
+            std::swap(data_color[yIndex + x], data_color[yIndex + xInvert]);
+        }
+    }
     data_u8.release();
     texture.setTexture(std::move(data_color), image.width(), image.height());
 }
