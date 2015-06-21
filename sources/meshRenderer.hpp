@@ -19,12 +19,7 @@ public:
     MeshRenderer();
     ~MeshRenderer();
 
-    void Init();
-    void Terminate();
-	
-    void BeginFrame();
 	void Render();
-
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const override;
