@@ -112,12 +112,9 @@ void Root::Init()
     mCamera.reset(new Camera());
     mCamera->HandleWindowResize(windowsWidth, windowsHeight);
     mRenderer.reset(new Renderer());
-    mMeshRenderer.reset(new MeshRenderer());
     mFireworkManager.reset(new FireworksManager(mRenderer.get()));
     mVisualDebugRenderer.reset(new VisualDebugRenderer());
     mGameplayLoopManager.reset(new Gameplay::LoopManager());
-    mSkybox.reset(Skybox::GenerateCheckered());
-
     mGameplayLoopManager->Init();
 
     mUpdaterList.push_back(mCamera);
@@ -125,9 +122,9 @@ void Root::Init()
     mUpdaterList.push_back(mGameplayLoopManager);
     mUpdaterList.push_back(mFireworkManager);
 
-    mRendererList.push_back(mSkybox);
+    mRendererList.push_back(std::shared_ptr<Skybox>(Skybox::GenerateCheckered()));
     mRendererList.push_back(mRenderer);
-    mRendererList.push_back(mMeshRenderer);
+    mRendererList.push_back(std::shared_ptr<MeshRenderer>(new MeshRenderer()));
     mRendererList.push_back(mVisualDebugRenderer);
 
     glfwSetKeyCallback(mWindow, key_callback);
@@ -150,10 +147,8 @@ void Root::Terminate()
 
     mCamera.reset();
     mRenderer.reset();
-    mMeshRenderer.reset();
     mFireworkManager.reset();
     mVisualDebugRenderer.reset();
-    mSkybox.reset();
     mGameplayLoopManager.reset();
     
     IMGUI_ONLY(ImGui_ImplGlfwGL3_Shutdown());
