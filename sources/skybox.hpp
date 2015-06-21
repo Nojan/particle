@@ -1,12 +1,13 @@
 #pragma once
 
 #include "opengl_includes.hpp"
+#include "irenderer.hpp"
 #include <memory>
 
 class Texture2D;
 class ShaderProgram;
 
-class Skybox {
+class Skybox : public IRenderer {
 public:
     static Skybox* CreateSkyboxFrom(const char * xPosPath, const char * xNegPath,
                                     const char * yPosPath, const char * yNegPath,
@@ -18,10 +19,9 @@ public:
     Skybox(Texture2D& xPos, Texture2D& xNeg, Texture2D& yPos, Texture2D& yNeg, Texture2D& zPos, Texture2D& zNeg);
     ~Skybox();
 
-    void Draw(ShaderProgram * programShader);
     void Init();
     void Terminate();
-    void Update();
+    void Render() override;
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const;

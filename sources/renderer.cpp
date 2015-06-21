@@ -97,6 +97,11 @@ void Renderer::Terminate()
 
 void Renderer::Update(const float deltaTime)
 {
+    Particle::UpdateParticleGravitySIMD(*(mParticleData.get()), deltaTime);
+}
+
+void Renderer::Render()
+{
     mShaderProgram->Bind();
     {
         GLuint textureID = glGetUniformLocation(mShaderProgram->ProgramID(), "uTexture"); CHECK_OPENGL_ERROR
@@ -106,7 +111,6 @@ void Renderer::Update(const float deltaTime)
         glBindSampler(0, mSamplerId); CHECK_OPENGL_ERROR
     }
     {
-        Particle::UpdateParticleGravitySIMD(*(mParticleData.get()), deltaTime);
         glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); CHECK_OPENGL_ERROR
         glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(vec4), 0, GL_STREAM_DRAW); CHECK_OPENGL_ERROR
         void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); CHECK_OPENGL_ERROR

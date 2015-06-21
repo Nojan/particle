@@ -2,6 +2,7 @@
 
 #include "../config.hpp"
 #include "../color.hpp"
+#include "../irenderer.hpp"
 #include "../types.hpp"
 
 #include "../opengl_includes.hpp"
@@ -18,7 +19,7 @@ public:
         std::vector<glm::vec3>& vertexLine, std::vector<Color::rgbap>& colorLine, std::vector<uint>& indexLine) const = 0;
 };
 
-class VisualDebugRenderer {
+class VisualDebugRenderer : public IRenderer {
 public:
     VisualDebugRenderer();
     ~VisualDebugRenderer();
@@ -27,14 +28,14 @@ public:
     void Terminate();
 	
     void BeginFrame();
-	void Render();
+	void Render() override;
 
     void HandleMousePosition(float x, float y, float z);
 
     void PushCommand(const IVisualDebugCommand& command);
 
 #ifdef IMGUI_ENABLE
-    void debug_GUI() const;
+    void debug_GUI() const override;
 #endif
 
 private:

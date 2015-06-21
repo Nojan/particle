@@ -182,11 +182,12 @@ void Root::Update()
     while (frameDuration <= lastFrameDuration) {
         lastFrameDuration -= frameDuration;
         mCamera->Update(frameDuration);
-        mSkybox->Update();
+        mSkybox->Render();
         const glm::vec3 positonInWorldSpace = mCamera->Position() + mCamera->Direction()*100.f;
         mGameplayLoopManager->Update(frameDuration);
         mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
         mRenderer->Update(frameDuration);
+        mRenderer->Render();
         mMeshRenderer->Render();
         mFireworkManager->Update(frameDuration);
     }

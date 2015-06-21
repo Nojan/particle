@@ -117,7 +117,7 @@ void Skybox::Terminate()
     mShaderProgram.reset();
 }
 
-void Skybox::Update()
+void Skybox::Render()
 {
     mShaderProgram->Bind();
     // Get a handle for our buffers

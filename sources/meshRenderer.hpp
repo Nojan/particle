@@ -2,6 +2,7 @@
 
 #include "config.hpp"
 #include "color.hpp"
+#include "irenderer.hpp"
 #include "types.hpp"
 
 #include "opengl_includes.hpp"
@@ -13,7 +14,7 @@
 class ShaderProgram;
 class Texture2D;
 
-class MeshRenderer {
+class MeshRenderer : public IRenderer {
 public:
     MeshRenderer();
     ~MeshRenderer();
@@ -26,7 +27,7 @@ public:
 
 
 #ifdef IMGUI_ENABLE
-    void debug_GUI() const;
+    void debug_GUI() const override;
 #endif
 
 private:

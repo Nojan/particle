@@ -3,6 +3,7 @@
 
 #include "config.hpp"
 #include "color.hpp"
+#include "irenderer.hpp"
 #include "texture.hpp"
 #include "vector.hpp"
 
@@ -15,7 +16,7 @@
 class ParticleData;
 class ShaderProgram; 
 
-class Renderer {
+class Renderer : public IRenderer {
 public:
     Renderer();
     ~Renderer();
@@ -23,6 +24,7 @@ public:
     void Init();
     void Terminate();
     void Update(const float deltaTime);
+    void Render() override;
 
     void spawnBallParticles(size_t pCount, const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float speed, const Color::rgbp color, const float lifetime);
     void spawnParticle(const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float lifetime, const Color::rgbp color);
@@ -30,7 +32,7 @@ public:
     void HandleMousePosition(float x, float y, float z);
 
 #ifdef IMGUI_ENABLE
-    void debug_GUI() const;
+    void debug_GUI() const override;
 #endif
 
 private:
