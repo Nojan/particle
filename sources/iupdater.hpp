@@ -1,8 +1,7 @@
 #pragma once
 
-
-class IUpadter {
+class IUpdater {
 public:
 	
-	virtual void Update(const float parDeltaTime) = 0;
+	virtual void Update(const float deltaTime) = 0;
 };

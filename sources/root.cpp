@@ -60,14 +60,7 @@ Root& Root::Instance()
 }
 
 Root::Root()
-: mCamera(new Camera())
-, mRenderer(new Renderer())
-, mMeshRenderer(new MeshRenderer())
-, mFireworkManager(new FireworksManager(mRenderer.get()))
-, mVisualDebugRenderer(new VisualDebugRenderer())
-, mSkybox(nullptr)
-, mGameplayLoopManager(new Gameplay::LoopManager())
-, mWindow(NULL)
+: mWindow(nullptr)
 , mRunning(GL_FALSE)
 , mFramesCounter(0)
 , mFrameDuration(1)
@@ -116,14 +109,21 @@ void Root::Init()
     } else {
         std::cout << "GLEW Version " << glewGetString(GLEW_VERSION) << " loaded." << std::endl;
     }
-    mCamera->Init();
+    mCamera.reset(new Camera());
     mCamera->HandleWindowResize(windowsWidth, windowsHeight);
-    mRenderer->Init();
-    mMeshRenderer->Init();
+    mRenderer.reset(new Renderer());
+    mMeshRenderer.reset(new MeshRenderer());
+    mFireworkManager.reset(new FireworksManager(mRenderer.get()));
+    mVisualDebugRenderer.reset(new VisualDebugRenderer());
+    mGameplayLoopManager.reset(new Gameplay::LoopManager());
     mSkybox.reset(Skybox::GenerateCheckered());
-    mVisualDebugRenderer->Init();
-    mSkybox->Init();
+
     mGameplayLoopManager->Init();
+
+    mUpdaterList.push_back(mCamera);
+    mUpdaterList.push_back(mRenderer);
+    mUpdaterList.push_back(mGameplayLoopManager);
+    mUpdaterList.push_back(mFireworkManager);
 
     mRendererList.push_back(mSkybox);
     mRendererList.push_back(mRenderer);
@@ -144,12 +144,17 @@ void Root::Init()
 
 void Root::Terminate()
 {
-    mCamera->Terminate();
-    mRenderer->Terminate();
-    mMeshRenderer->Terminate();
-    mSkybox->Terminate();
-    mVisualDebugRenderer->Terminate();
     mGameplayLoopManager->Terminate();
+    mRendererList.clear();
+    mUpdaterList.clear();
+
+    mCamera.reset();
+    mRenderer.reset();
+    mMeshRenderer.reset();
+    mFireworkManager.reset();
+    mVisualDebugRenderer.reset();
+    mSkybox.reset();
+    mGameplayLoopManager.reset();
     
     IMGUI_ONLY(ImGui_ImplGlfwGL3_Shutdown());
     glfwDestroyWindow(mWindow); //no callback from mWindow will be fired
@@ -185,12 +190,10 @@ void Root::Update()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_OPENGL_ERROR
     while (frameDuration <= lastFrameDuration) {
         lastFrameDuration -= frameDuration;
-        mCamera->Update(frameDuration);
-        const glm::vec3 positonInWorldSpace = mCamera->Position() + mCamera->Direction()*100.f;
-        mGameplayLoopManager->Update(frameDuration);
-        mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
-        mRenderer->Update(frameDuration);
-        mFireworkManager->Update(frameDuration);
+        for (auto& updater : mUpdaterList)
+        {
+            updater->Update(frameDuration);
+        }
     }
     for (auto& renderer : mRendererList)
     {
@@ -268,7 +271,7 @@ void Root::HandleMouseButton(GLFWwindow* window, int button, int action, int mod
     mGameplayLoopManager->EventKey(button, action);
 }
 
-Camera *const Root::GetCamera()
+Camera * Root::GetCamera()
 {
     return mCamera.get();
 }

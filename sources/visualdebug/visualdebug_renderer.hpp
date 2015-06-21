@@ -24,9 +24,6 @@ public:
     VisualDebugRenderer();
     ~VisualDebugRenderer();
 
-    void Init();
-    void Terminate();
-	
 	void Render() override;
 
     void HandleMousePosition(float x, float y, float z);

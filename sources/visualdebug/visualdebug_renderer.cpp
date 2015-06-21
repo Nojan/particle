@@ -24,17 +24,11 @@ VisualDebugRenderer::VisualDebugRenderer()
 , mVboIndexLineId(0)
 , mVboIndexLineSize(0)
 , mMousePosition(0.f, 0.f, 100.f)
-{}
-
-VisualDebugRenderer::~VisualDebugRenderer()
-{}
-
-void VisualDebugRenderer::Init()
 {
     mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/visualdebug.vertexshader", "../shaders/visualdebug.fragmentshader")));
 }
 
-void VisualDebugRenderer::Terminate()
+VisualDebugRenderer::~VisualDebugRenderer()
 {
     glDeleteBuffers(1, &mVboPositionFillId); CHECK_OPENGL_ERROR
     glDeleteBuffers(1, &mVboColorFillId); CHECK_OPENGL_ERROR
@@ -44,7 +38,6 @@ void VisualDebugRenderer::Terminate()
     glDeleteBuffers(1, &mVboColorLineId); CHECK_OPENGL_ERROR
     glDeleteBuffers(1, &mVboIndexLineId); CHECK_OPENGL_ERROR
     glDeleteVertexArrays(1, &mVaoLineId); CHECK_OPENGL_ERROR
-    mShaderProgram.reset();
 }
 
 void VisualDebugRenderer::Render()

@@ -4,6 +4,7 @@
 #include "config.hpp"
 #include "color.hpp"
 #include "irenderer.hpp"
+#include "iupdater.hpp"
 #include "texture.hpp"
 #include "vector.hpp"
 
@@ -16,14 +17,12 @@
 class ParticleData;
 class ShaderProgram; 
 
-class Renderer : public IRenderer {
+class Renderer : public IRenderer, public IUpdater {
 public:
     Renderer();
     ~Renderer();
 
-    void Init();
-    void Terminate();
-    void Update(const float deltaTime);
+    void Update(const float deltaTime) override;
     void Render() override;
 
     void spawnBallParticles(size_t pCount, const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float speed, const Color::rgbp color, const float lifetime);

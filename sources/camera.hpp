@@ -2,11 +2,12 @@
 #define CAMERA_HPP
 
 #include "config.hpp"
+#include "iupdater.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-class Camera {
+class Camera : public IUpdater {
 public:
     struct perspective{
         float fov;
@@ -18,9 +19,7 @@ public:
     Camera();
     ~Camera();
 
-    void Init();
-    void Terminate();
-    void Update(const float frameDuration);
+    void Update(const float frameDuration) override;
 
     perspective const& Perspective() const;
     glm::ivec2 const& ScreenSize() const;

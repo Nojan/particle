@@ -24,12 +24,6 @@ Renderer::Renderer()
 , mTextureId(0)
 , mSamplerId(0)
 , mMousePosition(0.f, 0.f, 100.f)
-{}
-
-Renderer::~Renderer()
-{}
-
-void Renderer::Init()
 {
     Texture2D::loadFromFile("../asset/particle_mask.bmp", mParticleMask);
     mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/Simple.vertexshader", "../shaders/Simple.fragmentshader")));
@@ -87,16 +81,18 @@ void Renderer::Init()
     mShaderProgram->Unbind();
 }
 
-void Renderer::Terminate()
+Renderer::~Renderer()
 {
     glDeleteBuffers(1, &mVboPositionId); CHECK_OPENGL_ERROR
     glDeleteBuffers(1, &mVboColorId); CHECK_OPENGL_ERROR
     glDeleteVertexArrays(1, &mVaoId); CHECK_OPENGL_ERROR
-    mShaderProgram.reset();
 }
 
 void Renderer::Update(const float deltaTime)
 {
+    const Camera * camera = Root::Instance().GetCamera();
+    const glm::vec3 positonInWorldSpace = camera->Position() + camera->Direction()*100.f;
+    HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
     Particle::UpdateParticleGravitySIMD(*(mParticleData.get()), deltaTime);
 }
 

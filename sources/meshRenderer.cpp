@@ -38,12 +38,6 @@ MeshRenderer::MeshRenderer()
 , mVboVertexSize(0)
 , mVboIndexId(0)
 , mVboIndexSize(0)
-{}
-
-MeshRenderer::~MeshRenderer()
-{}
-
-void MeshRenderer::Init()
 {
     mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/Texture.vertexshader", "../shaders/Texture.fragmentshader")));
     mTexture2D = std::move(Texture2D::generateCheckeredBoard(8, 128, 128, { 255, 255, 255 }, { 0, 0, 0 }));
@@ -90,7 +84,7 @@ void MeshRenderer::Init()
     glGenTextures(1, &mTextureSamplerId); CHECK_OPENGL_ERROR
 }
 
-void MeshRenderer::Terminate()
+MeshRenderer::~MeshRenderer()
 {
     glDeleteBuffers(1, &mVboPositionId); CHECK_OPENGL_ERROR
     glDeleteBuffers(1, &mVboNormalId); CHECK_OPENGL_ERROR
@@ -98,18 +92,6 @@ void MeshRenderer::Terminate()
     glDeleteBuffers(1, &mTextureSamplerId); CHECK_OPENGL_ERROR
     glDeleteBuffers(1, &mVboIndexId); CHECK_OPENGL_ERROR
     glDeleteVertexArrays(1, &mVaoId); CHECK_OPENGL_ERROR
-    mVboPositionId = 0;
-    mVboNormalId = 0;
-    mVboTextureCoordId = 0;
-    mTextureSamplerId = 0;
-    mVboIndexId = 0;
-    mVaoId = 0;
-    mShaderProgram.reset();
-}
-
-void MeshRenderer::BeginFrame()
-{
-
 }
 
 void MeshRenderer::Render()

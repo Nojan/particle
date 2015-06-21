@@ -7,6 +7,7 @@
 
 class Camera;
 class FireworksManager;
+class IUpdater;
 class IRenderer;
 class ParticleUpdater;
 class Renderer;
@@ -22,7 +23,7 @@ namespace Gameplay {
 class Root {
 public:
     static Root& Instance();
-    Camera*const  GetCamera();
+    Camera * GetCamera();
     VisualDebugRenderer* GetVisualDebugRenderer();
 
     void Init();
@@ -39,14 +40,15 @@ private:
     ~Root();
 
 private:
-    std::unique_ptr<Camera> mCamera;
+    std::shared_ptr<Camera> mCamera;
     std::vector<std::shared_ptr< IRenderer > > mRendererList;
+    std::vector<std::shared_ptr< IUpdater > > mUpdaterList;
     std::shared_ptr<Renderer> mRenderer;
     std::shared_ptr<MeshRenderer> mMeshRenderer;
-    std::unique_ptr<FireworksManager> mFireworkManager;
+    std::shared_ptr<FireworksManager> mFireworkManager;
     std::shared_ptr<VisualDebugRenderer> mVisualDebugRenderer;
     std::shared_ptr<Skybox> mSkybox;
-    std::unique_ptr<Gameplay::LoopManager> mGameplayLoopManager;
+    std::shared_ptr<Gameplay::LoopManager> mGameplayLoopManager;
     GLFWwindow* mWindow;
 
     int mRunning;

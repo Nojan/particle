@@ -57,6 +57,7 @@ Skybox* Skybox::GenerateCheckered()
 
 Skybox::Skybox(Texture2D& xPos, Texture2D& xNeg, Texture2D& yPos, Texture2D& yNeg, Texture2D& zPos, Texture2D& zNeg)
 {
+    mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/Skybox.vertexshader", "../shaders/Skybox.fragmentshader")));
     glActiveTexture(GL_TEXTURE0); CHECK_OPENGL_ERROR
     glEnable(GL_TEXTURE_CUBE_MAP); CHECK_OPENGL_ERROR
     glGenTextures(1, &mTextureBufferId); CHECK_OPENGL_ERROR
@@ -102,19 +103,10 @@ Skybox::Skybox(Texture2D& xPos, Texture2D& xNeg, Texture2D& yPos, Texture2D& yNe
 }
 
 Skybox::~Skybox()
-{}
-
-void Skybox::Init()
-{
-    mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/Skybox.vertexshader", "../shaders/Skybox.fragmentshader")));
-}
-
-void Skybox::Terminate()
 {
     glDeleteTextures(1, &mTextureBufferId); CHECK_OPENGL_ERROR
     glDeleteBuffers(1, &mIndexBufferId); CHECK_OPENGL_ERROR
     glDeleteBuffers(1, &mVertexBufferId); CHECK_OPENGL_ERROR
-    mShaderProgram.reset();
 }
 
 void Skybox::Render()

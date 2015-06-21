@@ -19,8 +19,6 @@ public:
     Skybox(Texture2D& xPos, Texture2D& xNeg, Texture2D& yPos, Texture2D& yNeg, Texture2D& zPos, Texture2D& zNeg);
     ~Skybox();
 
-    void Init();
-    void Terminate();
     void Render() override;
 
 #ifdef IMGUI_ENABLE

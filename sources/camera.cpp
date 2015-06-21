@@ -46,12 +46,6 @@ Camera::Camera()
 Camera::~Camera()
 {}
 
-void Camera::Init()
-{}
-
-void Camera::Terminate()
-{}
-
 void Camera::Update(const float frameDuration)
 {
     if( MV_NONE != mMoveMask ) {

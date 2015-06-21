@@ -1,6 +1,7 @@
 #pragma once
 
 #include "color.hpp"
+#include "iupdater.hpp"
 #include "renderer.hpp"
 #include "texture.hpp"
 #include "vector.hpp"
@@ -62,11 +63,11 @@ protected:
     void onUpdate(const float deltaTime, Renderer* renderer) override;
 };
 
-class FireworksManager {
+class FireworksManager : public IUpdater {
 public:
     FireworksManager(Renderer* renderer);
 
-    void Update(const float deltaTime);
+    void Update(const float deltaTime) override;
     void addShell(std::unique_ptr<FireworkShell> shell);
 
     void spawnPeony(const glm::vec3& initialPosition, const float speed, const float lifetime);
