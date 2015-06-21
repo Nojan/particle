@@ -6,12 +6,12 @@
 
 using namespace std;
 
-void CheckOpenGLError()
+void CheckOpenGLError(const char* file, const unsigned line)
 {
     GLenum error;
     while ( (error = glGetError()) != GL_NO_ERROR)
     {
-        printf( "OpenGL ERROR: %s\nCHECK POINT: %s (line %d)\n", gluErrorString(error), __FILE__, __LINE__ );
+        printf( "OpenGL ERROR: %s\nCHECK POINT: %s (line %d)\n", gluErrorString(error), file, line );
         assert(error == GL_NO_ERROR);
     }
 }
