@@ -27,7 +27,6 @@ public:
     void Init();
     void Terminate();
 	
-    void BeginFrame();
 	void Render() override;
 
     void HandleMousePosition(float x, float y, float z);
@@ -36,6 +35,7 @@ public:
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const override;
+    const char* debug_name() const override { return "Visual debug Renderer"; }
 #endif
 
 private:

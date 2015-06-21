@@ -33,6 +33,7 @@ public:
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const override;
+    const char* debug_name() const override { return "Particle Renderer"; }
 #endif
 
 private:

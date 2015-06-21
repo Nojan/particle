@@ -25,6 +25,7 @@ public:
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const;
+    const char* debug_name() const override { return "Skybox Renderer"; }
 #endif
 
 private:

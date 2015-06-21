@@ -9,6 +9,7 @@ public:
 
 #ifdef IMGUI_ENABLE
     virtual void debug_GUI() const;
+    virtual const char* debug_name() const = 0;
 #endif
 
 };

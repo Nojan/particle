@@ -47,11 +47,6 @@ void VisualDebugRenderer::Terminate()
     mShaderProgram.reset();
 }
 
-void VisualDebugRenderer::BeginFrame()
-{
-
-}
-
 void VisualDebugRenderer::Render()
 {
     if (mIndexFill.empty() && mIndexLine.empty())

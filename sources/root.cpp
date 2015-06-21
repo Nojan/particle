@@ -125,6 +125,11 @@ void Root::Init()
     mSkybox->Init();
     mGameplayLoopManager->Init();
 
+    mRendererList.push_back(mSkybox);
+    mRendererList.push_back(mRenderer);
+    mRendererList.push_back(mMeshRenderer);
+    mRendererList.push_back(mVisualDebugRenderer);
+
     glfwSetKeyCallback(mWindow, key_callback);
 
     // Callbacks
@@ -176,23 +181,22 @@ void Root::Update()
     glfwSetWindowTitle(mWindow, windowTitle);
     glfwPollEvents();
     IMGUI_ONLY(ImGui_ImplGlfwGL3_NewFrame());
-    mVisualDebugRenderer->BeginFrame();
     glClearDepth(1.0f); CHECK_OPENGL_ERROR
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_OPENGL_ERROR
     while (frameDuration <= lastFrameDuration) {
         lastFrameDuration -= frameDuration;
         mCamera->Update(frameDuration);
-        mSkybox->Render();
         const glm::vec3 positonInWorldSpace = mCamera->Position() + mCamera->Direction()*100.f;
         mGameplayLoopManager->Update(frameDuration);
         mRenderer->HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
         mRenderer->Update(frameDuration);
-        mRenderer->Render();
-        mMeshRenderer->Render();
         mFireworkManager->Update(frameDuration);
     }
+    for (auto& renderer : mRendererList)
+    {
+        renderer->Render();
+    }
     mFrameLeftover = lastFrameDuration;
-    mVisualDebugRenderer->Render();
     static bool autoSpawnParticle = true;
     static int autoSpawnParticleFrame = 100;
 #ifdef IMGUI_ENABLE
@@ -213,19 +217,15 @@ void Root::Update()
         {
             mCamera->debug_GUI();
         }
-        if (ImGui::CollapsingHeader("Mesh Renderer"))
+        if (ImGui::CollapsingHeader("Particle Module"))
         {
-            mMeshRenderer->debug_GUI();
-        }
-        if (ImGui::CollapsingHeader("Particle Renderer"))
-        {
-            mRenderer->debug_GUI();
             ImGui::Checkbox("auto spawn", &autoSpawnParticle);
             ImGui::SliderInt("spawn each frame", &autoSpawnParticleFrame, 10, 500);
         }
-        if (ImGui::CollapsingHeader("Skybox Renderer"))
+        for (auto& renderer : mRendererList)
         {
-            mSkybox->debug_GUI();
+            if (ImGui::CollapsingHeader(renderer->debug_name()))
+                renderer->debug_GUI();
         }
     }
     ImGui::End();

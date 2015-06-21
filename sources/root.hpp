@@ -2,10 +2,12 @@
 #define ROOT_HPP
 
 #include <chrono>
+#include <vector>
 #include <memory>
 
 class Camera;
 class FireworksManager;
+class IRenderer;
 class ParticleUpdater;
 class Renderer;
 class MeshRenderer;
@@ -38,11 +40,12 @@ private:
 
 private:
     std::unique_ptr<Camera> mCamera;
-    std::unique_ptr<Renderer> mRenderer;
-    std::unique_ptr<MeshRenderer> mMeshRenderer;
+    std::vector<std::shared_ptr< IRenderer > > mRendererList;
+    std::shared_ptr<Renderer> mRenderer;
+    std::shared_ptr<MeshRenderer> mMeshRenderer;
     std::unique_ptr<FireworksManager> mFireworkManager;
-    std::unique_ptr<VisualDebugRenderer> mVisualDebugRenderer;
-    std::unique_ptr<Skybox> mSkybox;
+    std::shared_ptr<VisualDebugRenderer> mVisualDebugRenderer;
+    std::shared_ptr<Skybox> mSkybox;
     std::unique_ptr<Gameplay::LoopManager> mGameplayLoopManager;
     GLFWwindow* mWindow;
 
