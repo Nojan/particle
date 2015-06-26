@@ -160,7 +160,7 @@ void MeshRenderer::Render()
     }
     {
         GLuint matrixViewNormal_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "viewNormal"); CHECK_OPENGL_ERROR
-        glm::mat3 v = glm::mat3(Root::Instance().GetCamera()->View());
+        glm::mat3 v = glm::mat3(Root::Instance().GetCamera()->View()) * glm::mat3(mTransform);
         glUniformMatrix3fv(matrixViewNormal_ID, 1, GL_FALSE, glm::value_ptr(v)); CHECK_OPENGL_ERROR
     }
     const glm::vec4 lightPosition(lightX, lightY, lightZ, 1);
