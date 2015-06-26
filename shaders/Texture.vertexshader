@@ -15,15 +15,15 @@ varying vec3 eye;
 uniform mat4 mvp;
 uniform mat4 mv;
 uniform mat3 viewNormal;
-uniform vec3 lightPosition;
+uniform vec4 lightPosition;
 
 void main(){
     UV = textureCoord;
-	vec4 position_viewspace = mv * vec4(vertexPosition_modelspace, 1);
-    vertexNormal_eyespace =  viewNormal * vertexNormal_modelspace;
-	vec4 lightPosition_eyespace = mv * vec4(lightPosition, 1);
-	lightDirection = normalize(vec3(lightPosition_eyespace - position_viewspace));
-	eye = -vec3(position_viewspace);
-	gl_Position =  mvp * vec4(vertexPosition_modelspace, 1);
+    vec4 position_viewspace = mv * vec4(vertexPosition_modelspace, 1);
+    vertexNormal_eyespace = viewNormal * vertexNormal_modelspace;
+    vec4 lightPosition_eyespace = mv * lightPosition;
+    lightDirection = normalize(vec3(lightPosition_eyespace - position_viewspace));
+    eye = -vec3(position_viewspace);
+    gl_Position =  mvp * vec4(vertexPosition_modelspace, 1);
 }
 

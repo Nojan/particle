@@ -6,7 +6,7 @@
 #include "types.hpp"
 
 #include "opengl_includes.hpp"
-#include <glm/common.hpp>
+#include <glm/glm.hpp>
 
 #include <memory>
 #include <vector>
@@ -20,6 +20,7 @@ public:
     ~MeshRenderer();
 
 	void Render();
+    void setTransform(const glm::mat4& transform);
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const override;
@@ -30,6 +31,7 @@ private:
     void GrowGPUBufferIFN();
 
 private:
+    glm::mat4 mTransform;
     std::unique_ptr<ShaderProgram> mShaderProgram;
     std::unique_ptr<Texture2D> mTexture2D;
     std::vector<glm::vec3> mVertex;

@@ -29,6 +29,11 @@ void MeshRenderer::debug_GUI() const {
 }
 #endif
 
+void MeshRenderer::setTransform(const glm::mat4& transform)
+{
+    mTransform = transform;
+}
+
 MeshRenderer::MeshRenderer()
 : mVaoId(0)
 , mVboPositionId(0)
@@ -145,12 +150,12 @@ void MeshRenderer::Render()
     }
     {
         GLuint matrixMVP_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "mvp"); CHECK_OPENGL_ERROR
-        glm::mat4 mvp = Root::Instance().GetCamera()->ProjectionView();
+        glm::mat4 mvp = Root::Instance().GetCamera()->ProjectionView() * mTransform;
         glUniformMatrix4fv(matrixMVP_ID, 1, GL_FALSE, glm::value_ptr(mvp)); CHECK_OPENGL_ERROR
     }
     {
         GLuint matrixMV_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "mv"); CHECK_OPENGL_ERROR
-        glm::mat4 mv = Root::Instance().GetCamera()->View();
+        glm::mat4 mv = Root::Instance().GetCamera()->View() * mTransform;
         glUniformMatrix4fv(matrixMV_ID, 1, GL_FALSE, glm::value_ptr(mv)); CHECK_OPENGL_ERROR
     }
     {
@@ -158,10 +163,11 @@ void MeshRenderer::Render()
         glm::mat3 v = glm::mat3(Root::Instance().GetCamera()->View());
         glUniformMatrix3fv(matrixViewNormal_ID, 1, GL_FALSE, glm::value_ptr(v)); CHECK_OPENGL_ERROR
     }
-    const glm::vec3 lightPosition(lightX, lightY, lightZ);
+    const glm::vec4 lightPosition(lightX, lightY, lightZ, 1);
+    const glm::vec4 lightPositionObjectSpace = glm::inverse(mTransform) * lightPosition;
     {
         GLuint lightPosition_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "lightPosition"); CHECK_OPENGL_ERROR
-        glUniform3fv(lightPosition_ID, 1, glm::value_ptr(lightPosition)); CHECK_OPENGL_ERROR
+        glUniform4fv(lightPosition_ID, 1, glm::value_ptr(lightPositionObjectSpace)); CHECK_OPENGL_ERROR
     }
     glBindVertexArray(mVaoId);
     glDrawElements(GL_TRIANGLES, mIndex.size(), GL_UNSIGNED_INT, 0);
@@ -170,7 +176,7 @@ void MeshRenderer::Render()
 
     {
         VisualDebugRenderer * renderer = Root::Instance().GetVisualDebugRenderer();
-        VisualDebugSphereCommand lightDebug(lightPosition, 0.25f, { 1.f, 0.f, 0.f, 1.f });
+        VisualDebugSphereCommand lightDebug(glm::vec3(lightPosition), 0.25f, { 1.f, 0.f, 0.f, 1.f });
         renderer->PushCommand(lightDebug);
     }
 }
