@@ -32,7 +32,7 @@ private:
 
 private:
     glm::mat4 mTransform;
-    std::unique_ptr<ShaderProgram> mShaderProgram;
+    std::shared_ptr<ShaderProgram> mShaderProgram;
     std::unique_ptr<Texture2D> mTexture2D;
     std::vector<glm::vec3> mVertex;
     std::vector<glm::vec3> mNormal;

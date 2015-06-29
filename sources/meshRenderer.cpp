@@ -44,7 +44,7 @@ MeshRenderer::MeshRenderer()
 , mVboIndexId(0)
 , mVboIndexSize(0)
 {
-    mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/Texture.vertexshader", "../shaders/Texture.fragmentshader")));
+    mShaderProgram = gloShaderCache.get("Texture");
     mTexture2D = std::move(Texture2D::generateCheckeredBoard(8, 128, 128, { 255, 255, 255 }, { 0, 0, 0 }));
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
