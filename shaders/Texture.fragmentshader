@@ -8,7 +8,6 @@ varying vec3 eye;
 
 // Values that stay constant for the whole mesh.
 uniform sampler2D textureSampler;
-uniform mat4 mv;
 
 vec4 blinn_phong(const in vec3 fragNormal, 
 const in vec3 lightDir,  const in vec3 eye) {
