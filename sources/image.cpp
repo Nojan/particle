@@ -8,7 +8,7 @@
 Image::Image(const char * filepath)
 {
     int comp;
-    mData.reset(stbi_load(filepath, &mWidth, &mHeight, &comp, STBI_default));
+    mData.reset(stbi_load(filepath, &mWidth, &mHeight, &comp, STBI_rgb));
     mChannel = static_cast<ColorsChannel>(comp);
 }
 
