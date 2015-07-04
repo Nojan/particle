@@ -10,7 +10,6 @@ class FireworksManager;
 class IUpdater;
 class IRenderer;
 class ParticleUpdater;
-class Renderer;
 class VisualDebugRenderer;
 struct GLFWwindow;
 
@@ -41,7 +40,6 @@ private:
     std::shared_ptr<Camera> mCamera;
     std::vector<std::shared_ptr< IRenderer > > mRendererList;
     std::vector<std::shared_ptr< IUpdater > > mUpdaterList;
-    std::shared_ptr<Renderer> mRenderer;
     std::shared_ptr<FireworksManager> mFireworkManager;
     std::shared_ptr<VisualDebugRenderer> mVisualDebugRenderer;
     std::shared_ptr<Gameplay::LoopManager> mGameplayLoopManager;

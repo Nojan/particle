@@ -111,19 +111,19 @@ void Root::Init()
     }
     mCamera.reset(new Camera());
     mCamera->HandleWindowResize(windowsWidth, windowsHeight);
-    mRenderer.reset(new Renderer());
-    mFireworkManager.reset(new FireworksManager(mRenderer.get()));
+    std::shared_ptr<Renderer> particleRenderer(new Renderer());
+    mFireworkManager.reset(new FireworksManager(particleRenderer.get()));
     mVisualDebugRenderer.reset(new VisualDebugRenderer());
     mGameplayLoopManager.reset(new Gameplay::LoopManager());
     mGameplayLoopManager->Init();
 
     mUpdaterList.push_back(mCamera);
-    mUpdaterList.push_back(mRenderer);
+    mUpdaterList.push_back(particleRenderer);
     mUpdaterList.push_back(mGameplayLoopManager);
     mUpdaterList.push_back(mFireworkManager);
 
     mRendererList.push_back(std::shared_ptr<Skybox>(Skybox::GenerateCheckered()));
-    mRendererList.push_back(mRenderer);
+    mRendererList.push_back(particleRenderer);
     mRendererList.push_back(std::shared_ptr<MeshRenderer>(new MeshRenderer()));
     mRendererList.push_back(mVisualDebugRenderer);
 
@@ -146,7 +146,6 @@ void Root::Terminate()
     mUpdaterList.clear();
 
     mCamera.reset();
-    mRenderer.reset();
     mFireworkManager.reset();
     mVisualDebugRenderer.reset();
     mGameplayLoopManager.reset();
