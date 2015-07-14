@@ -8,6 +8,7 @@
 #include "skybox.hpp"
 #include "visualdebug.hpp"
 #include "gameplay/loopmanager.hpp"
+#include "global.hpp"
 #include "imgui/imgui_header.hpp"
 
 #include "opengl_includes.hpp"
@@ -109,6 +110,8 @@ void Root::Init()
     } else {
         std::cout << "GLEW Version " << glewGetString(GLEW_VERSION) << " loaded." << std::endl;
     }
+    Global::Load();
+
     mCamera.reset(new Camera());
     mCamera->HandleWindowResize(windowsWidth, windowsHeight);
     std::shared_ptr<Renderer> particleRenderer(new Renderer());
@@ -150,6 +153,8 @@ void Root::Terminate()
     mVisualDebugRenderer.reset();
     mGameplayLoopManager.reset();
     
+    Global::Unload();
+
     IMGUI_ONLY(ImGui_ImplGlfwGL3_Shutdown());
     glfwDestroyWindow(mWindow); //no callback from mWindow will be fired
     glfwTerminate();

@@ -1,7 +1,9 @@
 #include "meshRenderer.hpp"
 
 #include "camera.hpp"
+#include "global.hpp"
 #include "shader.hpp"
+#include "shadercache.hpp"
 #include "shader_loader.hpp"
 #include "texture.hpp"
 #include "root.hpp"
@@ -44,7 +46,7 @@ MeshRenderer::MeshRenderer()
 , mVboIndexId(0)
 , mVboIndexSize(0)
 {
-    mShaderProgram = gloShaderCache.get("Texture");
+    mShaderProgram = Global::shaderCache()->get("Texture");
     mTexture2D = std::move(Texture2D::generateCheckeredBoard(8, 128, 128, { 255, 255, 255 }, { 0, 0, 0 }));
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
