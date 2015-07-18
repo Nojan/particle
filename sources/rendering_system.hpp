@@ -1,5 +1,6 @@
 #pragma once
 
+#include "game_system.hpp"
 #include "types.hpp"
 
 #include <memory>
@@ -7,14 +8,15 @@
 
 class RenderingComponent;
 
-class RenderingSystem {
+class RenderingSystem : public IComponentSystem {
 public:
     RenderingSystem();
-    ~RenderingSystem();
+    virtual ~RenderingSystem();
 
-    RenderingComponent* createComponent();
-    void removeComponent(uint id);
-    RenderingComponent* getComponent(uint id) const;
+    void Update(const float deltaTime) override;
+
+    void attachEntity(GameEntity* entity) override;
+    void detachEntity(GameEntity* entity) override;
 
 private:
     std::vector<std::unique_ptr<RenderingComponent>> mComponents;

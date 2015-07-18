@@ -1,5 +1,9 @@
 #include "rendering_system.hpp"
 
+#include "game_entity.hpp"
+
+#include <cassert>
+
 class RenderingComponent
 {
     int debug;
@@ -11,30 +15,20 @@ RenderingSystem::RenderingSystem()
 RenderingSystem::~RenderingSystem()
 {}
 
-RenderingComponent* RenderingSystem::createComponent()
+void RenderingSystem::Update(const float deltaTime)
 {
-    const size_t componentsCount = mComponents.size();
-    size_t found = -1;
-    for(size_t i=0; -1 == found && i<componentsCount; ++i)
+    for (auto& component : mComponents)
     {
-        const std::unique_ptr<RenderingComponent>& component = mComponents[i];
-        if(!component)
-            found = i;
+
     }
-    if(-1 == found) 
-    {
-        found = componentsCount;
-        mComponents.push_back(std::move(std::unique_ptr<RenderingComponent>()));
-    }
-    return mComponents[found].get();
 }
 
-void RenderingSystem::removeComponent(uint id)
+void RenderingSystem::attachEntity(GameEntity* entity) 
 {
-    mComponents[id].reset();
+    IComponentSystem::attachEntity<RenderingComponent>(entity, mComponents);
 }
 
-RenderingComponent* RenderingSystem::getComponent(uint id) const
+void RenderingSystem::detachEntity(GameEntity* entity) 
 {
-    return mComponents[id].get();
+    IComponentSystem::detachEntity<RenderingComponent>(entity, mComponents);
 }

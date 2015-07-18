@@ -6,7 +6,6 @@
 #include <vector>
 
 class GameEntity;
-class GameEntitySupervisor;
 
 class GameEntity {
 public:
@@ -21,7 +20,7 @@ public:
     void addComponent(T * componentPointer)
     {
         const std::type_index index = std::type_index(typeid(T));
-        void* pointer = reinterpret_cast<void>(componentPointer);
+        void* pointer = reinterpret_cast<void*>(componentPointer);
         addUntypedComponent(index, pointer);
     };
 
@@ -37,20 +36,9 @@ public:
     { 
         const std::type_index index = std::type_index(typeid(T));
         void* pointer = getUntypedComponent(index);
-        return reinterpret_cast<T>(pointer);
+        return reinterpret_cast<T*>(pointer);
     };
 
 private:
     std::unordered_map<std::type_index, void *> components;
-};
-
-
-class GameEntitySupervisor {
-public:
-
-    GameEntity* createEntity();
-    void removeEntity(GameEntity* entity);
-
-private:
-    std::vector< std::unique_ptr<GameEntity>> mEntities;
 };
