@@ -13,12 +13,7 @@ TransformSystem::~TransformSystem()
 {}
 
 void TransformSystem::Update(const float deltaTime)
-{ 
-    for (auto& transform : mComponents)
-    {
-        transform[3].z = -25;
-    }
-}
+{ }
 
 void TransformSystem::attachEntity(GameEntity* entity) 
 {

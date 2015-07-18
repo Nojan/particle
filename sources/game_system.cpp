@@ -37,18 +37,12 @@ void GameSystem::Update(const float deltaTime)
 void GameSystem::addUntypedSystem(std::type_index index, void * untypedPointer)
 {
     assert(nullptr == mSystemsMap[index]);
-    //mSystemsMap.insert({ index, untypedPointer });
     mSystemsMap[index] = untypedPointer;
     assert(untypedPointer == mSystemsMap[index]);
-    printf("insert %d %x\n", index.hash_code(), untypedPointer);
 }
 
 void* GameSystem::getUntypedSystem(std::type_index index)
 {
-    for (auto it = mSystemsMap.cbegin(); it != mSystemsMap.cend(); ++it)
-    {
-        printf("system %d %x\n", it->first.hash_code(), it->second);
-    }
     return mSystemsMap[index];
 }
 
