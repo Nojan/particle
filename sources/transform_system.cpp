@@ -16,16 +16,16 @@ void TransformSystem::Update(const float deltaTime)
 { 
     for (auto& transform : mComponents)
     {
-        (*transform)[3].z = -25;
+        transform[3].z = -25;
     }
 }
 
 void TransformSystem::attachEntity(GameEntity* entity) 
 {
-    IComponentSystem::attachPtrComponent<glm::mat4>(entity, mComponents);
+    IComponentSystem::attachComponent<glm::mat4>(entity, mComponents);
 }
 
 void TransformSystem::detachEntity(GameEntity* entity) 
 {
-    IComponentSystem::detachPtrComponent<glm::mat4>(entity, mComponents);
+    IComponentSystem::detachComponent<glm::mat4>(entity, mComponents);
 }

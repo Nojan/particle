@@ -103,10 +103,7 @@ void Seagull::Update(const float deltaTime)
             assert((*transformDbg)[3].z == position.z);
         }
     }
-    //const VisualDebugCubeCommand seagull(mSeagullPosition, 1.f, yellow);
-    //VisualDebug()->PushCommand(seagull);
     vdHistory.seagullPosition.push_back(mSeagullPosition);
-    return;
     if (vdHistory.seagullPosition.size() > 50)
     {
         vdHistory.seagullPosition.pop_front();

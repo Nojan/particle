@@ -16,5 +16,5 @@ public:
     void detachEntity(GameEntity* entity) override;
 
 private:
-    std::vector<std::unique_ptr<glm::mat4>> mComponents;
+    std::vector<glm::mat4> mComponents;
 };

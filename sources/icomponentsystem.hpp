@@ -51,11 +51,11 @@ protected:
     {
         assert(nullptr != entity);
         assert(nullptr == entity->getComponent<T>());
-        T component = T();
+        componentList.push_back(T());
+        T& component = componentList.back();
         entity->addComponent<T>(&component);
-        componentList.push_back(component);
-        assert(nullptr != entity->getComponent<T>());
-        return componentList.back();
+        assert(&component == entity->getComponent<T>());
+        return component;
     }
     template <typename T>
     void detachComponent(GameEntity* entity, std::vector<T>& componentList)
