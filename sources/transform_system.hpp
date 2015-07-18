@@ -1,17 +1,14 @@
 #pragma once
 
 #include "icomponentsystem.hpp"
-#include "types.hpp"
 
-#include <memory>
+#include <glm/glm.hpp>
 #include <vector>
 
-class RenderingComponent;
-
-class RenderingSystem : public IComponentSystem {
+class TransformSystem : public IComponentSystem {
 public:
-    RenderingSystem();
-    virtual ~RenderingSystem();
+    TransformSystem();
+    virtual ~TransformSystem();
 
     void Update(const float deltaTime) override;
 
@@ -19,5 +16,5 @@ public:
     void detachEntity(GameEntity* entity) override;
 
 private:
-    std::vector<std::unique_ptr<RenderingComponent>> mComponents;
+    std::vector<std::unique_ptr<glm::mat4>> mComponents;
 };

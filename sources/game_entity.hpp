@@ -5,16 +5,10 @@
 #include <unordered_map>
 #include <vector>
 
-class GameEntity;
-
 class GameEntity {
 public:
-
+    static const size_t Max = 1024;
     ~GameEntity();
-
-    void addUntypedComponent(std::type_index index, void * untypedPointer);
-    void removeUntypedComponent(std::type_index index);
-    void* getUntypedComponent(std::type_index index);
 
     template <typename T>
     void addComponent(T * componentPointer)
@@ -38,6 +32,10 @@ public:
         void* pointer = getUntypedComponent(index);
         return reinterpret_cast<T*>(pointer);
     };
+private:
+    void addUntypedComponent(std::type_index index, void * untypedPointer);
+    void removeUntypedComponent(std::type_index index);
+    void* getUntypedComponent(std::type_index index);
 
 private:
     std::unordered_map<std::type_index, void *> components;

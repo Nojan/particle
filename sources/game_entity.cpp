@@ -9,8 +9,10 @@ GameEntity::~GameEntity()
 
 void GameEntity::addUntypedComponent(std::type_index index, void * untypedPointer)
 {
+    assert(nullptr != untypedPointer);
     assert(nullptr == components[index]);
-    components.insert({index, untypedPointer});
+    components[index] = untypedPointer;
+    assert(untypedPointer == components[index]);
 }
 
 void GameEntity::removeUntypedComponent(std::type_index index)

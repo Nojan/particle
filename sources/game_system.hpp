@@ -1,50 +1,14 @@
 #pragma once
 
 #include "iupdater.hpp"
-#include "game_entity.hpp"
 
-#include <cassert>
 #include <memory>
+#include <typeindex>
+#include <unordered_map>
 #include <vector>
 
-class IComponentSystem : public IUpdater {
-public:
-    virtual void attachEntity(GameEntity* entity) = 0;
-    virtual void detachEntity(GameEntity* entity) = 0;
-
-protected:
-    template <typename T>
-    void attachEntity(GameEntity* entity, std::vector<std::unique_ptr<T>>& componentList)
-    {
-        assert(nullptr != entity);
-        assert(nullptr == entity->getComponent<T>());
-        std::unique_ptr<T> component = std::unique_ptr<T>();
-        entity->addComponent<T>(component.get());
-        componentList.push_back(std::move(component));
-    }
-    template <typename T>
-    void detachEntity(GameEntity* entity, std::vector<std::unique_ptr<T>>& componentList)
-    {
-        assert(nullptr != entity);
-        const T* entityComponent = entity->getComponent<T>();
-        if (nullptr == entityComponent)
-            return;
-        const size_t componentsCount = componentList.size();
-        for (size_t i = 0; i<componentsCount; ++i)
-        {
-            std::unique_ptr<T>& component = componentList[i];
-            if (entityComponent == component.get())
-            {
-                const size_t newComponentCount = componentsCount - 1;
-                component.reset();
-                std::swap(componentList[i], componentList[newComponentCount]);
-                componentList.resize(newComponentCount);
-                break;
-            }
-        }
-        entity->removeComponent<T>();
-    }
-};
+class GameEntity;
+class IComponentSystem;
 
 class GameSystem : public IUpdater {
 public:
@@ -53,9 +17,31 @@ public:
 
     void Update(const float deltaTime) override;
 
+    template <typename T>
+    void addSystem(std::unique_ptr<T> systemPointer)
+    {
+        const std::type_index index = std::type_index(typeid(T));
+        void* pointer = reinterpret_cast<void*>(systemPointer.get());
+        addUntypedSystem(index, pointer);
+        mSystems.push_back(std::move(systemPointer));
+    };
+    template <typename T>
+    T* getSystem()
+    {
+        const std::type_index index = std::type_index(typeid(T));
+        void* pointer = getUntypedSystem(index);
+        return reinterpret_cast<T*>(pointer);
+    };
+
     GameEntity* createEntity();
     void removeEntity(GameEntity* entity);
+
+private:
+    void addUntypedSystem(std::type_index index, void * untypedPointer);
+    void* getUntypedSystem(std::type_index index);
+
 private:
     std::vector< std::unique_ptr<IComponentSystem>> mSystems;
+    std::unordered_map<std::type_index, void *> mSystemsMap;
     std::vector< std::unique_ptr<GameEntity>> mEntities;
 };
