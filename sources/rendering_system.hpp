@@ -1,12 +1,21 @@
 #pragma once
 
 #include "icomponentsystem.hpp"
+#include "color.hpp"
 #include "types.hpp"
 
+#include <glm/glm.hpp>
 #include <memory>
 #include <vector>
 
-class RenderingComponent;
+class RenderingComponent
+{
+public:
+    void draw();
+
+    glm::mat4* mTransformComponent;
+    Color::rgbap mColor;
+};
 
 class RenderingSystem : public IComponentSystem {
 public:

@@ -51,8 +51,7 @@ void LoopManager::EventKey(int key, int action)
         if (t < parameter.zNear || parameter.zFar < t)
             return;
         const glm::vec3 intersect = cameraPosition + mouseDirection*t;
-        Target target = { intersect, 5.f };
-        mSeagull->SetTrackPosition(target);
+        mSeagull->SetTrackPosition(intersect);
     }
 }
 

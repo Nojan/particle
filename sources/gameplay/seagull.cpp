@@ -61,6 +61,7 @@ Seagull::Seagull()
     GameSystem* gameSystem = Global::gameSytem();
     gameSystem->getSystem<TransformSystem>()->attachEntity(mEntity);
     gameSystem->getSystem<RenderingSystem>()->attachEntity(mEntity);
+    mEntity->getComponent<RenderingComponent>()->mColor = { 1.f, 1.f, 0.f, 1.f };
 }
 
 Seagull::~Seagull()
@@ -70,38 +71,41 @@ Seagull::~Seagull()
 
 void Seagull::Init()
 {
-    mTarget = { glm::vec3(5, 0, -25.f), 10.f };
+    GameSystem* gameSystem = Global::gameSytem();
+    mTarget = { gameSystem->createEntity(), 10.f };
+    gameSystem->getSystem<TransformSystem>()->attachEntity(mTarget.mEntity);
 }
 
 void Seagull::Terminate()
-{}
+{
+    Global::gameSytem()->removeEntity(mTarget.mEntity);
+}
 
 void Seagull::Update(const float deltaTime)
 {
     const Color::rgbap red = { 1.f, 0.f, 0.f, 1.f };
     const Color::rgbap yellow = { 1.f, 1.f, 0.f, 1.f };
     mTarget.lifetime -= deltaTime;
+    glm::mat4* targetTransform = mTarget.mEntity->getComponent<glm::mat4>();
+    glm::vec3 targetTranslate = glm::vec3((*targetTransform)[3]);
     if (0 < mTarget.lifetime) {
-        UpdateTowardTarget(mTarget.position, mSeagullPosition, mSeagullSpeed, deltaTime);
-        const VisualDebugCubeCommand tracking(mTarget.position, 1.f, red);
-        VisualDebug()->PushCommand(tracking);
+        UpdateTowardTarget(targetTranslate, mSeagullPosition, mSeagullSpeed, deltaTime);
     }
-    else
-        WanderAround(mTarget.position, mSeagullPosition, mSeagullSpeed, deltaTime);
+    else {
+        WanderAround(targetTranslate, mSeagullPosition, mSeagullSpeed, deltaTime);
+        RenderingComponent* targetRenderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
+        if (nullptr != targetRenderingComponent)
+        {
+            GameSystem* gameSystem = Global::gameSytem();
+            gameSystem->getSystem<RenderingSystem>()->detachEntity(mTarget.mEntity);
+        }
+    }
     mSeagullPosition.z = -25.f;
     {
         const glm::vec4 position(mSeagullPosition, 1.f);
         glm::mat4* transform = mEntity->getComponent<glm::mat4>();
         glm::vec4& transformTranslate = (*transform)[3];
         transformTranslate = position;
-        {
-            const glm::mat4* transformDbg = mEntity->getComponent<glm::mat4>();
-            assert(transformDbg == transform);
-            assert(*transformDbg == *transform);
-            assert((*transformDbg)[3].x == position.x);
-            assert((*transformDbg)[3].y == position.y);
-            assert((*transformDbg)[3].z == position.z);
-        }
     }
     vdHistory.seagullPosition.push_back(mSeagullPosition);
     if (vdHistory.seagullPosition.size() > 50)
@@ -115,9 +119,21 @@ void Seagull::Update(const float deltaTime)
     }
 }
 
-void Seagull::SetTrackPosition(const Target& target)
+void Seagull::SetTrackPosition(const glm::vec3& target)
 {
-    mTarget = target;
+    const glm::vec4 targetPosition(target, 1);
+    glm::mat4* transform = mTarget.mEntity->getComponent<glm::mat4>();
+    glm::vec4& translate = (*transform)[3];
+    translate = targetPosition;
+    mTarget.lifetime = 5.f;
+    RenderingComponent* renderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
+    if (nullptr == renderingComponent)
+    {
+        GameSystem* gameSystem = Global::gameSytem();
+        gameSystem->getSystem<RenderingSystem>()->attachEntity(mTarget.mEntity);
+        renderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
+        renderingComponent->mColor = { 1.f, 0.f, 0.f, 1.f };
+    }
 }
 
 } //namespace Gameplay

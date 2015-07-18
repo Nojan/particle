@@ -10,7 +10,7 @@ class GameEntity;
 namespace Gameplay {
 
 struct Target {
-    glm::vec3 position;
+    GameEntity* mEntity;
     float lifetime;
 };
 
@@ -22,7 +22,7 @@ public:
     void Init();
     void Terminate();
     void Update(const float deltaTime);
-    void SetTrackPosition(const Target& target);
+    void SetTrackPosition(const glm::vec3& target);
 
 private:
     GameEntity* mEntity;
