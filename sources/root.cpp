@@ -8,6 +8,7 @@
 #include "skybox.hpp"
 #include "visualdebug.hpp"
 #include "gameplay/loopmanager.hpp"
+#include "game_system.hpp"
 #include "global.hpp"
 #include "imgui/imgui_header.hpp"
 
@@ -189,10 +190,11 @@ void Root::Update()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_OPENGL_ERROR
     while (frameDuration <= lastFrameDuration) {
         lastFrameDuration -= frameDuration;
-        for (auto& updater : mUpdaterList)
+        for (std::shared_ptr<IUpdater>& updater : mUpdaterList)
         {
             updater->Update(frameDuration);
         }
+        Global::gameSytem()->Update(frameDuration);
     }
     for (auto& renderer : mRendererList)
     {

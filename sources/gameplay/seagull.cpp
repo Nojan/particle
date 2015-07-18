@@ -1,5 +1,10 @@
 #include "seagull.hpp"
 
+#include "../global.hpp"
+#include "../game_entity.hpp"
+#include "../game_system.hpp"
+#include "../transform_system.hpp"
+#include "../rendering_system.hpp"
 #include "../visualdebug.hpp"
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/random.hpp>
@@ -49,12 +54,19 @@ struct VisualDebugHistory {
 static VisualDebugHistory vdHistory;
 
 Seagull::Seagull()
-: mSeagullPosition(0, 0, -25.f)
+: mEntity(Global::gameSytem()->createEntity())
+, mSeagullPosition(0, 0, -25.f)
 , mSeagullSpeed(1, 0, 0)
-{}
+{
+    GameSystem* gameSystem = Global::gameSytem();
+    gameSystem->getSystem<TransformSystem>()->attachEntity(mEntity);
+    gameSystem->getSystem<RenderingSystem>()->attachEntity(mEntity);
+}
 
 Seagull::~Seagull()
-{}
+{
+    Global::gameSytem()->removeEntity(mEntity);
+}
 
 void Seagull::Init()
 {
@@ -77,8 +89,20 @@ void Seagull::Update(const float deltaTime)
     else
         WanderAround(mTarget.position, mSeagullPosition, mSeagullSpeed, deltaTime);
     mSeagullPosition.z = -25.f;
-    const VisualDebugCubeCommand seagull(mSeagullPosition, 1.f, yellow);
-    VisualDebug()->PushCommand(seagull);
+    {
+        const glm::vec4 position(mSeagullPosition, 1.f);
+        glm::mat4* transform = mEntity->getComponent<glm::mat4>();
+        glm::vec4& transformTranslate = (*transform)[3];
+        transformTranslate = position;
+        {
+            const glm::mat4* transformDbg = mEntity->getComponent<glm::mat4>();
+            assert(transformDbg == transform);
+            assert(*transformDbg == *transform);
+            assert((*transformDbg)[3].x == position.x);
+            assert((*transformDbg)[3].y == position.y);
+            assert((*transformDbg)[3].z == position.z);
+        }
+    }
     vdHistory.seagullPosition.push_back(mSeagullPosition);
     if (vdHistory.seagullPosition.size() > 50)
     {

@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 
+class GameEntity;
+
 namespace Gameplay {
 
 struct Target {
@@ -23,6 +25,7 @@ public:
     void SetTrackPosition(const Target& target);
 
 private:
+    GameEntity* mEntity;
     Target mTarget;
     glm::vec3 mSeagullPosition;
     glm::vec3 mSeagullSpeed;
