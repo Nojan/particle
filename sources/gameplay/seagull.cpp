@@ -3,6 +3,7 @@
 #include "../global.hpp"
 #include "../game_entity.hpp"
 #include "../game_system.hpp"
+#include "../physic_system.hpp"
 #include "../transform_system.hpp"
 #include "../rendering_system.hpp"
 #include "../visualdebug.hpp"
@@ -29,7 +30,6 @@ static void UpdateTowardTarget(const glm::vec3& target, glm::vec3& position, glm
 
     //speed = glm::vec3(speed.x, speed.y, 0);
     speed = glm::normalize(speed) * std::min(glm::length(speed), maxSpeed);
-    position += speed*deltaTime;
 }
 
 static void WanderAround(const glm::vec3& target, glm::vec3& position, glm::vec3& speed, float deltaTime) {
@@ -43,7 +43,6 @@ static void WanderAround(const glm::vec3& target, glm::vec3& position, glm::vec3
     speed += randomDirection;
     //speed = glm::vec3(speed.x, speed.y, 0);
     speed = glm::normalize(speed) * std::min(glm::length(speed), maxSpeed);
-    position += speed*deltaTime;
 }
 
 struct VisualDebugHistory {
@@ -55,11 +54,14 @@ static VisualDebugHistory vdHistory;
 
 Seagull::Seagull()
 : mEntity(Global::gameSytem()->createEntity())
-, mSeagullPosition(0, 0, -25.f)
-, mSeagullSpeed(1, 0, 0)
 {
     GameSystem* gameSystem = Global::gameSytem();
     gameSystem->getSystem<TransformSystem>()->attachEntity(mEntity);
+    TransformComponent* transform = mEntity->getComponent<TransformComponent>();
+    transform->SetPosition(glm::vec4(0, 0, -25.f, 1.f));
+    gameSystem->getSystem<PhysicSystem>()->attachEntity(mEntity);
+    PhysicComponent* physic = mEntity->getComponent<PhysicComponent>();
+    physic->mdp = glm::vec4(1, 0, 0, 0);
     gameSystem->getSystem<RenderingSystem>()->attachEntity(mEntity);
     mEntity->getComponent<RenderingComponent>()->mColor = { 1.f, 1.f, 0.f, 1.f };
 }
@@ -86,13 +88,17 @@ void Seagull::Update(const float deltaTime)
     const Color::rgbap red = { 1.f, 0.f, 0.f, 1.f };
     const Color::rgbap yellow = { 1.f, 1.f, 0.f, 1.f };
     mTarget.lifetime -= deltaTime;
+    TransformComponent* transform = mEntity->getComponent<TransformComponent>();
     TransformComponent* targetTransform = mTarget.mEntity->getComponent<TransformComponent>();
+    glm::vec3 position(transform->Position());
+    PhysicComponent* physic = mEntity->getComponent<PhysicComponent>();
+    glm::vec3 speed(physic->mdp);
     glm::vec3 targetTranslate = glm::vec3(targetTransform->Position());
     if (0 < mTarget.lifetime) {
-        UpdateTowardTarget(targetTranslate, mSeagullPosition, mSeagullSpeed, deltaTime);
+        UpdateTowardTarget(targetTranslate, position, speed, deltaTime);
     }
     else {
-        WanderAround(targetTranslate, mSeagullPosition, mSeagullSpeed, deltaTime);
+        WanderAround(targetTranslate, position, speed, deltaTime);
         RenderingComponent* targetRenderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
         if (nullptr != targetRenderingComponent)
         {
@@ -100,13 +106,8 @@ void Seagull::Update(const float deltaTime)
             gameSystem->getSystem<RenderingSystem>()->detachEntity(mTarget.mEntity);
         }
     }
-    mSeagullPosition.z = -25.f;
-    {
-        const glm::vec4 position(mSeagullPosition, 1.f);
-        TransformComponent* transform = mEntity->getComponent<TransformComponent>();
-        transform->SetPosition(position);
-    }
-    vdHistory.seagullPosition.push_back(mSeagullPosition);
+    physic->mdp = glm::vec4(speed, 1.f);
+    vdHistory.seagullPosition.push_back(position);
     if (vdHistory.seagullPosition.size() > 50)
     {
         vdHistory.seagullPosition.pop_front();

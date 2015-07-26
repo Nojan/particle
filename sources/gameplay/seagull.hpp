@@ -27,8 +27,6 @@ public:
 private:
     GameEntity* mEntity;
     Target mTarget;
-    glm::vec3 mSeagullPosition;
-    glm::vec3 mSeagullSpeed;
 };
 
 } // namespace

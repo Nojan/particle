@@ -1,6 +1,7 @@
 #include "game_system.hpp"
 #include "icomponentsystem.hpp"
 
+#include "physic_system.hpp"
 #include "transform_system.hpp"
 #include "rendering_system.hpp"
 
@@ -11,6 +12,7 @@
 GameSystem::GameSystem()
 {
     CREATE_SYSTEM(TransformSystem);
+    CREATE_SYSTEM(PhysicSystem);
     CREATE_SYSTEM(RenderingSystem);
 }
 
