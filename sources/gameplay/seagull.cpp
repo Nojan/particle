@@ -86,8 +86,8 @@ void Seagull::Update(const float deltaTime)
     const Color::rgbap red = { 1.f, 0.f, 0.f, 1.f };
     const Color::rgbap yellow = { 1.f, 1.f, 0.f, 1.f };
     mTarget.lifetime -= deltaTime;
-    glm::mat4* targetTransform = mTarget.mEntity->getComponent<glm::mat4>();
-    glm::vec3 targetTranslate = glm::vec3((*targetTransform)[3]);
+    TransformComponent* targetTransform = mTarget.mEntity->getComponent<TransformComponent>();
+    glm::vec3 targetTranslate = glm::vec3(targetTransform->Position());
     if (0 < mTarget.lifetime) {
         UpdateTowardTarget(targetTranslate, mSeagullPosition, mSeagullSpeed, deltaTime);
     }
@@ -103,9 +103,8 @@ void Seagull::Update(const float deltaTime)
     mSeagullPosition.z = -25.f;
     {
         const glm::vec4 position(mSeagullPosition, 1.f);
-        glm::mat4* transform = mEntity->getComponent<glm::mat4>();
-        glm::vec4& transformTranslate = (*transform)[3];
-        transformTranslate = position;
+        TransformComponent* transform = mEntity->getComponent<TransformComponent>();
+        transform->SetPosition(position);
     }
     vdHistory.seagullPosition.push_back(mSeagullPosition);
     if (vdHistory.seagullPosition.size() > 50)
@@ -122,9 +121,8 @@ void Seagull::Update(const float deltaTime)
 void Seagull::SetTrackPosition(const glm::vec3& target)
 {
     const glm::vec4 targetPosition(target, 1);
-    glm::mat4* transform = mTarget.mEntity->getComponent<glm::mat4>();
-    glm::vec4& translate = (*transform)[3];
-    translate = targetPosition;
+    TransformComponent* transform = mTarget.mEntity->getComponent<TransformComponent>();
+    transform->SetPosition(targetPosition);
     mTarget.lifetime = 5.f;
     RenderingComponent* renderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
     if (nullptr == renderingComponent)

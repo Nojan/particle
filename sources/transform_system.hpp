@@ -5,18 +5,31 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+
+class TransformComponent
+{
+public:
+    TransformComponent();
+    TransformComponent(const TransformComponent& ref);
+
+    const glm::vec4& Position() const;
+    void SetPosition(const glm::vec4& position);
+
+    glm::mat4 mTransformComponent;
+};
+
 namespace Component{
 
 template <>
-inline const glm::mat4 UnitializedValue()
+inline const TransformComponent UnitializedValue()
 {
-    return glm::mat4(0);
+    return TransformComponent();
 }
 
 template <>
-inline bool Initialized(const glm::mat4& component)
+inline bool Initialized(const TransformComponent& component)
 {
-    return UnitializedValue<glm::mat4>() != component;
+    return 0 != component.mTransformComponent[3][3];
 }
 
 }
@@ -32,5 +45,5 @@ public:
     void detachEntity(GameEntity* entity) override;
 
 private:
-    std::vector<glm::mat4> mComponents;
+    std::vector<TransformComponent> mComponents;
 };

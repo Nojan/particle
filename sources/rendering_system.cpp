@@ -8,7 +8,7 @@
 
 void RenderingComponent::draw()
 {
-    const glm::vec3 position((*mTransformComponent)[3]);
+    const glm::vec3 position(mTransformComponent->Position());
     const VisualDebugCubeCommand debugCube(position, 1.f, mColor);
     VisualDebug()->PushCommand(debugCube);
 }
@@ -30,7 +30,9 @@ void RenderingSystem::Update(const float deltaTime)
 void RenderingSystem::attachEntity(GameEntity* entity) 
 {
     RenderingComponent* component = IComponentSystem::attachPtrComponent<RenderingComponent>(entity, mComponents);
-    component->mTransformComponent = entity->getComponent<glm::mat4>();
+    TransformComponent* tranform = entity->getComponent<TransformComponent>();
+    assert(tranform);
+    component->mTransformComponent = tranform;
 }
 
 void RenderingSystem::detachEntity(GameEntity* entity) 

@@ -4,6 +4,24 @@
 
 #include <cassert>
 
+TransformComponent::TransformComponent()
+: mTransformComponent(0)
+{}
+
+TransformComponent::TransformComponent(const TransformComponent& ref)
+: mTransformComponent(ref.mTransformComponent)
+{}
+
+const glm::vec4& TransformComponent::Position() const
+{
+    return mTransformComponent[3];
+}
+
+void TransformComponent::SetPosition(const glm::vec4& position)
+{
+    mTransformComponent[3] = position;
+}
+
 TransformSystem::TransformSystem()
 {
     mComponents.reserve(GameEntity::Max);
@@ -17,10 +35,10 @@ void TransformSystem::Update(const float deltaTime)
 
 void TransformSystem::attachEntity(GameEntity* entity) 
 {
-    IComponentSystem::attachComponent<glm::mat4>(entity, mComponents);
+    IComponentSystem::attachComponent<TransformComponent>(entity, mComponents);
 }
 
 void TransformSystem::detachEntity(GameEntity* entity) 
 {
-    IComponentSystem::detachComponent<glm::mat4>(entity, mComponents);
+    IComponentSystem::detachComponent<TransformComponent>(entity, mComponents);
 }

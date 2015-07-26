@@ -8,12 +8,14 @@
 #include <memory>
 #include <vector>
 
+class TransformComponent;
+
 class RenderingComponent
 {
 public:
     void draw();
 
-    glm::mat4* mTransformComponent;
+    TransformComponent* mTransformComponent;
     Color::rgbap mColor;
 };
 
