@@ -46,4 +46,7 @@ bool ShaderProgram::operator== (const ShaderProgram & rhs) const
     return ProgramID() == rhs.ProgramID();
 }
 
-
+bool ShaderProgram::operator< (const ShaderProgram & rhs) const
+{
+    return ProgramID() < rhs.ProgramID();
+}

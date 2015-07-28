@@ -15,7 +15,8 @@ public:
     const glm::vec4& Position() const;
     void SetPosition(const glm::vec4& position);
 
-    glm::mat4 mTransformComponent;
+    glm::mat4 mTransform;
+    glm::mat4 mScale;
 };
 
 namespace Component{
@@ -29,7 +30,7 @@ inline const TransformComponent UnitializedValue()
 template <>
 inline bool Initialized(const TransformComponent& component)
 {
-    return 0 != component.mTransformComponent[3][3];
+    return 0 != component.mTransform[3][3];
 }
 
 }

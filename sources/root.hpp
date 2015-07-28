@@ -13,6 +13,8 @@ class ParticleUpdater;
 class VisualDebugRenderer;
 struct GLFWwindow;
 
+class MeshRenderer;
+
 namespace Gameplay {
     class LoopManager;
 }
@@ -22,6 +24,7 @@ public:
     static Root& Instance();
     Camera * GetCamera();
     VisualDebugRenderer* GetVisualDebugRenderer();
+    MeshRenderer* GetMeshRenderer();
 
     void Init();
     void Terminate();

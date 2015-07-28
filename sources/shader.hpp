@@ -16,6 +16,7 @@ public:
 
     //operator
     bool operator== (const ShaderProgram & rhs) const;
+    bool operator< (const ShaderProgram & rhs) const;
 
 private:
     GLuint mProgramID;

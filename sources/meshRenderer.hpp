@@ -11,6 +11,7 @@
 #include <memory>
 #include <vector>
 
+class RenderableMesh;
 class ShaderProgram;
 class Texture2D;
 
@@ -20,7 +21,8 @@ public:
     ~MeshRenderer();
 
 	void Render();
-    void setTransform(const glm::mat4& transform);
+
+    void PushToRenderQueue(RenderableMesh* renderable);
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const override;
@@ -29,15 +31,12 @@ public:
 
 private:
     void GrowGPUBufferIFN();
+    void Render(const RenderableMesh& renderable);
 
 private:
-    glm::mat4 mTransform;
     std::shared_ptr<ShaderProgram> mShaderProgram;
     std::unique_ptr<Texture2D> mTexture2D;
-    std::vector<glm::vec3> mVertex;
-    std::vector<glm::vec3> mNormal;
-    std::vector<glm::vec2> mTextureCoord;
-    std::vector<uint> mIndex;
+    std::vector<RenderableMesh*> mRenderQueue;
     GLuint mVaoId;
     GLuint mVboPositionId;
     GLuint mVboNormalId;

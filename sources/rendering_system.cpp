@@ -1,16 +1,31 @@
 #include "rendering_system.hpp"
 
 #include "game_entity.hpp"
+#include "renderableMesh.hpp"
 #include "transform_system.hpp"
 #include "visualdebug.hpp"
 
 #include <cassert>
 
+#include "global.hpp"
+#include "meshRenderer.hpp"
+
+RenderingComponent::RenderingComponent()
+{
+    mRenderable.reset(new RenderableMesh());
+    mRenderable->mMesh.reset(new Mesh("../asset/mesh/cube.obj"));
+}
+
+RenderingComponent::~RenderingComponent()
+{}
+
 void RenderingComponent::draw()
 {
-    const glm::vec3 position(mTransformComponent->Position());
-    const VisualDebugCubeCommand debugCube(position, 1.f, mColor);
-    VisualDebug()->PushCommand(debugCube);
+    mRenderable->mTransform = mTransformComponent->mTransform;
+    mRenderable->mScale = mTransformComponent->mScale;
+    mRenderable->mScale = glm::mat4(5.f);
+    mRenderable->mScale[3] = glm::vec4(1.f);
+    Root::Instance().GetMeshRenderer()->PushToRenderQueue(mRenderable.get());
 }
 
 RenderingSystem::RenderingSystem()

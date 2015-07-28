@@ -2,6 +2,7 @@
 
 #include "camera.hpp"
 #include "global.hpp"
+#include "renderableMesh.hpp"
 #include "shader.hpp"
 #include "shadercache.hpp"
 #include "shader_loader.hpp"
@@ -13,7 +14,6 @@
 #include "visualdebug/visualdebug_renderer.hpp"
 
 #include "imgui/imgui_header.hpp"
-#include "tinyobj/tiny_obj_loader.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
 #include <assert.h>
@@ -31,11 +31,6 @@ void MeshRenderer::debug_GUI() const {
 }
 #endif
 
-void MeshRenderer::setTransform(const glm::mat4& transform)
-{
-    mTransform = transform;
-}
-
 MeshRenderer::MeshRenderer()
 : mVaoId(0)
 , mVboPositionId(0)
@@ -48,46 +43,6 @@ MeshRenderer::MeshRenderer()
 {
     mShaderProgram = Global::shaderCache()->get("Texture");
     mTexture2D = std::move(Texture2D::generateCheckeredBoard(8, 128, 128, { 255, 255, 255 }, { 0, 0, 0 }));
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    const std::string res = tinyobj::LoadObj(shapes, materials, "../asset/mesh/extrude_cube.obj", "../asset/mesh");
-    assert(res.empty());
-
-    // pre allocate
-    {
-        size_t vertexSize = mVertex.size();
-        size_t indexSize = mIndex.size();
-        for (size_t i = 0; i < shapes.size(); ++i) {
-            const tinyobj::mesh_t& mesh = shapes[i].mesh;
-            vertexSize += mesh.positions.size() / 3;
-            indexSize += mesh.indices.size();
-        }
-        mVertex.reserve(vertexSize);
-        mNormal.reserve(vertexSize);
-        mTextureCoord.reserve(vertexSize);
-        mIndex.reserve(indexSize);
-    }
-
-    for (size_t i = 0; i < shapes.size(); ++i) {
-        const size_t firstVertex = mVertex.size();
-        const size_t firstIndex = mIndex.size();
-        const tinyobj::mesh_t& mesh = shapes[i].mesh;    
-        const size_t meshVertexCount = mesh.positions.size() / 3;
-        for (size_t vertexI = 0; vertexI < meshVertexCount; ++vertexI) {
-            const size_t vec2Index = vertexI * 2;
-            const size_t vec3Index = vertexI * 3;
-            const glm::vec3 vertex(mesh.positions[vec3Index + 0], mesh.positions[vec3Index + 1], mesh.positions[vec3Index + 2]);
-            mVertex.push_back(vertex);
-            const glm::vec3 normal(mesh.normals[vec3Index + 0], mesh.normals[vec3Index + 1], mesh.normals[vec3Index + 2]);
-            mNormal.push_back(normal);
-            const glm::vec2 textureUV(mesh.texcoords[vec2Index + 0], mesh.texcoords[vec2Index + 1]);
-            mTextureCoord.push_back(textureUV);
-        }
-        for (size_t index = 0; index < mesh.indices.size(); ++index) {
-            mIndex.push_back(firstVertex + mesh.indices[index]);
-        }
-    }
-
     glGenTextures(1, &mTextureSamplerId); CHECK_OPENGL_ERROR
 }
 
@@ -103,45 +58,67 @@ MeshRenderer::~MeshRenderer()
 
 void MeshRenderer::Render()
 {
-    if (mIndex.empty())
+    if (mRenderQueue.empty())
         return;
     glEnable(GL_DEPTH_TEST);
     mShaderProgram->Bind();
     GrowGPUBufferIFN();
+
+    for (const RenderableMesh* renderable: mRenderQueue)
+    {
+        Render(*renderable);
+    }
+
+    mRenderQueue.clear();
+
+    const glm::vec4 lightPosition(lightX, lightY, lightZ, 1);
+    {
+        VisualDebugRenderer * renderer = Root::Instance().GetVisualDebugRenderer();
+        VisualDebugSphereCommand lightDebug(glm::vec3(lightPosition), 0.25f, { 1.f, 0.f, 0.f, 1.f });
+        renderer->PushCommand(lightDebug);
+    }
+}
+
+void MeshRenderer::Render(const RenderableMesh& renderable)
+{
+    if (renderable.mMesh->mIndex.empty())
+        return;
+    const glm::mat4& modelTransform = renderable.mTransform;
+    const glm::mat4 modelTransformAndScale = renderable.mTransform *renderable.mScale;
     {
         const size_t elementSize = sizeof(glm::vec3);
         glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); CHECK_OPENGL_ERROR
-        glBufferData(GL_ARRAY_BUFFER, mVertex.size() * elementSize, 0, GL_DYNAMIC_DRAW); CHECK_OPENGL_ERROR
+        glBufferData(GL_ARRAY_BUFFER, renderable.mMesh->mVertex.size() * elementSize, 0, GL_DYNAMIC_DRAW); CHECK_OPENGL_ERROR
         void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); CHECK_OPENGL_ERROR
         assert(mappedVbo);
-        memcpy(mappedVbo, mVertex.data(), mVertex.size() * elementSize);
+        memcpy(mappedVbo, renderable.mMesh->mVertex.data(), renderable.mMesh->mVertex.size() * elementSize);
         glUnmapBuffer(GL_ARRAY_BUFFER); CHECK_OPENGL_ERROR
     }
     {
         const size_t elementSize = sizeof(glm::vec3);
         glBindBuffer(GL_ARRAY_BUFFER, mVboNormalId); CHECK_OPENGL_ERROR
-        glBufferData(GL_ARRAY_BUFFER, mNormal.size() * elementSize, 0, GL_DYNAMIC_DRAW); CHECK_OPENGL_ERROR
+        glBufferData(GL_ARRAY_BUFFER, renderable.mMesh->mNormal.size() * elementSize, 0, GL_DYNAMIC_DRAW); CHECK_OPENGL_ERROR
         void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); CHECK_OPENGL_ERROR
         assert(mappedVbo);
-        memcpy(mappedVbo, mNormal.data(), mNormal.size() * elementSize);
+        memcpy(mappedVbo, renderable.mMesh->mNormal.data(), renderable.mMesh->mNormal.size() * elementSize);
         glUnmapBuffer(GL_ARRAY_BUFFER); CHECK_OPENGL_ERROR
     }
     {
         const size_t elementSize = sizeof(glm::vec2);
         glBindBuffer(GL_ARRAY_BUFFER, mVboTextureCoordId); CHECK_OPENGL_ERROR
-        glBufferData(GL_ARRAY_BUFFER, mTextureCoord.size() * elementSize, 0, GL_DYNAMIC_DRAW); CHECK_OPENGL_ERROR
+        glBufferData(GL_ARRAY_BUFFER, renderable.mMesh->mTextureCoord.size() * elementSize, 0, GL_DYNAMIC_DRAW); CHECK_OPENGL_ERROR
         void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); CHECK_OPENGL_ERROR
         assert(mappedVbo);
-        memcpy(mappedVbo, mTextureCoord.data(), mTextureCoord.size() * elementSize);
+        memcpy(mappedVbo, renderable.mMesh->mTextureCoord.data(), renderable.mMesh->mTextureCoord.size() * elementSize);
         glUnmapBuffer(GL_ARRAY_BUFFER); CHECK_OPENGL_ERROR
     }
     {
         const size_t elementSize = sizeof(uint);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVboIndexId); CHECK_OPENGL_ERROR
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndex.size() * elementSize, 0, GL_DYNAMIC_DRAW); CHECK_OPENGL_ERROR
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, renderable.mMesh->mIndex.size() * elementSize, 0, GL_DYNAMIC_DRAW); CHECK_OPENGL_ERROR
         void * mappedVbo = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY); CHECK_OPENGL_ERROR
         assert(mappedVbo);
-        memcpy(mappedVbo, mIndex.data(), mIndex.size() * elementSize);
+        memcpy(mappedVbo, renderable.mMesh->mIndex.data(), renderable.mMesh->mIndex.size() * elementSize);
         glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER); CHECK_OPENGL_ERROR
     }
     {
@@ -152,46 +129,56 @@ void MeshRenderer::Render()
     }
     {
         GLuint matrixMVP_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "mvp"); CHECK_OPENGL_ERROR
-        glm::mat4 mvp = Root::Instance().GetCamera()->ProjectionView() * mTransform;
+        glm::mat4 mvp = Root::Instance().GetCamera()->ProjectionView() * modelTransformAndScale;
         glUniformMatrix4fv(matrixMVP_ID, 1, GL_FALSE, glm::value_ptr(mvp)); CHECK_OPENGL_ERROR
     }
     {
         GLuint matrixMV_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "mv"); CHECK_OPENGL_ERROR
-        glm::mat4 mv = Root::Instance().GetCamera()->View() * mTransform;
+        glm::mat4 mv = Root::Instance().GetCamera()->View() * modelTransformAndScale;
         glUniformMatrix4fv(matrixMV_ID, 1, GL_FALSE, glm::value_ptr(mv)); CHECK_OPENGL_ERROR
     }
     {
         GLuint matrixViewNormal_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "viewNormal"); CHECK_OPENGL_ERROR
-        glm::mat3 v = glm::mat3(Root::Instance().GetCamera()->View()) * glm::mat3(mTransform);
+        glm::mat3 v = glm::mat3(Root::Instance().GetCamera()->View()) * glm::mat3(modelTransform);
         glUniformMatrix3fv(matrixViewNormal_ID, 1, GL_FALSE, glm::value_ptr(v)); CHECK_OPENGL_ERROR
     }
     const glm::vec4 lightPosition(lightX, lightY, lightZ, 1);
-    const glm::vec4 lightPositionObjectSpace = glm::inverse(mTransform) * lightPosition;
+    const glm::vec4 lightPositionObjectSpace = glm::inverse(modelTransform) * lightPosition;
     {
         GLuint lightPosition_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "lightPosition"); CHECK_OPENGL_ERROR
         glUniform4fv(lightPosition_ID, 1, glm::value_ptr(lightPositionObjectSpace)); CHECK_OPENGL_ERROR
     }
     glBindVertexArray(mVaoId);
-    glDrawElements(GL_TRIANGLES, mIndex.size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, renderable.mMesh->mIndex.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
-    mShaderProgram->Unbind();
+}
 
-    {
-        VisualDebugRenderer * renderer = Root::Instance().GetVisualDebugRenderer();
-        VisualDebugSphereCommand lightDebug(glm::vec3(lightPosition), 0.25f, { 1.f, 0.f, 0.f, 1.f });
-        renderer->PushCommand(lightDebug);
-    }
+void MeshRenderer::PushToRenderQueue(RenderableMesh* renderable)
+{
+    assert(renderable->mMesh->Valid());
+    mRenderQueue.push_back(renderable);
 }
 
 void MeshRenderer::GrowGPUBufferIFN() {
     assert(mShaderProgram->IsBind());
     bool grow = false;
-    assert(mVertex.size() == mNormal.size());
-    assert(mVertex.size() == mTextureCoord.size());
-    if (mVboVertexSize < mVertex.size())
+    size_t vertexSize = 0;
+    size_t normalSize = 0;
+    size_t textureCoordSize = 0;
+    size_t indexSize = 0;
+    for (const RenderableMesh* renderable : mRenderQueue)
+    {
+        vertexSize = std::max(vertexSize, renderable->mMesh->mVertex.size());
+        normalSize = std::max(normalSize, renderable->mMesh->mNormal.size());
+        textureCoordSize = std::max(textureCoordSize, renderable->mMesh->mTextureCoord.size());
+        indexSize = std::max(indexSize, renderable->mMesh->mIndex.size());
+    }
+    assert(vertexSize == normalSize);
+    assert(vertexSize == textureCoordSize);
+    if (mVboVertexSize < vertexSize)
     {
         grow = true;
-        mVboVertexSize = mVertex.size();
+        mVboVertexSize = vertexSize;
         {
             glDeleteBuffers(1, &mVboPositionId); CHECK_OPENGL_ERROR
             glGenBuffers(1, &mVboPositionId); CHECK_OPENGL_ERROR
@@ -217,10 +204,10 @@ void MeshRenderer::GrowGPUBufferIFN() {
             glBindBuffer(GL_ARRAY_BUFFER, 0); CHECK_OPENGL_ERROR
         }
     }
-    if (mVboIndexSize < mIndex.size())
+    if (mVboIndexSize < indexSize)
     {
         grow = true;
-        mVboIndexSize = mIndex.size();
+        mVboIndexSize = indexSize;
         glDeleteBuffers(1, &mVboIndexId); CHECK_OPENGL_ERROR
         glGenBuffers(1, &mVboIndexId); CHECK_OPENGL_ERROR
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVboIndexId); CHECK_OPENGL_ERROR

@@ -74,6 +74,11 @@ Root::~Root()
 {
 }
 
+MeshRenderer* Root::GetMeshRenderer()
+{
+    return dynamic_cast<MeshRenderer*>(mRendererList.at(2).get());
+}
+
 void Root::Init()
 {
     srand(42);
@@ -128,7 +133,8 @@ void Root::Init()
 
     mRendererList.push_back(std::shared_ptr<Skybox>(Skybox::GenerateCheckered()));
     mRendererList.push_back(particleRenderer);
-    mRendererList.push_back(std::shared_ptr<MeshRenderer>(new MeshRenderer()));
+    std::shared_ptr<MeshRenderer> meshRender(new MeshRenderer());
+    mRendererList.push_back(meshRender);
     mRendererList.push_back(mVisualDebugRenderer);
 
     glfwSetKeyCallback(mWindow, key_callback);

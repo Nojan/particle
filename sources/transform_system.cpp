@@ -5,21 +5,23 @@
 #include <cassert>
 
 TransformComponent::TransformComponent()
-: mTransformComponent(0)
+: mTransform(1.f)
+, mScale(1.f)
 {}
 
 TransformComponent::TransformComponent(const TransformComponent& ref)
-: mTransformComponent(ref.mTransformComponent)
+: mTransform(ref.mTransform)
+, mScale(ref.mScale)
 {}
 
 const glm::vec4& TransformComponent::Position() const
 {
-    return mTransformComponent[3];
+    return mTransform[3];
 }
 
 void TransformComponent::SetPosition(const glm::vec4& position)
 {
-    mTransformComponent[3] = position;
+    mTransform[3] = position;
 }
 
 TransformSystem::TransformSystem()

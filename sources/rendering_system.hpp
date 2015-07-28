@@ -8,15 +8,21 @@
 #include <memory>
 #include <vector>
 
+class RenderableMesh;
 class TransformComponent;
 
 class RenderingComponent
 {
 public:
+    RenderingComponent();
+    ~RenderingComponent();
     void draw();
 
     TransformComponent* mTransformComponent;
     Color::rgbap mColor;
+
+private:
+    std::unique_ptr<RenderableMesh> mRenderable;
 };
 
 class RenderingSystem : public IComponentSystem {
