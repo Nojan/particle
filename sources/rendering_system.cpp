@@ -12,8 +12,7 @@
 
 RenderingComponent::RenderingComponent()
 {
-    mRenderable.reset(new RenderableMesh());
-    mRenderable->mMesh.reset(new Mesh("../asset/mesh/cube.obj"));
+    
 }
 
 RenderingComponent::~RenderingComponent()
@@ -21,6 +20,8 @@ RenderingComponent::~RenderingComponent()
 
 void RenderingComponent::draw()
 {
+    if(!mRenderable)
+        return;
     mRenderable->mTransform = mTransformComponent->mTransform;
     mRenderable->mScale = mTransformComponent->mScale;
     mRenderable->mScale = glm::mat4(5.f);

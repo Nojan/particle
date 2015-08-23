@@ -6,6 +6,7 @@
 #include "../physic_system.hpp"
 #include "../transform_system.hpp"
 #include "../rendering_system.hpp"
+#include "../renderableMesh.hpp"
 #include "../visualdebug.hpp"
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/random.hpp>
@@ -63,7 +64,10 @@ Seagull::Seagull()
     PhysicComponent* physic = mEntity->getComponent<PhysicComponent>();
     physic->mdp = glm::vec4(1, 0, 0, 0);
     gameSystem->getSystem<RenderingSystem>()->attachEntity(mEntity);
-    mEntity->getComponent<RenderingComponent>()->mColor = { 1.f, 1.f, 0.f, 1.f };
+    RenderingComponent* renderingComponent = mEntity->getComponent<RenderingComponent>();
+    renderingComponent->mColor = { 1.f, 1.f, 0.f, 1.f };
+    renderingComponent->mRenderable.reset(new RenderableMesh());
+    renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/Bird.obj"));
 }
 
 Seagull::~Seagull()
@@ -132,6 +136,9 @@ void Seagull::SetTrackPosition(const glm::vec3& target)
         gameSystem->getSystem<RenderingSystem>()->attachEntity(mTarget.mEntity);
         renderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
         renderingComponent->mColor = { 1.f, 0.f, 0.f, 1.f };
+        renderingComponent->mColor = { 1.f, 1.f, 0.f, 1.f };
+        renderingComponent->mRenderable.reset(new RenderableMesh());
+        renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/cube.obj"));
     }
 }
 

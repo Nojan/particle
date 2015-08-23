@@ -18,11 +18,9 @@ public:
     ~RenderingComponent();
     void draw();
 
+    std::unique_ptr<RenderableMesh> mRenderable;
     TransformComponent* mTransformComponent;
     Color::rgbap mColor;
-
-private:
-    std::unique_ptr<RenderableMesh> mRenderable;
 };
 
 class RenderingSystem : public IComponentSystem {
