@@ -25,7 +25,7 @@ void RenderingComponent::draw()
     mRenderable->mTransform = mTransformComponent->mTransform;
     mRenderable->mScale = mTransformComponent->mScale;
     mRenderable->mScale = glm::mat4(5.f);
-    mRenderable->mScale[3] = glm::vec4(1.f);
+    mRenderable->mScale[3][3] = 1.f;
     Root::Instance().GetMeshRenderer()->PushToRenderQueue(mRenderable.get());
 }
 
