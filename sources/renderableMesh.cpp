@@ -38,6 +38,7 @@ Mesh::Mesh(const char* filename)
             const size_t vec3Index = vertexI * 3;
             const glm::vec3 vertex(mesh.positions[vec3Index + 0], mesh.positions[vec3Index + 1], mesh.positions[vec3Index + 2]);
             mVertex.push_back(vertex);
+            mBBox.Add(vertex);
             const glm::vec3 normal(mesh.normals[vec3Index + 0], mesh.normals[vec3Index + 1], mesh.normals[vec3Index + 2]);
             mNormal.push_back(normal);
             const glm::vec2 textureUV(mesh.texcoords[vec2Index + 0], mesh.texcoords[vec2Index + 1]);
@@ -55,6 +56,7 @@ Mesh::Mesh(const Mesh& ref)
 , mNormal(ref.mNormal)
 , mTextureCoord(ref.mTextureCoord)
 , mIndex(ref.mIndex)
+, mBBox(ref.mBBox)
 { }
 
 bool Mesh::Valid() const
