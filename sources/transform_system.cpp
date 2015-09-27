@@ -5,23 +5,50 @@
 #include <cassert>
 
 TransformComponent::TransformComponent()
-: mTransform(1.f)
+: mPosition(0.f)
 , mScale(1.f)
+, mRotation(1,0,0,0)
 {}
 
 TransformComponent::TransformComponent(const TransformComponent& ref)
-: mTransform(ref.mTransform)
+: mPosition(ref.mPosition)
 , mScale(ref.mScale)
-{}
+, mRotation(ref.mRotation)
+{
+}
 
 const glm::vec4& TransformComponent::Position() const
 {
-    return mTransform[3];
+    return mPosition;
+}
+
+bool TransformComponent::Invalid() const
+{
+    return 0.f == mPosition.w;
 }
 
 void TransformComponent::SetPosition(const glm::vec4& position)
 {
-    mTransform[3] = position;
+    mPosition = position;
+}
+
+const glm::quat& TransformComponent::Rotation() const
+{
+    return mRotation;
+}
+
+void TransformComponent::SetRotation(const glm::quat& rotation)
+{
+    mRotation = rotation;
+}
+
+glm::mat4 TransformComponent::Transform() const
+{
+    assert(!Invalid());
+    glm::mat4 result;
+    result = glm::mat4_cast(mRotation);
+    result[3] = Position();
+    return result;
 }
 
 TransformSystem::TransformSystem()

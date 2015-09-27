@@ -3,6 +3,7 @@
 #include "icomponentsystem.hpp"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <vector>
 
 
@@ -12,11 +13,19 @@ public:
     TransformComponent();
     TransformComponent(const TransformComponent& ref);
 
+    bool Invalid() const;
+
     const glm::vec4& Position() const;
     void SetPosition(const glm::vec4& position);
 
-    glm::mat4 mTransform;
+    const glm::quat& Rotation() const;
+    void SetRotation(const glm::quat& rotation);
+
+    glm::mat4 Transform() const;
+
+    glm::vec4 mPosition;
     glm::mat4 mScale;
+    glm::quat mRotation;
 };
 
 namespace Component{
@@ -30,7 +39,7 @@ inline const TransformComponent UnitializedValue()
 template <>
 inline bool Initialized(const TransformComponent& component)
 {
-    return 0 != component.mTransform[3][3];
+    return !component.Invalid();
 }
 
 }

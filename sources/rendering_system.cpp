@@ -22,7 +22,7 @@ void RenderingComponent::draw()
 {
     if(!mRenderable)
         return;
-    mRenderable->mTransform = mTransformComponent->mTransform;
+    mRenderable->mTransform = mTransformComponent->Transform();
     mRenderable->mScale = mTransformComponent->mScale;
     mRenderable->mScale = glm::mat4(5.f);
     mRenderable->mScale[3][3] = 1.f;
