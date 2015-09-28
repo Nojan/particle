@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../imgui/imgui_header.hpp"
 #include <glm/glm.hpp>
 
 #include <memory>
@@ -23,6 +24,10 @@ public:
     void Terminate();
     void Update(const float deltaTime);
     void SetTrackPosition(const glm::vec3& target);
+
+#ifdef IMGUI_ENABLE
+    static void debug_GUI();
+#endif
 
 private:
     GameEntity* mEntity;

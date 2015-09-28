@@ -237,6 +237,10 @@ void Root::Update()
             if (ImGui::CollapsingHeader(renderer->debug_name()))
                 renderer->debug_GUI();
         }
+        if (ImGui::CollapsingHeader("Gameplay"))
+        {
+            mGameplayLoopManager->debug_GUI();
+        }
     }
     ImGui::End();
 #endif

@@ -8,7 +8,10 @@
 
 #define IMGUI_ONLY(x) x
 
+#define IMGUI_VAR(x,v) static auto x = v
+
 #else
 #define IMGUI_ONLY(x)
+#define IMGUI_VAR(x,v) static const auto x = v
 
 #endif

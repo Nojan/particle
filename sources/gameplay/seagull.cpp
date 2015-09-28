@@ -17,9 +17,34 @@
 
 namespace Gameplay {
 
+namespace Constant {
+    IMGUI_VAR(History, false);
+    IMGUI_VAR(PursuitMaxSpeed, 20.f);
+    IMGUI_VAR(PursuitMaxSteering, 2.f);
+    IMGUI_VAR(PursuitEvadeDistance, 5.f);
+
+    IMGUI_VAR(WanderMaxSpeed, 15.f);
+    IMGUI_VAR(WanderMaxSteering, 1.5f);
+    IMGUI_VAR(WanderMaxDistance, 10.f);
+}
+
+#ifdef IMGUI_ENABLE
+void Seagull::debug_GUI()
+{
+    ImGui::Checkbox("Show History", &Constant::History);
+    ImGui::SliderFloat("Pursuit Max Speed", &Constant::PursuitMaxSpeed, 1.f, 50.f);
+    ImGui::SliderFloat("Pursuit Max Steering", &Constant::PursuitMaxSteering, 0.f, 5.f);
+    ImGui::SliderFloat("Pursuit Evade Distance", &Constant::PursuitEvadeDistance, 0.f, 20.f);
+
+    ImGui::SliderFloat("Wander Max Speed", &Constant::WanderMaxSpeed, 1.f, 50.f);
+    ImGui::SliderFloat("Wander Max Steering", &Constant::WanderMaxSteering, 0.f, 5.f);
+    ImGui::SliderFloat("Wander Distance", &Constant::WanderMaxDistance, 0.f, 20.f);
+}
+#endif
+
 static void UpdateTowardTarget(const glm::vec3& target, glm::vec3& position, glm::vec3& speed, float deltaTime) { 
-    const float maxSpeed = 20.f;
-    const float maxSteering = 2.f;
+    const float maxSpeed = Constant::PursuitMaxSpeed;
+    const float maxSteering = Constant::PursuitMaxSteering;
     const glm::vec3 targetDirection = target - position;
     const float targetDistance = glm::length(targetDirection);
     const glm::vec3 targetDirectionNormalized = glm::normalize(targetDirection) / targetDistance;
@@ -29,7 +54,7 @@ static void UpdateTowardTarget(const glm::vec3& target, glm::vec3& position, glm
     const float dotSeekSpeed = glm::dot(seekVelocityDesired, speedNormalized);
     if (0 > dotSeekSpeed)
     {
-        if (targetDistance < 5.f)
+        if (targetDistance < Constant::PursuitEvadeDistance)
             seekVelocityDesired = speedNormalized;
         else
             seekVelocityDesired = seekVelocityDesired - dotSeekSpeed * speedNormalized;
@@ -37,21 +62,18 @@ static void UpdateTowardTarget(const glm::vec3& target, glm::vec3& position, glm
     const glm::vec3 steeringVelocityDesired = seekVelocityDesired * maxSpeed - speed;
     const glm::vec3 steeringVelocityDesiredNormalized = glm::normalize(seekVelocityDesired);
     speed += steeringVelocityDesiredNormalized * maxSteering;
-
-    //speed = glm::vec3(speed.x, speed.y, 0);
     speed = glm::normalize(speed) * std::max(1.f, std::min(glm::length(speed), maxSpeed));
 }
 
 static void WanderAround(const glm::vec3& target, glm::vec3& position, glm::vec3& speed, float deltaTime) {
-    const float maxSpeed = 15.f;
-    const float maxSteering = 1.5f;
-    const float maxDistance = 10.f;
+    const float maxSpeed = Constant::WanderMaxSpeed;
+    const float maxSteering = Constant::WanderMaxSteering;
+    const float maxDistance = Constant::WanderMaxDistance;
     const glm::vec3 targetDirection = target - position;
     const float targetDistance = glm::length(targetDirection);
     const glm::vec3 direction = targetDistance < maxDistance ? glm::normalize(speed) : glm::normalize(targetDirection);
     const glm::vec3 randomDirection = glm::ballRand(maxSpeed*0.01f);
     speed += randomDirection;
-    //speed = glm::vec3(speed.x, speed.y, 0);
     speed = glm::normalize(speed) * std::min(glm::length(speed), maxSpeed);
 }
 
@@ -118,15 +140,18 @@ void Seagull::Update(const float deltaTime)
         }
     }
     physic->SetVelocity(glm::vec4(speed, 0.f));
-    vdHistory.seagullPosition.push_back(position);
-    if (vdHistory.seagullPosition.size() > 50)
+    if (Constant::History)
     {
-        vdHistory.seagullPosition.pop_front();
-    }
-    for (size_t i = 0; i < vdHistory.seagullPosition.size(); ++i)
-    {
-        const VisualDebugCubeCommand seagullHistory(vdHistory.seagullPosition[i], 0.25f, yellow);
-        VisualDebug()->PushCommand(seagullHistory);
+        vdHistory.seagullPosition.push_back(position);
+        if (vdHistory.seagullPosition.size() > 50)
+        {
+            vdHistory.seagullPosition.pop_front();
+        }
+        for (size_t i = 0; i < vdHistory.seagullPosition.size(); ++i)
+        {
+            const VisualDebugCubeCommand seagullHistory(vdHistory.seagullPosition[i], 0.25f, yellow);
+            VisualDebug()->PushCommand(seagullHistory);
+        }
     }
 }
 

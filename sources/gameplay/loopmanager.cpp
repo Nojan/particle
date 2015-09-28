@@ -55,4 +55,11 @@ void LoopManager::EventKey(int key, int action)
     }
 }
 
+#ifdef IMGUI_ENABLE
+void LoopManager::debug_GUI() const
+{
+    mSeagull->debug_GUI();
+}
+#endif
+
 } //namespace Gameplay
