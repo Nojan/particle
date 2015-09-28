@@ -1,6 +1,7 @@
 #include "seagull.hpp"
 
 #include "../global.hpp"
+#include "../firework.hpp"
 #include "../game_entity.hpp"
 #include "../game_system.hpp"
 #include "../physic_system.hpp"
@@ -19,6 +20,9 @@ namespace Gameplay {
 
 namespace Constant {
     IMGUI_VAR(History, false);
+    IMGUI_VAR(CatchRadius, 1.f);
+    IMGUI_VAR(TargetLifetime, 5.f);
+
     IMGUI_VAR(PursuitMaxSpeed, 20.f);
     IMGUI_VAR(PursuitMaxSteering, 2.f);
     IMGUI_VAR(PursuitEvadeDistance, 5.f);
@@ -32,6 +36,9 @@ namespace Constant {
 void Seagull::debug_GUI()
 {
     ImGui::Checkbox("Show History", &Constant::History);
+    ImGui::SliderFloat("Catch Radius", &Constant::CatchRadius, 0.f, 5.f);
+    ImGui::SliderFloat("Target Lifetime", &Constant::TargetLifetime, 1.f, 10.f);
+
     ImGui::SliderFloat("Pursuit Max Speed", &Constant::PursuitMaxSpeed, 1.f, 50.f);
     ImGui::SliderFloat("Pursuit Max Steering", &Constant::PursuitMaxSteering, 0.f, 5.f);
     ImGui::SliderFloat("Pursuit Evade Distance", &Constant::PursuitEvadeDistance, 0.f, 20.f);
@@ -129,6 +136,13 @@ void Seagull::Update(const float deltaTime)
     glm::vec3 targetTranslate = glm::vec3(targetTransform->Position());
     if (0 < mTarget.lifetime) {
         UpdateTowardTarget(targetTranslate, position, speed, deltaTime);
+        const float targetDistance = glm::length(targetTranslate - position);
+        if (targetDistance < Constant::CatchRadius)
+        {
+            mTarget.lifetime = 0;
+            FireworksManager* fireworksManager = Root::Instance().GetFireworksManager();
+            fireworksManager->spawnPeony(targetTranslate, 50.f, 3.f);
+        }
     }
     else {
         WanderAround(targetTranslate, position, speed, deltaTime);
@@ -160,7 +174,7 @@ void Seagull::SetTrackPosition(const glm::vec3& target)
     const glm::vec4 targetPosition(target, 1);
     TransformComponent* transform = mTarget.mEntity->getComponent<TransformComponent>();
     transform->SetPosition(targetPosition);
-    mTarget.lifetime = 5.f;
+    mTarget.lifetime = Constant::TargetLifetime;
     RenderingComponent* renderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
     if (nullptr == renderingComponent)
     {
