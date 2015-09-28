@@ -79,6 +79,11 @@ MeshRenderer* Root::GetMeshRenderer()
     return dynamic_cast<MeshRenderer*>(mRendererList.at(2).get());
 }
 
+FireworksManager* Root::GetFireworksManager()
+{
+    return mFireworkManager.get();
+}
+
 void Root::Init()
 {
     srand(42);
