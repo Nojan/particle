@@ -192,8 +192,9 @@ void Root::Update()
     if (std::chrono::milliseconds(100) < mFrameDuration)
         lastFrameDuration = frameDuration; //abnormal frame duration (breakpoint?)
     const auto beginFrame = std::chrono::high_resolution_clock::now();
-    char windowTitle[256];
-    sprintf(windowTitle, "Particle : %dms", mFrameDuration.count());
+    const size_t windowTitleSize = 265;
+    char windowTitle[windowTitleSize];
+    snprintf(windowTitle, windowTitleSize, "Particle : %dms", mFrameDuration.count());
     glfwSetWindowTitle(mWindow, windowTitle);
     glfwPollEvents();
     IMGUI_ONLY(ImGui_ImplGlfwGL3_NewFrame());

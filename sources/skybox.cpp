@@ -40,10 +40,11 @@ Skybox* Skybox::CreateSkyboxFrom(const char * directory)
 {
     const char* files[6] = { "xpos.jpg", "xneg.jpg", "ypos.jpg", "yneg.jpg", "zpos.jpg", "zneg.jpg" };
     const size_t string_length = strlen(directory) + strlen(files[0]) + 2;
-    assert(string_length < 2048);
-    char skybox_path[6][2048];
+    const size_t string_length_max = 2048;
+    assert(string_length < string_length_max);
+    char skybox_path[6][string_length_max];
     for (uint i = 0; i < 6; ++i)
-        sprintf(skybox_path[i], "%s/%s", directory, files[i]);
+        snprintf(skybox_path[i], string_length_max, "%s/%s", directory, files[i]);
     return CreateSkyboxFrom(skybox_path[0], skybox_path[1],
         skybox_path[2], skybox_path[3],
         skybox_path[4], skybox_path[5]);
