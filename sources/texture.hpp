@@ -22,7 +22,7 @@ public:
 
     void setTexture(std::unique_ptr<Color::rgb[]> data, uint height, uint width);
 
-    char const * const getData() const;
+    uint8_t const * const getData() const;
     uint getHeight() const;
     uint getWidth() const;
 

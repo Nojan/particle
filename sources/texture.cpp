@@ -26,7 +26,7 @@ Texture2D::~Texture2D()
 {
 }
 
-char const * const Texture2D::getData() const
+uint8_t const * const Texture2D::getData() const
 {
     return &(mData.get()[0].r);
 }

@@ -1,13 +1,15 @@
 #ifndef COLOR_HPP
 #define COLOR_HPP
 
+#include "types.hpp"
+
 namespace Color
 {
     struct rgb
     {
-        char r; //[0,255]
-        char g; //[0,255]
-        char b; //[0,255]
+        uint8_t r; //[0,255]
+        uint8_t g; //[0,255]
+        uint8_t b; //[0,255]
     };
 
     bool valid(rgb in);
