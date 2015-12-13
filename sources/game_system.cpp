@@ -30,6 +30,11 @@ GameSystem::~GameSystem()
 
 void GameSystem::Update(const float deltaTime)
 {
+    for (const auto& deadEntity : mDeadEntities)
+    {
+        removeEntitySync(deadEntity);
+    }
+    mDeadEntities.clear();
     for (auto& componentSystem : mSystems)
     {
         componentSystem->Update(deltaTime);
@@ -57,7 +62,7 @@ GameEntity* GameSystem::createEntity()
     return entityPtr;
 }
 
-void GameSystem::removeEntity(GameEntity* entity)
+void GameSystem::removeEntitySync(GameEntity* entity)
 {
     assert(nullptr != entity);
     for (auto& componentSystem : mSystems)
@@ -78,4 +83,9 @@ void GameSystem::removeEntity(GameEntity* entity)
             break;
         }
     }
+}
+
+void GameSystem::removeEntity(GameEntity* entity)
+{
+    mDeadEntities.push_back(entity);
 }

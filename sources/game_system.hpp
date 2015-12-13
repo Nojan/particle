@@ -37,6 +37,7 @@ public:
     void removeEntity(GameEntity* entity);
 
 private:
+    void removeEntitySync(GameEntity* entity);
     void addUntypedSystem(std::type_index index, void * untypedPointer);
     void* getUntypedSystem(std::type_index index);
 
@@ -44,4 +45,5 @@ private:
     std::vector< std::unique_ptr<IComponentSystem>> mSystems;
     std::unordered_map<std::type_index, void *> mSystemsMap;
     std::vector< std::unique_ptr<GameEntity>> mEntities;
+    std::vector< GameEntity* > mDeadEntities;
 };
