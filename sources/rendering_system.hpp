@@ -21,6 +21,7 @@ public:
     std::unique_ptr<RenderableMesh> mRenderable;
     TransformComponent* mTransformComponent;
     Color::rgbap mColor;
+    bool mEnable;
 };
 
 class RenderingSystem : public IComponentSystem {

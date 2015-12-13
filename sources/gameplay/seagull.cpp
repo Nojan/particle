@@ -116,6 +116,12 @@ void Seagull::Init()
     GameSystem* gameSystem = Global::gameSytem();
     mTarget = { gameSystem->createEntity(), 10.f };
     gameSystem->getSystem<TransformSystem>()->attachEntity(mTarget.mEntity);
+    gameSystem->getSystem<RenderingSystem>()->attachEntity(mTarget.mEntity);
+    RenderingComponent * renderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
+    renderingComponent->mColor = { 1.f, 0.f, 0.f, 1.f };
+    renderingComponent->mRenderable.reset(new RenderableMesh());
+    renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/cube.obj"));
+    renderingComponent->mEnable = false;
 }
 
 void Seagull::Terminate()
@@ -142,16 +148,12 @@ void Seagull::Update(const float deltaTime)
             mTarget.lifetime = 0;
             FireworksManager* fireworksManager = Root::Instance().GetFireworksManager();
             fireworksManager->spawnPeony(targetTranslate, 50.f, 3.f);
+            RenderingComponent* targetRenderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
+            targetRenderingComponent->mEnable = false;
         }
     }
     else {
         WanderAround(targetTranslate, position, speed, deltaTime);
-        RenderingComponent* targetRenderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
-        if (nullptr != targetRenderingComponent)
-        {
-            GameSystem* gameSystem = Global::gameSytem();
-            gameSystem->getSystem<RenderingSystem>()->detachEntity(mTarget.mEntity);
-        }
     }
     physic->SetVelocity(glm::vec4(speed, 0.f));
     if (Constant::History)
@@ -176,16 +178,7 @@ void Seagull::SetTrackPosition(const glm::vec3& target)
     transform->SetPosition(targetPosition);
     mTarget.lifetime = Constant::TargetLifetime;
     RenderingComponent* renderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
-    if (nullptr == renderingComponent)
-    {
-        GameSystem* gameSystem = Global::gameSytem();
-        gameSystem->getSystem<RenderingSystem>()->attachEntity(mTarget.mEntity);
-        renderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
-        renderingComponent->mColor = { 1.f, 0.f, 0.f, 1.f };
-        renderingComponent->mColor = { 1.f, 1.f, 0.f, 1.f };
-        renderingComponent->mRenderable.reset(new RenderableMesh());
-        renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/cube.obj"));
-    }
+    renderingComponent->mEnable = true;
 }
 
 } //namespace Gameplay

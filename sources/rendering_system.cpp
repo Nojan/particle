@@ -11,6 +11,7 @@
 #include "meshRenderer.hpp"
 
 RenderingComponent::RenderingComponent()
+    : mEnable(true)
 {
     
 }
@@ -20,7 +21,7 @@ RenderingComponent::~RenderingComponent()
 
 void RenderingComponent::draw()
 {
-    if(!mRenderable)
+    if(!mRenderable || !mEnable)
         return;
     mRenderable->mTransform = mTransformComponent->Transform();
     mRenderable->mScale = mTransformComponent->mScale;
