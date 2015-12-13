@@ -20,9 +20,9 @@ GameSystem::GameSystem()
 
 GameSystem::~GameSystem()
 {
-    for (std::unique_ptr<GameEntity>& entity : mEntities)
+    while (!mEntities.empty())
     {
-        removeEntity(entity.get());
+        removeEntitySync(mEntities.front().get());
     }
     mEntities.clear();
     mSystems.clear();
