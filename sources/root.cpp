@@ -113,14 +113,12 @@ void Root::Init()
     IMGUI_ONLY(ImGui_ImplGlfwGL3_Init(mWindow, true));
 
     // Initialize Glew AFTER glfwMakeContextCurrent
-    GLenum glewInitCode = glewInit();
-    if (GLEW_OK != glewInitCode)
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        std::cout << "GLEW error : " << glewGetErrorString(glewInitCode) << std::endl;
-        exit( EXIT_FAILURE );
-    } else {
-        std::cout << "GLEW Version " << glewGetString(GLEW_VERSION) << " loaded." << std::endl;
+        std::cout << "Failed to initialize OpenGL context" << std::endl;
+        exit(EXIT_FAILURE);
     }
+    printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
     Global::Load();
 
     mCamera.reset(new Camera());

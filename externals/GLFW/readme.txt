@@ -1,1 +1,1 @@
-version 3.0.4 for msvc 110
+version 3.1.2 for visual studio 2015

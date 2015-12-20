@@ -12,16 +12,16 @@ solution "Particle"
         kind "ConsoleApp"
         language "C++"
         location "build"
-        files { "sources/**.hpp", "sources/**.cpp" }
+        files { "sources/**.hpp", "sources/**.cpp", "sources/**.h", "sources/**.c" }
         
     configuration "windows"
         defines "WIN32"
-        links { "glfw3", "glew32s", "glu32", "opengl32"}
+        links { "glfw3", "glu32", "opengl32"}
 
     configuration "linux"
         buildoptions "-std=c++11"
         defines "__linux__"
-        links { "glfw", "GLEW", "GLU", "GL" }
+        links { "glfw", "dl", "GLU", "GL" }
  
     configuration "Debug" 
         defines { "DEBUG" }
