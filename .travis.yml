@@ -12,7 +12,7 @@ install:
     - if [ "$CXX" == "g++" ]; then sudo apt-get install -qq g++-4.8; fi
     - if [ "$CXX" == "g++" ]; then sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 50; fi
 script: 
-    - git clone -b 3.0.3 --single-branch --depth 1 https://github.com/glfw/glfw.git
+    - git clone -b 3.1.12 --single-branch --depth 1 https://github.com/glfw/glfw.git
     - cd glfw
     - cmake -DBUILD_SHARED_LIBS=ON
     - make
