@@ -9,7 +9,7 @@ PhysicComponent::PhysicComponent()
 : mTransformComponent(nullptr)
 , mInvMass(1)
 , mForceAccum(0)
-, mVelocity(1,0,0,1)
+, mVelocity(1,0,0,0)
 , mAcceleration(0,0,0,1)
 {}
 
