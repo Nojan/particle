@@ -21,11 +21,13 @@
 #include <chrono>
 #include <thread>
 
+#ifdef WIN32
 // Try to use dedicated GPU
 extern "C" {
     __declspec(dllexport) uint32_t NvOptimusEnablement = 0x00000001;
     __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
+#endif
 
 //
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
