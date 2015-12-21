@@ -132,7 +132,7 @@ void Skybox::Render()
     glUniform1i(cubemapID, 0); CHECK_OPENGL_ERROR
 
     // attribute buffer : vertices
-    glEnableVertexAttribArray(0); CHECK_OPENGL_ERROR
+    glEnableVertexAttribArray(vertexPositionID); CHECK_OPENGL_ERROR
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferId); CHECK_OPENGL_ERROR
     glVertexAttribPointer(
         vertexPositionID, // The attribute we want to configure
@@ -148,7 +148,7 @@ void Skybox::Render()
 
     glDrawElements(GL_QUADS, 6*4, GL_UNSIGNED_SHORT, 0); CHECK_OPENGL_ERROR
 
-    glDisableVertexAttribArray(0); CHECK_OPENGL_ERROR
+    glDisableVertexAttribArray(vertexPositionID); CHECK_OPENGL_ERROR
     glDisable(GL_TEXTURE_CUBE_MAP); CHECK_OPENGL_ERROR
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); CHECK_OPENGL_ERROR
     mShaderProgram->Unbind();
