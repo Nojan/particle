@@ -168,10 +168,13 @@ void MeshRenderer::GrowGPUBufferIFN() {
     size_t indexSize = 0;
     for (const RenderableMesh* renderable : mRenderQueue)
     {
-        vertexSize = std::max(vertexSize, renderable->mMesh->mVertex.size());
-        normalSize = std::max(normalSize, renderable->mMesh->mNormal.size());
-        textureCoordSize = std::max(textureCoordSize, renderable->mMesh->mTextureCoord.size());
-        indexSize = std::max(indexSize, renderable->mMesh->mIndex.size());
+        assert(nullptr != renderable);
+        Mesh* mesh = renderable->mMesh.get();
+        assert(nullptr != mesh);
+        vertexSize = std::max(vertexSize, mesh->mVertex.size());
+        normalSize = std::max(normalSize, mesh->mNormal.size());
+        textureCoordSize = std::max(textureCoordSize, mesh->mTextureCoord.size());
+        indexSize = std::max(indexSize, mesh->mIndex.size());
     }
     assert(vertexSize == normalSize);
     assert(vertexSize == textureCoordSize);
