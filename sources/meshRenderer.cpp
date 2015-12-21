@@ -66,9 +66,12 @@ void MeshRenderer::Render()
 
     for (const RenderableMesh* renderable: mRenderQueue)
     {
+        assert(renderable);
         Render(*renderable);
     }
 
+    mShaderProgram->Unbind();
+    glDisable(GL_DEPTH_TEST);
     mRenderQueue.clear();
 
     const glm::vec4 lightPosition(lightX, lightY, lightZ, 1);
