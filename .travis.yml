@@ -1,21 +1,29 @@
 language: cpp
-compiler: gcc 
+compiler: g++ 
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    - kubuntu-backports
+    packages:
+    - cmake
+    - gcc-4.9
+    - g++-4.9
 before_install:
-    - if [ "$CXX" == "g++" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
     - sudo add-apt-repository ppa:codegear/release -y 
-    - sudo add-apt-repository ppa:kalakris/cmake -y
     - sudo apt-get update -qq
 install: 
     - sudo apt-get install -y premake4 libXxf86vm-dev libglew-dev
-    - sudo apt-get install cmake
-    # install g++ 4.8, if tests are run with g++
-    - if [ "$CXX" == "g++" ]; then sudo apt-get install -qq g++-4.8; fi
-    - if [ "$CXX" == "g++" ]; then sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 50; fi
-script: 
+    # Install GLFW
     - git clone -b 3.1.2 --single-branch --depth 1 https://github.com/glfw/glfw.git
     - cd glfw
     - cmake -DBUILD_SHARED_LIBS=ON
     - make
     - sudo make install
     - cd ..
+script: 
+    # Use g++ 4.8, if tests are run with g++
+    - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9"; fi
+    - if [ "$CC" = "gcc" ]; then export CC="gcc-4.9"; fi
+    # Build
     - ./build.sh
