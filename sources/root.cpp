@@ -202,8 +202,6 @@ void Root::Update()
     glfwSetWindowTitle(mWindow, windowTitle);
     glfwPollEvents();
     IMGUI_ONLY(ImGui_ImplGlfwGL3_NewFrame());
-    glClearDepth(1.0f); CHECK_OPENGL_ERROR
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_OPENGL_ERROR
     while (frameDuration <= lastFrameDuration) {
         lastFrameDuration -= frameDuration;
         for (std::shared_ptr<IUpdater>& updater : mUpdaterList)
@@ -256,6 +254,8 @@ void Root::Update()
 #endif
     IMGUI_ONLY(ImGui::Render());
     glfwSwapBuffers(mWindow); CHECK_OPENGL_ERROR
+    glClearDepth(1.0f); CHECK_OPENGL_ERROR
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_OPENGL_ERROR
     const auto endFrame = std::chrono::high_resolution_clock::now();
     const auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFrame - beginFrame);
 
