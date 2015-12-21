@@ -114,6 +114,7 @@ void Root::Init()
     } 
 
     glfwMakeContextCurrent(mWindow);
+    glfwSwapInterval(1);
 
     // Setup ImGui binding
     IMGUI_ONLY(ImGui_ImplGlfwGL3_Init(mWindow, true));
@@ -261,7 +262,7 @@ void Root::Update()
     const auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFrame - beginFrame);
 
     ++mFramesCounter;
-    std::this_thread::sleep_for(frameLimiter - renderingDuration);
+    //std::this_thread::sleep_for(frameLimiter - renderingDuration);
     const auto endSleep = std::chrono::high_resolution_clock::now();
     mFrameDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endSleep - beginFrame);
     if (autoSpawnParticle && mFramesCounter > autoSpawnParticleFrame)
