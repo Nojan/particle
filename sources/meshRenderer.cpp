@@ -58,6 +58,13 @@ MeshRenderer::~MeshRenderer()
 
 void MeshRenderer::Render()
 {
+    const glm::vec4 lightPosition(lightX, lightY, lightZ, 1);
+    {
+        VisualDebugRenderer * renderer = Root::Instance().GetVisualDebugRenderer();
+        VisualDebugSphereCommand lightDebug(glm::vec3(lightPosition), 0.25f, { 1.f, 0.f, 0.f, 1.f });
+        renderer->PushCommand(lightDebug);
+    }
+    
     if (mRenderQueue.empty())
         return;
     glEnable(GL_DEPTH_TEST);
@@ -73,13 +80,6 @@ void MeshRenderer::Render()
     mShaderProgram->Unbind();
     glDisable(GL_DEPTH_TEST);
     mRenderQueue.clear();
-
-    const glm::vec4 lightPosition(lightX, lightY, lightZ, 1);
-    {
-        VisualDebugRenderer * renderer = Root::Instance().GetVisualDebugRenderer();
-        VisualDebugSphereCommand lightDebug(glm::vec3(lightPosition), 0.25f, { 1.f, 0.f, 0.f, 1.f });
-        renderer->PushCommand(lightDebug);
-    }
 }
 
 void MeshRenderer::Render(const RenderableMesh& renderable)
