@@ -28,64 +28,64 @@ Renderer::Renderer()
     Texture2D::loadFromFile("../asset/particle_mask.bmp", mParticleMask);
     mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/Simple.vertexshader", "../shaders/Simple.fragmentshader")));
     mShaderProgram->Bind();
-    GLuint vertexPosition_modelspaceID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace"); CHECK_OPENGL_ERROR
-    GLuint vertexColorID               = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexColor"); CHECK_OPENGL_ERROR
+    GLuint vertexPosition_modelspaceID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace"); 
+    GLuint vertexColorID               = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexColor"); 
 
     {
-        glGenTextures(1, &mTextureId); CHECK_OPENGL_ERROR
-        glBindTexture(GL_TEXTURE_2D, mTextureId); CHECK_OPENGL_ERROR
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mParticleMask.getWidth(), mParticleMask.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE, mParticleMask.getData()); CHECK_OPENGL_ERROR
+        glGenTextures(1, &mTextureId); 
+        glBindTexture(GL_TEXTURE_2D, mTextureId); 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mParticleMask.getWidth(), mParticleMask.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE, mParticleMask.getData()); 
 
         glGenSamplers(1, &mSamplerId);
-        glSamplerParameteri(mSamplerId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); CHECK_OPENGL_ERROR
-        glSamplerParameteri(mSamplerId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); CHECK_OPENGL_ERROR
-        glSamplerParameteri(mSamplerId, GL_TEXTURE_MIN_FILTER, GL_LINEAR); CHECK_OPENGL_ERROR
-        glSamplerParameteri(mSamplerId, GL_TEXTURE_MAG_FILTER, GL_LINEAR); CHECK_OPENGL_ERROR
+        glSamplerParameteri(mSamplerId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); 
+        glSamplerParameteri(mSamplerId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); 
+        glSamplerParameteri(mSamplerId, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+        glSamplerParameteri(mSamplerId, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
     }
     {
-        glGenBuffers(1, &mVboPositionId); CHECK_OPENGL_ERROR
-        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); CHECK_OPENGL_ERROR
-        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(vec4), 0, GL_STREAM_DRAW); CHECK_OPENGL_ERROR
-        glBindBuffer(GL_ARRAY_BUFFER, 0); CHECK_OPENGL_ERROR
+        glGenBuffers(1, &mVboPositionId); 
+        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); 
+        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(vec4), 0, GL_STREAM_DRAW); 
+        glBindBuffer(GL_ARRAY_BUFFER, 0); 
     }
     {
-        glGenBuffers(1, &mVboColorId); CHECK_OPENGL_ERROR
-        glBindBuffer(GL_ARRAY_BUFFER, mVboColorId); CHECK_OPENGL_ERROR
-        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(Color::rgbap), 0, GL_STREAM_DRAW); CHECK_OPENGL_ERROR
-        glBindBuffer(GL_ARRAY_BUFFER, 0); CHECK_OPENGL_ERROR
+        glGenBuffers(1, &mVboColorId); 
+        glBindBuffer(GL_ARRAY_BUFFER, mVboColorId); 
+        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(Color::rgbap), 0, GL_STREAM_DRAW); 
+        glBindBuffer(GL_ARRAY_BUFFER, 0); 
     }
 
-    glGenVertexArrays(1, &mVaoId); CHECK_OPENGL_ERROR
-    glBindVertexArray(mVaoId); CHECK_OPENGL_ERROR
+    glGenVertexArrays(1, &mVaoId); 
+    glBindVertexArray(mVaoId); 
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glEnable(GL_BLEND); CHECK_OPENGL_ERROR
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); CHECK_OPENGL_ERROR
-    glEnable(GL_POINT_SPRITE); CHECK_OPENGL_ERROR
-    glEnable(GL_PROGRAM_POINT_SIZE); CHECK_OPENGL_ERROR
-    glEnable(GL_TEXTURE_2D); CHECK_OPENGL_ERROR
+    glEnable(GL_BLEND); 
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+    glEnable(GL_POINT_SPRITE); 
+    glEnable(GL_PROGRAM_POINT_SIZE); 
+    glEnable(GL_TEXTURE_2D); 
 
     {
-        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); CHECK_OPENGL_ERROR
-        glVertexAttribPointer(vertexPosition_modelspaceID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); CHECK_OPENGL_ERROR
-        glEnableVertexAttribArray(vertexPosition_modelspaceID); CHECK_OPENGL_ERROR
+        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); 
+        glVertexAttribPointer(vertexPosition_modelspaceID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); 
+        glEnableVertexAttribArray(vertexPosition_modelspaceID); 
     }
     {
-        glBindBuffer(GL_ARRAY_BUFFER, mVboColorId); CHECK_OPENGL_ERROR
-        glVertexAttribPointer(vertexColorID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); CHECK_OPENGL_ERROR
-        glEnableVertexAttribArray(vertexColorID); CHECK_OPENGL_ERROR
+        glBindBuffer(GL_ARRAY_BUFFER, mVboColorId); 
+        glVertexAttribPointer(vertexColorID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); 
+        glEnableVertexAttribArray(vertexColorID); 
     }
-    glBindBuffer(GL_ARRAY_BUFFER, 0); CHECK_OPENGL_ERROR
+    glBindBuffer(GL_ARRAY_BUFFER, 0); 
 
-    glBindVertexArray(0); CHECK_OPENGL_ERROR
+    glBindVertexArray(0); 
     mShaderProgram->Unbind();
 }
 
 Renderer::~Renderer()
 {
-    glDeleteBuffers(1, &mVboPositionId); CHECK_OPENGL_ERROR
-    glDeleteBuffers(1, &mVboColorId); CHECK_OPENGL_ERROR
-    glDeleteVertexArrays(1, &mVaoId); CHECK_OPENGL_ERROR
+    glDeleteBuffers(1, &mVboPositionId); 
+    glDeleteBuffers(1, &mVboColorId); 
+    glDeleteVertexArrays(1, &mVaoId); 
 }
 
 void Renderer::Update(const float deltaTime)
@@ -100,55 +100,55 @@ void Renderer::Render()
 {
     mShaderProgram->Bind();
     {
-        GLuint textureID = glGetUniformLocation(mShaderProgram->ProgramID(), "uTexture"); CHECK_OPENGL_ERROR
-        glActiveTexture(GL_TEXTURE0); CHECK_OPENGL_ERROR
-        glBindTexture(GL_TEXTURE_2D, mTextureId); CHECK_OPENGL_ERROR
-        glUniform1i(textureID, 0); CHECK_OPENGL_ERROR
-        glBindSampler(0, mSamplerId); CHECK_OPENGL_ERROR
+        GLuint textureID = glGetUniformLocation(mShaderProgram->ProgramID(), "uTexture"); 
+        glActiveTexture(GL_TEXTURE0); 
+        glBindTexture(GL_TEXTURE_2D, mTextureId); 
+        glUniform1i(textureID, 0); 
+        glBindSampler(0, mSamplerId); 
     }
     {
-        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); CHECK_OPENGL_ERROR
-        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(vec4), 0, GL_STREAM_DRAW); CHECK_OPENGL_ERROR
-        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); CHECK_OPENGL_ERROR
+        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); 
+        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(vec4), 0, GL_STREAM_DRAW); 
+        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); 
         assert(mappedVbo);
         memcpy(mappedVbo, &(mParticleData->mPosition[0]), mParticleData->mCount * sizeof(vec4));
-        glUnmapBuffer(GL_ARRAY_BUFFER); CHECK_OPENGL_ERROR
-        glBindBuffer(GL_ARRAY_BUFFER, 0); CHECK_OPENGL_ERROR
+        glUnmapBuffer(GL_ARRAY_BUFFER); 
+        glBindBuffer(GL_ARRAY_BUFFER, 0); 
     }
     {
-        glBindBuffer(GL_ARRAY_BUFFER, mVboColorId); CHECK_OPENGL_ERROR
-        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(Color::rgbap), 0, GL_STREAM_DRAW); CHECK_OPENGL_ERROR
-        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); CHECK_OPENGL_ERROR
+        glBindBuffer(GL_ARRAY_BUFFER, mVboColorId); 
+        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(Color::rgbap), 0, GL_STREAM_DRAW); 
+        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); 
         assert(mappedVbo);
         memcpy(mappedVbo, &(mParticleData->mColor[0]), mParticleData->mCount * sizeof(Color::rgbap));
-        glUnmapBuffer(GL_ARRAY_BUFFER); CHECK_OPENGL_ERROR
-        glBindBuffer(GL_ARRAY_BUFFER, 0); CHECK_OPENGL_ERROR
+        glUnmapBuffer(GL_ARRAY_BUFFER); 
+        glBindBuffer(GL_ARRAY_BUFFER, 0); 
     }
     {
-        GLuint matrixView_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "view"); CHECK_OPENGL_ERROR
+        GLuint matrixView_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "view"); 
         glm::mat4 view = Root::Instance().GetCamera()->View();
-        glUniformMatrix4fv(matrixView_ID, 1, GL_FALSE, glm::value_ptr(view)); CHECK_OPENGL_ERROR
+        glUniformMatrix4fv(matrixView_ID, 1, GL_FALSE, glm::value_ptr(view)); 
     }
     {
-        GLuint matrixProjection_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "projection"); CHECK_OPENGL_ERROR
+        GLuint matrixProjection_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "projection"); 
         glm::mat4 projection = Root::Instance().GetCamera()->Projection();
-        glUniformMatrix4fv(matrixProjection_ID, 1, GL_FALSE, glm::value_ptr(projection)); CHECK_OPENGL_ERROR
+        glUniformMatrix4fv(matrixProjection_ID, 1, GL_FALSE, glm::value_ptr(projection)); 
     }
     {
-        GLuint screenSize_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "screenSize"); CHECK_OPENGL_ERROR
+        GLuint screenSize_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "screenSize"); 
         glm::vec2 screenSize = Root::Instance().GetCamera()->ScreenSize();
-        glUniform2f(screenSize_ID, screenSize.x, screenSize.y); CHECK_OPENGL_ERROR
+        glUniform2f(screenSize_ID, screenSize.x, screenSize.y); 
     }
     {
-        GLuint spriteSize_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "spriteSize"); CHECK_OPENGL_ERROR
+        GLuint spriteSize_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "spriteSize"); 
         float spriteSize(2);
-        glUniform1f(spriteSize_ID, spriteSize); CHECK_OPENGL_ERROR
+        glUniform1f(spriteSize_ID, spriteSize); 
     }
 
-    glBindVertexArray(mVaoId); CHECK_OPENGL_ERROR
-    glDrawArrays(GL_POINTS, 0, mParticleData->mCount); CHECK_OPENGL_ERROR
-    glBindVertexArray(0); CHECK_OPENGL_ERROR
-    glBindTexture(GL_TEXTURE_2D, 0); CHECK_OPENGL_ERROR
+    glBindVertexArray(mVaoId); 
+    glDrawArrays(GL_POINTS, 0, mParticleData->mCount); 
+    glBindVertexArray(0); 
+    glBindTexture(GL_TEXTURE_2D, 0); 
     mShaderProgram->Unbind();
 }
 

@@ -14,7 +14,7 @@ ShaderProgram::~ShaderProgram()
 {
     if (IsBind())
         Unbind();
-    glDeleteProgram(mProgramID); CHECK_OPENGL_ERROR
+    glDeleteProgram(mProgramID); 
 }
 
 GLuint ShaderProgram::ProgramID() const
@@ -30,14 +30,14 @@ bool ShaderProgram::IsBind() const
 void ShaderProgram::Bind()
 {
     assert(!IsBind());
-    glUseProgram(mProgramID); CHECK_OPENGL_ERROR
+    glUseProgram(mProgramID); 
     mCurrentProgramID = mProgramID;
 }
 
 void ShaderProgram::Unbind()
 {
     assert(IsBind());
-    glUseProgram(0); CHECK_OPENGL_ERROR
+    glUseProgram(0); 
     mCurrentProgramID = 0;
 }
 

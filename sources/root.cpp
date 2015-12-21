@@ -257,9 +257,9 @@ void Root::Update()
     ImGui::End();
 #endif
     IMGUI_ONLY(ImGui::Render());
-    glfwSwapBuffers(mWindow); CHECK_OPENGL_ERROR
-    glClearDepth(1.0f); CHECK_OPENGL_ERROR
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_OPENGL_ERROR
+    glfwSwapBuffers(mWindow); 
+    glClearDepth(1.0f); 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
     const auto endFrame = std::chrono::high_resolution_clock::now();
     const auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFrame - beginFrame);
 
