@@ -29,7 +29,7 @@ public:
     RenderingSystem();
     virtual ~RenderingSystem();
 
-    void Update(const float deltaTime) override;
+    void FrameStep() override;
 
     void attachEntity(GameEntity* entity) override;
     void detachEntity(GameEntity* entity) override;

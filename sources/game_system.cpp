@@ -30,6 +30,14 @@ GameSystem::~GameSystem()
 
 void GameSystem::Update(const float deltaTime)
 {
+    for (auto& componentSystem : mSystems)
+    {
+        componentSystem->Update(deltaTime);
+    }
+}
+
+void GameSystem::FrameStep()
+{
     for (const auto& deadEntity : mDeadEntities)
     {
         removeEntitySync(deadEntity);
@@ -37,7 +45,7 @@ void GameSystem::Update(const float deltaTime)
     mDeadEntities.clear();
     for (auto& componentSystem : mSystems)
     {
-        componentSystem->Update(deltaTime);
+        componentSystem->FrameStep();
     }
 }
 

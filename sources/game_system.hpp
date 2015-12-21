@@ -16,6 +16,7 @@ public:
     virtual ~GameSystem();
 
     void Update(const float deltaTime) override;
+    void FrameStep() override;
 
     template <typename T>
     void addSystem(std::unique_ptr<T> systemPointer)

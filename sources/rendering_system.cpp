@@ -36,7 +36,7 @@ RenderingSystem::RenderingSystem()
 RenderingSystem::~RenderingSystem()
 {}
 
-void RenderingSystem::Update(const float deltaTime)
+void RenderingSystem::FrameStep()
 {
     for (auto& component : mComponents)
     {
