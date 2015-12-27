@@ -13,7 +13,7 @@ before_install:
     - sudo add-apt-repository ppa:codegear/release -y 
     - sudo apt-get update -qq
 install: 
-    - sudo apt-get install -y premake4 libXxf86vm-dev libglew-dev
+    - sudo apt-get install -y premake4 
     # Install GLFW
     - git clone -b 3.1.2 --single-branch --depth 1 https://github.com/glfw/glfw.git
     - cd glfw

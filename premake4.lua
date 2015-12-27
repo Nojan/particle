@@ -5,7 +5,6 @@ solution "Particle"
     libdirs { "externals/**" }
     includedirs { "externals/", "externals/**" }
     defines "GLM_FORCE_RADIANS"
-    defines "GLEW_STATIC"
 
     -- A project defines one build target
     project "Particle"
