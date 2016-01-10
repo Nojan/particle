@@ -179,10 +179,9 @@ void Camera::EventKey(int key, int action)
             mMoveMask &= ~MV_RIGHT;
     }
 }
-
-void Camera::HandleMousePosition(int x, int y)
+void Camera::HandleMousePosition(double x, double y)
 {
-    const glm::vec2 newMousePosition(x, y);
+    const glm::vec2 newMousePosition(static_cast<float>(x), static_cast<float>(y));
     if(mMousePan)
     {
         const float gain = 0.005f;
@@ -216,7 +215,7 @@ void Camera::HandleMouseButton(int button, int state)
     mMousePan = (button == GLFW_MOUSE_BUTTON_RIGHT) && (state == GLFW_PRESS);
 }
 
-void Camera::HandleMouseWheel(int wheel)
+void Camera::HandleMouseWheel(double wheel)
 {
     if (wheel < 0)
         mPerspective.fov+=0.1f;

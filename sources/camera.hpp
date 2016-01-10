@@ -42,9 +42,9 @@ public:
     // Mouse and keyboard handle
     void EventKey(int key, int action);
     void HandleWindowResize(int width, int height);
-    void HandleMousePosition(int x, int y);
+    void HandleMousePosition(double x, double y);
     void HandleMouseButton(int button, int state);
-    void HandleMouseWheel(int wheel);
+    void HandleMouseWheel(double wheel);
 
 #ifdef IMGUI_ENABLE
     void debug_GUI();
