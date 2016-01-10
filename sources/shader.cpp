@@ -1,6 +1,6 @@
 #include "shader.hpp"
 
-#include <assert.h>
+#include <cassert>
 
 GLuint ShaderProgram::mCurrentProgramID = 0;
 
