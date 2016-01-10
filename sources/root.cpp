@@ -201,7 +201,7 @@ void Root::Update()
     const auto beginFrame = std::chrono::high_resolution_clock::now();
     const size_t windowTitleSize = 265;
     char windowTitle[windowTitleSize];
-    snprintf(windowTitle, windowTitleSize, "Particle : %dms", mFrameDuration.count());
+    snprintf(windowTitle, windowTitleSize, "Particle : %lldms", mFrameDuration.count());
     glfwSetWindowTitle(mWindow, windowTitle);
     glfwPollEvents();
     IMGUI_ONLY(ImGui_ImplGlfwGL3_NewFrame());
