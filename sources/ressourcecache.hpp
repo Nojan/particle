@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <memory>
 
 template<class T>
@@ -13,7 +13,7 @@ protected:
 	virtual std::shared_ptr<T> load(const std::string& name) const = 0;
 	
 private:
-	std::map<std::string, std::weak_ptr<T>> mCache;
+	std::unordered_map<std::string, std::weak_ptr<T>> mCache;
 };
 
 template<class T>
