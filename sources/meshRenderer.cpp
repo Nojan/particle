@@ -42,6 +42,14 @@ MeshRenderer::MeshRenderer()
 , mVboIndexSize(0)
 {
     mShaderProgram = Global::shaderCache()->get("Texture");
+    mShaderProgram->RegisterAttrib("vertexPosition_modelspace");
+    mShaderProgram->RegisterAttrib("vertexNormal_modelspace");
+    mShaderProgram->RegisterAttrib("textureCoord");
+    mShaderProgram->RegisterUniform("textureSampler");
+    mShaderProgram->RegisterUniform("mvp");
+    mShaderProgram->RegisterUniform("mv");
+    mShaderProgram->RegisterUniform("viewNormal");
+    mShaderProgram->RegisterUniform("lightPosition");
     mTexture2D = std::move(Texture2D::generateCheckeredBoard(8, 128, 128, { 255, 255, 255 }, { 0, 0, 0 }));
     glGenTextures(1, &mTextureSamplerId); 
 }
@@ -126,29 +134,29 @@ void MeshRenderer::Render(const RenderableMesh& renderable)
     }
     {
         glActiveTexture(GL_TEXTURE0); 
-        GLuint textureSampler_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "textureSampler"); 
+        GLint textureSampler_ID = mShaderProgram->GetUniformLocation("textureSampler");
         glBindTexture(GL_TEXTURE_2D, mTextureSamplerId); 
         glUniform1i(textureSampler_ID, 0);  
     }
     {
-        GLuint matrixMVP_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "mvp"); 
+        GLint matrixMVP_ID = mShaderProgram->GetUniformLocation("mvp");
         glm::mat4 mvp = Root::Instance().GetCamera()->ProjectionView() * modelTransformAndScale;
         glUniformMatrix4fv(matrixMVP_ID, 1, GL_FALSE, glm::value_ptr(mvp)); 
     }
     {
-        GLuint matrixMV_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "mv"); 
+        GLint matrixMV_ID = mShaderProgram->GetUniformLocation("mv");
         glm::mat4 mv = Root::Instance().GetCamera()->View() * modelTransformAndScale;
         glUniformMatrix4fv(matrixMV_ID, 1, GL_FALSE, glm::value_ptr(mv)); 
     }
     {
-        GLuint matrixViewNormal_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "viewNormal"); 
+        GLint matrixViewNormal_ID = mShaderProgram->GetUniformLocation("viewNormal");
         glm::mat3 v = glm::mat3(Root::Instance().GetCamera()->View()) * glm::mat3(modelTransform);
         glUniformMatrix3fv(matrixViewNormal_ID, 1, GL_FALSE, glm::value_ptr(v)); 
     }
     const glm::vec4 lightPosition(lightX, lightY, lightZ, 1);
     const glm::vec4 lightPositionObjectSpace = glm::inverse(modelTransform) * lightPosition;
     {
-        GLuint lightPosition_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "lightPosition"); 
+        GLint lightPosition_ID = mShaderProgram->GetUniformLocation("lightPosition");
         glUniform4fv(lightPosition_ID, 1, glm::value_ptr(lightPositionObjectSpace)); 
     }
     glBindVertexArray(mVaoId);
@@ -227,19 +235,19 @@ void MeshRenderer::GrowGPUBufferIFN() {
         glGenVertexArrays(1, &mVaoId); 
         glBindVertexArray(mVaoId); 
         {
-            GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace"); 
+            GLint attributeID = mShaderProgram->GetAttribLocation("vertexPosition_modelspace");
             glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); 
             glEnableVertexAttribArray(attributeID); 
             glVertexAttribPointer(attributeID, 3, GL_FLOAT, GL_FALSE, 0, (void*)0); 
         }
         {
-            GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexNormal_modelspace"); 
+            GLint attributeID = mShaderProgram->GetAttribLocation("vertexNormal_modelspace");
             glBindBuffer(GL_ARRAY_BUFFER, mVboNormalId); 
             glEnableVertexAttribArray(attributeID); 
             glVertexAttribPointer(attributeID, 3, GL_FLOAT, GL_TRUE, 0, (void*)0); 
         }
         {
-            GLuint attributeID = glGetAttribLocation(mShaderProgram->ProgramID(), "textureCoord"); 
+            GLint attributeID = mShaderProgram->GetAttribLocation("textureCoord");
             glBindBuffer(GL_ARRAY_BUFFER, mVboTextureCoordId); 
             glEnableVertexAttribArray(attributeID); 
             glVertexAttribPointer(attributeID, 2, GL_FLOAT, GL_FALSE, 0, (void*)0); 
