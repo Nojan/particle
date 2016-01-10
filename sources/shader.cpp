@@ -41,6 +41,32 @@ void ShaderProgram::Unbind()
     mCurrentProgramID = 0;
 }
 
+void ShaderProgram::RegisterAttrib(const char* name)
+{
+    GLint location = glGetAttribLocation(mProgramID, name);
+    mAttrib[name] = location;
+}
+
+GLint ShaderProgram::GetAttribLocation(const char* name) const
+{
+    const auto itFind = mAttrib.find(name);
+    assert(mAttrib.cend() != itFind);
+    return itFind->second;
+}
+
+void ShaderProgram::RegisterUniform(const char* name)
+{
+    GLint location = glGetAttribLocation(mProgramID, name);
+    mUniform[name] = location;
+}
+
+GLint ShaderProgram::GetUniformLocation(const char* name) const
+{
+    const auto itFind = mUniform.find(name);
+    assert(mUniform.cend() != itFind);
+    return itFind->second;
+}
+
 bool ShaderProgram::operator== (const ShaderProgram & rhs) const
 {
     return ProgramID() == rhs.ProgramID();
