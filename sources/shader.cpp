@@ -44,6 +44,7 @@ void ShaderProgram::Unbind()
 void ShaderProgram::RegisterAttrib(const char* name)
 {
     GLint location = glGetAttribLocation(mProgramID, name);
+    assert(-1 != location);
     mAttrib[name] = location;
 }
 
@@ -56,7 +57,8 @@ GLint ShaderProgram::GetAttribLocation(const char* name) const
 
 void ShaderProgram::RegisterUniform(const char* name)
 {
-    GLint location = glGetAttribLocation(mProgramID, name);
+    GLint location = glGetUniformLocation(mProgramID, name);
+    assert(-1 != location);
     mUniform[name] = location;
 }
 
