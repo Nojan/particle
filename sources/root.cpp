@@ -40,8 +40,9 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 }
 
 //Called when the window is resized
-static void handleWindowResize(GLFWwindow* window, int width, int height)
+static void handleFramebufferResize(GLFWwindow* window, int width, int height)
 {
+    glViewport(0, 0, width, height);
     Root::Instance().GetCamera()->HandleWindowResize(width, height);
 }
 
@@ -114,7 +115,7 @@ void Root::Init()
         glfwTerminate();
         exit(EXIT_FAILURE);
     } 
-
+    glfwSetWindowPos(mWindow, 30, 30);
     glfwMakeContextCurrent(mWindow);
     glfwSwapInterval(1);
 
@@ -153,7 +154,7 @@ void Root::Init()
 
     // Callbacks
     glfwSetInputMode(mWindow, GLFW_STICKY_KEYS, GL_TRUE);
-    glfwSetWindowSizeCallback(mWindow, handleWindowResize);
+    glfwSetFramebufferSizeCallback(mWindow, handleFramebufferResize);
     glfwSetCursorPosCallback(mWindow, handleCursorPosition);
     glfwSetMouseButtonCallback(mWindow, handleMouseButton);
     glfwSetScrollCallback(mWindow, handleMouseWheel);
