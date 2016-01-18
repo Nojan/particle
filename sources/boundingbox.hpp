@@ -14,6 +14,7 @@ public:
     bool Valid() const;
 
     void Add(const glm::vec3& point);
+    bool Inside(const glm::vec3& point) const;
 
 private:
     glm::vec3 mMin;

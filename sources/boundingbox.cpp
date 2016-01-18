@@ -67,3 +67,13 @@ void BoundingBox3D::Add(const glm::vec3& point)
     }
 }
 
+bool BoundingBox3D::Inside(const glm::vec3 & point) const
+{
+    bool result = true;
+    for (int i = 0; result && i < 3; ++i) {
+        result = result && mMin[i] <= point[i];
+        result = result && point[i] <= mMax[i];
+    }
+    return result;
+}
+

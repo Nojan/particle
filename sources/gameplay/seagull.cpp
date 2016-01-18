@@ -30,6 +30,9 @@ namespace Constant {
     IMGUI_VAR(WanderMaxSpeed, 15.f);
     IMGUI_VAR(WanderMaxSteering, 1.5f);
     IMGUI_VAR(WanderMaxDistance, 10.f);
+    IMGUI_VAR(WanderBoxX, 15.f);
+    IMGUI_VAR(WanderBoxY, 15.f);
+    IMGUI_VAR(WanderBoxZ, 15.f);
 }
 
 #ifdef IMGUI_ENABLE
@@ -46,6 +49,10 @@ void Seagull::debug_GUI()
     ImGui::SliderFloat("Wander Max Speed", &Constant::WanderMaxSpeed, 1.f, 50.f);
     ImGui::SliderFloat("Wander Max Steering", &Constant::WanderMaxSteering, 0.f, 5.f);
     ImGui::SliderFloat("Wander Distance", &Constant::WanderMaxDistance, 0.f, 20.f);
+
+    ImGui::SliderFloat("Wander Box X", &Constant::WanderBoxX, 1.f, 50.f);
+    ImGui::SliderFloat("Wander Box Y", &Constant::WanderBoxY, 1.f, 50.f);
+    ImGui::SliderFloat("Wander Box Z", &Constant::WanderBoxZ, 1.f, 50.f);
 }
 #endif
 
@@ -80,6 +87,32 @@ static void WanderAround(const glm::vec3& target, glm::vec3& position, glm::vec3
     const float targetDistance = glm::length(targetDirection);
     const glm::vec3 direction = targetDistance < maxDistance ? glm::normalize(speed) : glm::normalize(targetDirection);
     const glm::vec3 randomDirection = glm::ballRand(maxSpeed*0.01f);
+    speed += randomDirection;
+    speed = glm::normalize(speed) * std::min(glm::length(speed), maxSpeed);
+}
+
+static void WanderInside(const BoundingBox3D& box, glm::vec3& position, glm::vec3& speed, float deltaTime) {
+    if (!box.Inside(position))
+    {
+        UpdateTowardTarget(box.Center(), position, speed, deltaTime);
+        return;
+    }
+    const float maxSpeed = Constant::WanderMaxSpeed;
+    const float maxSteering = Constant::WanderMaxSteering;
+    const float maxDistance = Constant::WanderMaxDistance;
+    const glm::vec3 boxCenter = box.Center();
+    const glm::vec3 boxCenterDirection = boxCenter - position;
+    const glm::vec3 boxExtent = box.Extent();
+    const float boxCenterDistance = glm::length(boxCenterDirection);
+    glm::vec3 boxCenterDirectionNormalized;
+    for (size_t i = 0; i < 3; ++i)
+    {
+        boxCenterDirectionNormalized[i] = 1.f - boxCenterDirection[i] / boxExtent[i];
+        boxCenterDirectionNormalized[i] = (boxCenterDirectionNormalized[i] - 0.7f) / (1.f - 0.7f);
+        boxCenterDirectionNormalized[i] = glm::clamp(boxCenterDirectionNormalized[i], 0.f, 1.f);
+    }
+    const glm::vec3 target = position + speed * deltaTime + maxSpeed * boxCenterDirectionNormalized;
+    const glm::vec3 randomDirection = glm::ballRand(maxSpeed*0.1f);
     speed += randomDirection;
     speed = glm::normalize(speed) * std::min(glm::length(speed), maxSpeed);
 }
@@ -153,7 +186,10 @@ void Seagull::Update(const float deltaTime)
         }
     }
     else {
-        WanderAround(targetTranslate, position, speed, deltaTime);
+        const glm::vec3 boxCenter(0.f, 0.f, -25.f);
+        const glm::vec3 boxExtent(Constant::WanderBoxX, Constant::WanderBoxY, Constant::WanderBoxZ);
+        const BoundingBox3D box(boxCenter - boxExtent, boxCenter + boxExtent);
+        WanderInside(box, position, speed, deltaTime);
     }
     physic->SetVelocity(glm::vec4(speed, 0.f));
     if (Constant::History)
