@@ -22,10 +22,6 @@ void Texture2D::setTexture(std::unique_ptr<Color::rgb[]> data, uint height, uint
     mWidth = width;
 }
 
-Texture2D::~Texture2D()
-{
-}
-
 uint8_t const * const Texture2D::getData() const
 {
     return &(mData.get()[0].r);
@@ -117,16 +113,57 @@ void Texture2D::loadFromFile(const char * imagepath, Texture2D & texture)
     std::unique_ptr<uint8_t[]> data_u8 = std::move(image.data());
     Color::rgb * color = reinterpret_cast<Color::rgb*>(data_u8.get());
     std::unique_ptr<Color::rgb[]> data_color(color);
+    data_u8.release();
     // flip x
-    for (size_t y = 0; y < image.height(); ++y)
-    {
-        const size_t yIndex = y * image.width();
-        for (size_t x = 0; x < (image.width() / 2); ++x)
-        {
-            const size_t xInvert = image.width() - x -1;
-            std::swap(data_color[yIndex + x], data_color[yIndex + xInvert]);
-        }
-    }
+    //for (size_t y = 0; y < image.height(); ++y)
+    //{
+    //    const size_t yIndex = y * image.width();
+    //    for (size_t x = 0; x < (image.width() / 2); ++x)
+    //    {
+    //        const size_t xInvert = image.width() - x -1;
+    //        std::swap(data_color[yIndex + x], data_color[yIndex + xInvert]);
+    //    }
+    //}
+    texture.setTexture(std::move(data_color), image.width(), image.height());
+}
+
+
+Texture2DRGBA::Texture2DRGBA()
+: mData(nullptr)
+, mHeight(0)
+, mWidth(0)
+{}
+
+void Texture2DRGBA::loadFromFile(const char * imagepath, Texture2DRGBA & texture)
+{
+    Image image(imagepath);
+    assert(ColorsChannel::RGBA == image.channel());
+    std::unique_ptr<uint8_t[]> data_u8 = std::move(image.data());
+    Color::rgba * color = reinterpret_cast<Color::rgba*>(data_u8.get());
+    std::unique_ptr<Color::rgba[]> data_color(color);
     data_u8.release();
     texture.setTexture(std::move(data_color), image.width(), image.height());
 }
+
+void Texture2DRGBA::setTexture(std::unique_ptr<Color::rgba[]> data, uint height, uint width)
+{
+    mData = std::move(data);
+    mHeight = height;
+    mWidth = width;
+}
+
+uint8_t const * const Texture2DRGBA::getData() const
+{
+    return &(mData.get()[0].r);
+}
+
+uint Texture2DRGBA::getHeight() const
+{
+    return mHeight;
+}
+
+uint Texture2DRGBA::getWidth() const
+{
+    return mWidth;
+}
+

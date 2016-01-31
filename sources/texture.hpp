@@ -8,13 +8,14 @@
 namespace Color
 {
     struct rgb;
+    struct rgba;
 }
 
 class Texture2D
 {
 public:
     Texture2D();
-    ~Texture2D();
+    ~Texture2D() = default;
 
     static void loadBMP_custom(const char * imagepath, Texture2D & texture);
     static void loadFromFile(const char * imagepath, Texture2D & texture);
@@ -32,5 +33,23 @@ private:
     uint mWidth;
 };
 
+class Texture2DRGBA
+{
+public:
+    Texture2DRGBA();
+    ~Texture2DRGBA() = default;
+
+    static void loadFromFile(const char * imagepath, Texture2DRGBA & texture);
+
+    void setTexture(std::unique_ptr<Color::rgba[]> data, uint height, uint width);
+    uint8_t const * const getData() const;
+    uint getHeight() const;
+    uint getWidth() const;
+
+private:
+    std::unique_ptr<Color::rgba[]> mData;
+    uint mHeight;
+    uint mWidth;
+};
 
 #endif
