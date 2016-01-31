@@ -1,5 +1,6 @@
 #include "loopmanager.hpp"
 
+#include "sea.hpp"
 #include "seagull.hpp"
 
 #include "../root.hpp"
@@ -15,6 +16,7 @@ namespace Gameplay {
 
 LoopManager::LoopManager()
 : mSeagull(new Seagull())
+, mSea(new Sea())
 {}
 
 LoopManager::~LoopManager()
@@ -23,16 +25,24 @@ LoopManager::~LoopManager()
 void LoopManager::Init()
 {
 	mSeagull->Init();
+    mSea->Init();
 }
 
 void LoopManager::Terminate()
 {
 	mSeagull->Terminate();
+    mSea->Terminate();
+}
+
+void LoopManager::FrameStep()
+{
+    mSea->FrameStep();
 }
 
 void LoopManager::Update(const float deltaTime)
 {
     mSeagull->Update(deltaTime);
+    mSea->Update(deltaTime);
 }
 
 void LoopManager::EventKey(int key, int action)
@@ -58,7 +68,14 @@ void LoopManager::EventKey(int key, int action)
 #ifdef IMGUI_ENABLE
 void LoopManager::debug_GUI() const
 {
-    mSeagull->debug_GUI();
+    if (ImGui::CollapsingHeader("Seagull Module"))
+    {
+        mSeagull->debug_GUI();
+    }
+    if (ImGui::CollapsingHeader("Sea Module"))
+    {
+        mSea->debug_GUI();
+    }
 }
 #endif
 

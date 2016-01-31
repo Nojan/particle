@@ -5,6 +5,7 @@
 #include "particle.hpp"
 #include "renderer_list.hpp"
 #include "renderer.hpp"
+#include "billboard_renderer.hpp"
 #include "meshRenderer.hpp"
 #include "skybox.hpp"
 #include "visualdebug.hpp"

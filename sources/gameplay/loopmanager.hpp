@@ -9,6 +9,7 @@
 namespace Gameplay {
 	
 class Seagull;
+class Sea;
 
 class LoopManager : public IUpdater {
 public:
@@ -17,6 +18,7 @@ public:
 
     void Init();
     void Terminate();
+    void FrameStep() override;
     void Update(const float deltaTime) override;
 
     void EventKey(int key, int action);
@@ -27,6 +29,7 @@ public:
 
 private:
     std::unique_ptr<Seagull> mSeagull;
+    std::unique_ptr<Sea> mSea;
 };
 
 } // namespace
