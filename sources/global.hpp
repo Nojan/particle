@@ -1,6 +1,7 @@
 #pragma once
 
 class GameSystem;
+class RendererList;
 class ShaderCache;
 
 namespace Global {
@@ -8,5 +9,6 @@ namespace Global {
     void Unload();
 
     GameSystem* gameSytem();
+    RendererList* rendererList();
     ShaderCache* shaderCache();
 }

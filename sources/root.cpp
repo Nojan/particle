@@ -3,6 +3,7 @@
 #include "camera.hpp"
 #include "firework.hpp"
 #include "particle.hpp"
+#include "renderer_list.hpp"
 #include "renderer.hpp"
 #include "meshRenderer.hpp"
 #include "skybox.hpp"
@@ -133,9 +134,34 @@ void Root::Init()
 
     mCamera.reset(new Camera());
     mCamera->HandleWindowResize(windowsWidth, windowsHeight);
-    std::shared_ptr<Renderer> particleRenderer(new Renderer());
-    mFireworkManager.reset(new FireworksManager(particleRenderer.get()));
+
+    RendererList* renderList = Global::rendererList();
+    {
+        std::shared_ptr<Skybox> renderer(Skybox::GenerateCheckered());
+        renderList->addRenderer(renderer.get());
+        mRendererList.push_back(renderer);
+    }
+    std::shared_ptr<Renderer> particleRenderer = std::make_shared<Renderer>();
+    {
+        renderList->addRenderer(particleRenderer.get());
+        mRendererList.push_back(particleRenderer);
+    }
+    {
+        std::shared_ptr<MeshRenderer> renderer = std::make_shared<MeshRenderer>();
+        renderList->addRenderer(renderer.get());
+        mRendererList.push_back(renderer);
+    }
     mVisualDebugRenderer.reset(new VisualDebugRenderer());
+    {
+        renderList->addRenderer(mVisualDebugRenderer.get());
+        mRendererList.push_back(mVisualDebugRenderer);
+    }
+    {
+        std::shared_ptr<BillboardRenderer> renderer = std::make_shared<BillboardRenderer>();
+        renderList->addRenderer(renderer.get());
+        mRendererList.push_back(renderer);
+    }
+    mFireworkManager.reset(new FireworksManager(renderList->getRenderer<Renderer>()));
     mGameplayLoopManager.reset(new Gameplay::LoopManager());
     mGameplayLoopManager->Init();
 
@@ -143,12 +169,6 @@ void Root::Init()
     mUpdaterList.push_back(particleRenderer);
     mUpdaterList.push_back(mGameplayLoopManager);
     mUpdaterList.push_back(mFireworkManager);
-
-    mRendererList.push_back(std::shared_ptr<Skybox>(Skybox::GenerateCheckered()));
-    mRendererList.push_back(particleRenderer);
-    std::shared_ptr<MeshRenderer> meshRender(new MeshRenderer());
-    mRendererList.push_back(meshRender);
-    mRendererList.push_back(mVisualDebugRenderer);
 
     glfwSetKeyCallback(mWindow, key_callback);
 
