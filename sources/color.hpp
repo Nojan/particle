@@ -14,6 +14,16 @@ namespace Color
 
     bool valid(rgb in);
 
+    struct rgba
+    {
+        uint8_t r; //[0,255]
+        uint8_t g; //[0,255]
+        uint8_t b; //[0,255]
+        uint8_t a; //[0,255]
+    };
+
+    bool valid(rgba in);
+
     struct rgbp
     {
         float r; //[0.f,1.f]

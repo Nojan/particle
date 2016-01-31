@@ -21,6 +21,11 @@ bool valid(rgb /*in*/)
     return true;
 }
 
+bool valid(rgba /*in*/)
+{
+    return true;
+}
+
 bool valid(rgbp in)
 {
     assert(in.r >= 0.f);
