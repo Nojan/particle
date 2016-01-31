@@ -31,6 +31,8 @@ public:
     void SetDirection(glm::vec3 const& direction);
 
     glm::vec3 const& MouseDirection() const;
+    glm::vec3 ProjectScreenCoordToWorld(const glm::vec2& screenCoord) const;
+    glm::vec3 ProjectScreenCoordNormalizedToWorld(const glm::vec2& screenCoord) const;
 
     glm::vec3 const& Up() const;
     void SetUp(glm::vec3 const& up);

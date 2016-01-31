@@ -115,6 +115,25 @@ glm::vec3 const& Camera::MouseDirection() const
     return mMouseDirectionWorld;
 }
 
+glm::vec3 Camera::ProjectScreenCoordToWorld(const glm::vec2 & screenCoord) const
+{
+    const float x = (2.f * screenCoord.x) / mScreenSize.x - 1.f;
+    const float y = 1.f - (2.f * screenCoord.y) / mScreenSize.y;
+    const glm::vec2 screenCoordNormalized(x, y);  
+    return ProjectScreenCoordNormalizedToWorld(screenCoordNormalized);
+}
+
+glm::vec3 Camera::ProjectScreenCoordNormalizedToWorld(const glm::vec2 & screenCoord) const
+{
+    const glm::vec3 ray_nds(screenCoord.x, screenCoord.y, 1.f);
+    const glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.f, 1.f);
+    const glm::vec4 ray_proj = mProjectionInv * ray_clip;
+    const glm::vec4 ray_eye(ray_proj.x, ray_proj.y, -1.f, 0.f);
+    const glm::vec4 ray_wor = mViewInv * ray_eye;
+    const glm::vec3 direction(ray_wor.x, ray_wor.y, ray_wor.z);
+    return glm::normalize(direction);
+}
+
 glm::vec3 const& Camera::Up() const
 {
     return mUp;
@@ -196,18 +215,7 @@ void Camera::HandleMousePosition(double x, double y)
         mUpdateView = true;
     }
     mMousePosition = newMousePosition;
-    {
-        const float x = (2.f * mMousePosition.x) / mScreenSize.x - 1.f;
-        const float y = 1.f - (2.f * mMousePosition.y) / mScreenSize.y;
-        const float z = 1.f;
-        const glm::vec3 ray_nds(x, y, z);
-        const glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.f, 1.f);
-        const glm::vec4 ray_proj = mProjectionInv * ray_clip;
-        const glm::vec4 ray_eye(ray_proj.x, ray_proj.y, -1.f, 0.f);
-        const glm::vec4 ray_wor = mViewInv * ray_eye;
-        const glm::vec3 mouse_direction(ray_wor.x, ray_wor.y, ray_wor.z);
-        mMouseDirectionWorld = glm::normalize(mouse_direction);
-    }
+    mMouseDirectionWorld = ProjectScreenCoordToWorld(mMousePosition);
 }
 
 void Camera::HandleMouseButton(int button, int state)
