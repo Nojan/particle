@@ -226,6 +226,10 @@ void Root::Update()
     glfwSetWindowTitle(mWindow, windowTitle);
     glfwPollEvents();
     IMGUI_ONLY(ImGui_ImplGlfwGL3_NewFrame());
+    for (std::shared_ptr<IUpdater>& updater : mUpdaterList)
+    {
+        updater->FrameStep();
+    }
     Global::gameSytem()->FrameStep();
     while (frameDuration <= lastFrameDuration) {
         lastFrameDuration -= frameDuration;
