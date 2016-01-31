@@ -5,6 +5,7 @@
 #include "opengl_includes.hpp"
 
 #include <cassert>
+#include <cstring>
 #include <type_traits>
 #include <vector>
 
