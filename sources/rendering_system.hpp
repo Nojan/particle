@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 
+class MeshRenderer;
 class RenderableMesh;
 class TransformComponent;
 
@@ -16,7 +17,7 @@ class RenderingComponent
 public:
     RenderingComponent();
     ~RenderingComponent();
-    void draw();
+    void draw(MeshRenderer* renderer);
 
     std::unique_ptr<RenderableMesh> mRenderable;
     TransformComponent* mTransformComponent;
@@ -36,4 +37,5 @@ public:
 
 private:
     std::vector<std::unique_ptr<RenderingComponent>> mComponents;
+    MeshRenderer* mRenderer;
 };

@@ -1,6 +1,7 @@
 #include "rendering_system.hpp"
 
 #include "game_entity.hpp"
+#include "renderer_list.hpp"
 #include "renderableMesh.hpp"
 #include "transform_system.hpp"
 #include "visualdebug.hpp"
@@ -19,18 +20,21 @@ RenderingComponent::RenderingComponent()
 RenderingComponent::~RenderingComponent()
 {}
 
-void RenderingComponent::draw()
+void RenderingComponent::draw(MeshRenderer* renderer)
 {
     if(!mRenderable || !mEnable)
         return;
     mRenderable->mTransform = mTransformComponent->Transform();
     mRenderable->mScale = mTransformComponent->mScale;
-    mRenderable->mScale = glm::mat4(5.f);
+    //mRenderable->mScale = glm::mat4(5.f);
     mRenderable->mScale[3][3] = 1.f;
-    Root::Instance().GetMeshRenderer()->PushToRenderQueue(mRenderable.get());
+    renderer->PushToRenderQueue(mRenderable.get());
+    const VisualDebugBoundingBoxCommand boundingbox(mRenderable->mMesh->mBBox, { 0, 0, 1, 0.1f }, mRenderable->mTransform * mRenderable->mScale);
+    Root::Instance().GetVisualDebugRenderer()->PushCommand(boundingbox);
 }
 
 RenderingSystem::RenderingSystem()
+: mRenderer(nullptr)
 {}
 
 RenderingSystem::~RenderingSystem()
@@ -38,9 +42,12 @@ RenderingSystem::~RenderingSystem()
 
 void RenderingSystem::FrameStep()
 {
+    if (!mRenderer)
+        mRenderer = Global::rendererList()->getRenderer<MeshRenderer>();
+    assert(mRenderer);
     for (auto& component : mComponents)
     {
-        component->draw();
+        component->draw(mRenderer);
     }
 }
 
