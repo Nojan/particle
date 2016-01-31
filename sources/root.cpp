@@ -85,11 +85,6 @@ Root::~Root()
 {
 }
 
-MeshRenderer* Root::GetMeshRenderer()
-{
-    return dynamic_cast<MeshRenderer*>(mRendererList.at(2).get());
-}
-
 FireworksManager* Root::GetFireworksManager()
 {
     return mFireworkManager.get();

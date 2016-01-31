@@ -25,7 +25,6 @@ public:
     // This should be in a service locator
     Camera * GetCamera();
     VisualDebugRenderer* GetVisualDebugRenderer();
-    MeshRenderer* GetMeshRenderer();
     FireworksManager* GetFireworksManager();
 
     void Init();
