@@ -256,7 +256,7 @@ void MeshRenderer::GrowGPUBufferIFN() {
         glGenerateMipmap(GL_TEXTURE_2D); 
         glActiveTexture(GL_TEXTURE0);  
         glBindTexture(GL_TEXTURE_2D, mTextureSamplerId); 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mTexture2D->getWidth(), mTexture2D->getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE, mTexture2D->getData()); 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mTexture2D->getWidth(), mTexture2D->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, mTexture2D->getData());
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVboIndexId); 
 
         glBindVertexArray(0); 
