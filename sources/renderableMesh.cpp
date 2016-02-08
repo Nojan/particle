@@ -1,5 +1,6 @@
 #include "renderableMesh.hpp"
 
+#include "color.hpp"
 #include "shader.hpp"
 #include "texture.hpp"
 #include "tinyobj/tiny_obj_loader.hpp"
@@ -72,6 +73,11 @@ bool Mesh::Valid() const
     return valid;
 }
 
+Material::Material()
+{
+    mTexture2D = std::move(Texture2D::generateCheckeredBoard(8, 128, 128, { 255, 255, 255 }, { 0, 0, 0 }));
+}
+
 Material::Material(std::shared_ptr<ShaderProgram>& shaderProgram, std::shared_ptr<Texture2D>& texture2D)
 : mShaderProgram(shaderProgram)
 , mTexture2D(texture2D)
@@ -97,6 +103,11 @@ bool Material::operator<(const Material& ref) const
 std::shared_ptr<ShaderProgram>& Material::Shader()
 {
     return mShaderProgram;
+}
+
+const std::shared_ptr<Texture2D>& Material::Texture() const
+{
+    return mTexture2D;
 }
 
 std::shared_ptr<Texture2D>& Material::Texture()

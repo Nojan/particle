@@ -134,8 +134,10 @@ void MeshRenderer::Render(const RenderableMesh& renderable)
     }
     {
         glActiveTexture(GL_TEXTURE0); 
+        glBindTexture(GL_TEXTURE_2D, mTextureSamplerId);
+        const std::shared_ptr<Texture2D>& texture = renderable.mMaterial.Texture();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, texture->getWidth(), texture->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, texture->getData());
         GLint textureSampler_ID = mShaderProgram->GetUniformLocation("textureSampler");
-        glBindTexture(GL_TEXTURE_2D, mTextureSamplerId); 
         glUniform1i(textureSampler_ID, 0);  
     }
     {

@@ -26,7 +26,7 @@ public:
 
 class Material {
 public:
-    Material() = default;
+    Material();
     Material(std::shared_ptr<ShaderProgram>& shaderProgram, std::shared_ptr<Texture2D>& texture2D);
     Material(const Material& ref);
     ~Material();
@@ -34,6 +34,7 @@ public:
     bool operator<(const Material& ref) const;
 
     std::shared_ptr<ShaderProgram>& Shader();
+    const std::shared_ptr<Texture2D>& Texture() const;
     std::shared_ptr<Texture2D>& Texture();
 
 private:
