@@ -69,12 +69,12 @@ Skybox::Skybox(Texture2D& xPos, Texture2D& xNeg, Texture2D& yPos, Texture2D& yNe
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP); 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP); 
 
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGB, xPos.getWidth(), xPos.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE, xPos.getData()); 
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGB, xNeg.getWidth(), xNeg.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE, xNeg.getData()); 
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGB, yPos.getWidth(), yPos.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE, yPos.getData()); 
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGB, yNeg.getWidth(), yNeg.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE, yNeg.getData()); 
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGB, zPos.getWidth(), zPos.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE, zPos.getData()); 
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGB, zNeg.getWidth(), zNeg.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE, zNeg.getData()); 
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGB8, xPos.getWidth(), xPos.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, xPos.getData());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGB8, xNeg.getWidth(), xNeg.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, xNeg.getData());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGB8, yPos.getWidth(), yPos.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, yPos.getData());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGB8, yNeg.getWidth(), yNeg.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, yNeg.getData());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGB8, zPos.getWidth(), zPos.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, zPos.getData());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGB8, zNeg.getWidth(), zNeg.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, zNeg.getData());
 
     GLfloat cube_vertices[] = {
       -1.f,  1.f,  1.f,
