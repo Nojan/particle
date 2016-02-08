@@ -9,6 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+constexpr bool is_power_of_two(uint x)
+{
+    return x && ((x & (x - 1)) == 0);
+}
+
 Texture2D::Texture2D()
 : mData(nullptr)
 , mHeight(0)
@@ -83,8 +88,26 @@ void Texture2D::loadBMP_custom(const char * imagepath, Texture2D & texture)
     fclose (file);
 }
 
+std::unique_ptr<Texture2D> Texture2D::generateUniform(uint height, uint width, Color::rgb color)
+{
+    assert(is_power_of_two(height));
+    assert(is_power_of_two(width));
+    const size_t textureSize = height*width;
+    std::unique_ptr<Color::rgb[]> data((Color::rgb*)malloc(sizeof(Color::rgb)*textureSize));
+    for (size_t x = 0; x < textureSize; ++x)
+    {
+        data[x] = color;
+    }
+    std::unique_ptr<Texture2D> texture;
+    texture.reset(new Texture2D());
+    texture->setTexture(std::move(data), height, width);
+    return std::move(texture);
+}
+
 std::unique_ptr<Texture2D> Texture2D::generateCheckeredBoard(uint count, uint height, uint width, Color::rgb color1, Color::rgb color2)
 {
+    assert(is_power_of_two(height));
+    assert(is_power_of_two(width));
     const size_t textureSize = height*width;
     const uint checkerHeight = height / count;
     const uint checkerWidth = width / count;

@@ -19,6 +19,7 @@ public:
 
     static void loadBMP_custom(const char * imagepath, Texture2D & texture);
     static void loadFromFile(const char * imagepath, Texture2D & texture);
+    static std::unique_ptr<Texture2D> generateUniform(uint height, uint width, Color::rgb color);
     static std::unique_ptr<Texture2D> generateCheckeredBoard(uint count, uint height, uint width, Color::rgb color1, Color::rgb color2);
 
     void setTexture(std::unique_ptr<Color::rgb[]> data, uint height, uint width);
