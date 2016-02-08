@@ -52,7 +52,7 @@ Skybox* Skybox::CreateSkyboxFrom(const char * directory)
 
 Skybox* Skybox::GenerateCheckered()
 {
-    std::unique_ptr<Texture2D> texture = Texture2D::generateCheckeredBoard(8, 128, 128, { 255, 255, 255 }, { 0, 0, 0 });
+    std::unique_ptr<Texture2D> texture = Texture2D::generateUniform(16, 16, { 0, 225, 255 });
     return new Skybox(*texture, *texture, *texture, *texture, *texture, *texture);
 }
 
