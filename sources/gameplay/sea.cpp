@@ -79,13 +79,14 @@ void Gameplay::Sea::Init()
 {
     std::shared_ptr< Texture2DRGBA > texture = std::make_shared< Texture2DRGBA >();
     Texture2DRGBA::loadFromFile("../asset/texture/wave.png", *texture);
+    mBillboards.resize(Max_Wave);
     for (size_t i = 0; i < Max_Wave; ++i)
     {
-        mBillboards.push_back(std::make_unique<Billboard>());
-        Billboard* billboard = mBillboards.back().get();
+        std::unique_ptr<Billboard>& billboard = mBillboards[i];
+        billboard.reset(new Billboard());
         billboard->mPosition = glm::vec3(0, 0, 0);
         billboard->mNormal = glm::vec3(0, 0, 1.f);
-        billboard->mSize = glm::vec2(Constant::WaveSize, Constant::WaveSize);
+        billboard->mSize = glm::vec2(Constant::WaveSize, Constant::WaveSize * 0.5f);
         billboard->mAlpha = 1.f;
         billboard->mTexture = texture;
     }
@@ -107,7 +108,7 @@ void Gameplay::Sea::FrameStep()
         const float lifetime = 1.f - wave.mLifetime / Constant::WaveSpawnLifetime;
         if (lifetime < 0.3f)
         {
-            const float interpolate = (lifetime - 0.f) / (0.3 - 0.f);
+            const float interpolate = (lifetime - 0.f) / (0.3f - 0.f);
             billboard->mAlpha = interpolate;
         }
         else if (lifetime > 0.6f)
@@ -121,7 +122,7 @@ void Gameplay::Sea::FrameStep()
         }
         if (lifetime < 0.3f)
         {
-            const float interpolate = (lifetime - 0.f) / (0.3 - 0.f);
+            const float interpolate = (lifetime - 0.f) / (0.3f - 0.f);
             billboard->mSize.y = Constant::WaveSize * interpolate;
         }
         else
@@ -131,7 +132,7 @@ void Gameplay::Sea::FrameStep()
         }
         {
             const float interpolate = (lifetime - 0.f) / (1.f - 0.f);
-            billboard->mSize.x = glm::max(0.3f, Constant::WaveSize * interpolate);
+            billboard->mSize.x = Constant::WaveSize * glm::max(1.f, 2.f * interpolate);
         }
         mBillboardRenderer->PushToRenderQueue(billboard);
     }
