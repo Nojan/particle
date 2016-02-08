@@ -3,6 +3,7 @@
 #include "../billboard.hpp"
 #include "../billboard_renderer.hpp"
 #include "../boundingbox.hpp"
+#include "../color.hpp"
 #include "../camera.hpp"
 #include "../global.hpp"
 #include "../game_entity.hpp"
@@ -63,7 +64,9 @@ Gameplay::Sea::Sea()
     RenderingComponent* renderingComponent = mEntity->getComponent<RenderingComponent>();
     renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
     renderingComponent->mRenderable.reset(new RenderableMesh());
-    renderingComponent->mRenderable->mMaterial = Material();
+    std::shared_ptr<Texture2D> seaTexture = std::move(Texture2D::generateUniform(16, 16, { 0, 156, 255 }));
+    std::shared_ptr<ShaderProgram> seaShader;
+    renderingComponent->mRenderable->mMaterial = Material(seaShader, seaTexture);
     renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/plane.obj"));
 }
 
