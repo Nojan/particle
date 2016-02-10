@@ -53,6 +53,8 @@ namespace Color
     rgbp rgb2rgbp(rgb in);
     rgb rgbp2rgb(rgbp in);
 
+    rgbap rgbp2rgbap(rgbp in, float a = 1.f);
+
     hsv rgb2hsv(rgb in);
     hsv rgbp2hsv(rgbp in);
     rgbp hsv2rgbp(hsv in);

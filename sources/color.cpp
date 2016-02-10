@@ -74,6 +74,16 @@ rgb rgbp2rgb(rgbp in)
     return out;
 }
 
+rgbap rgbp2rgbap(rgbp in, float a)
+{
+    rgbap out;
+    out.r = in.r;
+    out.g = in.g;
+    out.b = in.b;
+    out.a = a;
+    return out;
+}
+
 hsv rgbp2hsv(rgbp in)
 {
     assert(valid(in));
