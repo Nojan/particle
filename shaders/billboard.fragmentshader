@@ -1,0 +1,12 @@
+#version 120
+
+varying vec2 UV;
+
+uniform sampler2D textureSampler;
+uniform float alpha;
+
+void main() {
+    vec4 alpha4 = vec4(1, 1, 1, alpha);
+    vec4 color = texture2D( textureSampler, fract(UV) );
+    gl_FragColor = color * alpha4;
+}
