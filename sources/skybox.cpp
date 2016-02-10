@@ -110,7 +110,7 @@ Skybox::~Skybox()
     glDeleteBuffers(1, &mVertexBufferId); 
 }
 
-void Skybox::Render()
+void Skybox::Render(const Scene * scene)
 {
     mShaderProgram->Bind();
     // Get a handle for our buffers

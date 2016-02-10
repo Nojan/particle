@@ -20,7 +20,7 @@ public:
     MeshRenderer();
     ~MeshRenderer();
 
-	void Render();
+	void Render(const Scene* scene) override;
 
     void PushToRenderQueue(RenderableMesh* renderable);
 
@@ -31,7 +31,7 @@ public:
 
 private:
     void GrowGPUBufferIFN();
-    void Render(const RenderableMesh& renderable);
+    void Render(const RenderableMesh& renderable, const Scene* scene);
 
 private:
     std::shared_ptr<ShaderProgram> mShaderProgram;

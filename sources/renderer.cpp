@@ -96,7 +96,7 @@ void Renderer::Update(const float deltaTime)
     Particle::UpdateParticleGravitySIMD(*(mParticleData.get()), deltaTime);
 }
 
-void Renderer::Render()
+void Renderer::Render(const Scene * scene)
 {
     mShaderProgram->Bind();
     {

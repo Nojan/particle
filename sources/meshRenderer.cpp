@@ -19,15 +19,10 @@
 #include <assert.h>
 #include <algorithm>
 
-static float lightX = 0;
-static float lightY = 10;
-static float lightZ = 0;
-
 #ifdef IMGUI_ENABLE
-void MeshRenderer::debug_GUI() const {
-    ImGui::SliderFloat("LightX", &lightX, -25.f, 25.f);
-    ImGui::SliderFloat("LightY", &lightY, -25.f, 25.f);
-    ImGui::SliderFloat("LightZ", &lightZ, -25.f, 25.f);
+void MeshRenderer::debug_GUI() const
+{
+
 }
 #endif
 
@@ -50,6 +45,8 @@ MeshRenderer::MeshRenderer()
     mShaderProgram->RegisterUniform("mv");
     mShaderProgram->RegisterUniform("viewNormal");
     mShaderProgram->RegisterUniform("lightPosition");
+    mShaderProgram->RegisterUniform("lightDiffuse");
+    mShaderProgram->RegisterUniform("lightSpecular");
     mTexture2D = std::move(Texture2D::generateCheckeredBoard(8, 128, 128, { 255, 255, 255 }, { 0, 0, 0 }));
     glGenTextures(1, &mTextureSamplerId); 
 }
@@ -64,12 +61,16 @@ MeshRenderer::~MeshRenderer()
     glDeleteVertexArrays(1, &mVaoId); 
 }
 
-void MeshRenderer::Render()
+void MeshRenderer::Render(const Scene* scene)
 {
-    const glm::vec4 lightPosition(lightX, lightY, lightZ, 1);
     {
+        const DirectionalLight& dirLight = scene->GetDirectionalLight();
+        const Color::rgbap color = Color::rgbp2rgbap(dirLight.mDiffuseColor, 1.f);
+        const glm::vec4 lightDirection(dirLight.mDirection, 1.f);
+        const glm::vec4 cameraPosition(Root::Instance().GetCamera()->Position(), 0.f);
+        const glm::vec4 lightPosition = cameraPosition + lightDirection * glm::vec4(10.f, 10.f, 10.f, 1.f);
         VisualDebugRenderer * renderer = Root::Instance().GetVisualDebugRenderer();
-        VisualDebugSphereCommand lightDebug(glm::vec3(lightPosition), 0.25f, { 1.f, 0.f, 0.f, 1.f });
+        VisualDebugSphereCommand lightDebug(glm::vec3(lightPosition), 0.25f, color);
         renderer->PushCommand(lightDebug);
     }
     
@@ -82,7 +83,7 @@ void MeshRenderer::Render()
     for (const RenderableMesh* renderable: mRenderQueue)
     {
         assert(renderable);
-        Render(*renderable);
+        Render(*renderable, scene);
     }
 
     mShaderProgram->Unbind();
@@ -90,7 +91,7 @@ void MeshRenderer::Render()
     mRenderQueue.clear();
 }
 
-void MeshRenderer::Render(const RenderableMesh& renderable)
+void MeshRenderer::Render(const RenderableMesh& renderable, const Scene* scene)
 {
     if (renderable.mMesh->mIndex.empty())
         return;
@@ -155,11 +156,22 @@ void MeshRenderer::Render(const RenderableMesh& renderable)
         glm::mat3 v = glm::mat3(Root::Instance().GetCamera()->View()) * glm::mat3(modelTransform);
         glUniformMatrix3fv(matrixViewNormal_ID, 1, GL_FALSE, glm::value_ptr(v)); 
     }
-    const glm::vec4 lightPosition(lightX, lightY, lightZ, 1);
-    const glm::vec4 lightPositionObjectSpace = glm::inverse(modelTransform) * lightPosition;
+    const DirectionalLight& dirLight = scene->GetDirectionalLight();
     {
+        const glm::vec4 lightPosition(dirLight.mDirection, 1.f);
+        const glm::vec4 lightPositionObjectSpace = glm::inverse(modelTransform) * lightPosition;
         GLint lightPosition_ID = mShaderProgram->GetUniformLocation("lightPosition");
         glUniform4fv(lightPosition_ID, 1, glm::value_ptr(lightPositionObjectSpace)); 
+    }
+    {
+        const Color::rgbap color = Color::rgbp2rgbap(dirLight.mDiffuseColor, 1.f);
+        GLint lightPosition_ID = mShaderProgram->GetUniformLocation("lightDiffuse");
+        glUniform4fv(lightPosition_ID, 1, &(color.r));
+    }
+    {
+        const Color::rgbap color = Color::rgbp2rgbap(dirLight.mSpecularColor, 1.f);
+        GLint lightPosition_ID = mShaderProgram->GetUniformLocation("lightSpecular");
+        glUniform4fv(lightPosition_ID, 1, &(color.r));
     }
     glBindVertexArray(mVaoId);
     glDrawElements(GL_TRIANGLES, renderable.mMesh->mIndex.size(), GL_UNSIGNED_INT, 0);

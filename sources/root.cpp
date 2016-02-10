@@ -7,6 +7,7 @@
 #include "renderer.hpp"
 #include "billboard_renderer.hpp"
 #include "meshRenderer.hpp"
+#include "scene.hpp"
 #include "skybox.hpp"
 #include "visualdebug.hpp"
 #include "gameplay/loopmanager.hpp"
@@ -18,6 +19,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/random.hpp>
 
+#include <algorithm>
 #include <iostream>
 #include <stdlib.h>
 #include <chrono>
@@ -131,6 +133,8 @@ void Root::Init()
     mCamera.reset(new Camera());
     mCamera->HandleWindowResize(windowsWidth, windowsHeight);
 
+    mScene.reset(new Scene());
+
     RendererList* renderList = Global::rendererList();
     {
         std::shared_ptr<Skybox> renderer(Skybox::GenerateCheckered());
@@ -237,7 +241,7 @@ void Root::Update()
     }
     for (auto& renderer : mRendererList)
     {
-        renderer->Render();
+        renderer->Render(mScene.get());
     }
     mFrameLeftover = lastFrameDuration;
     static bool autoSpawnParticle = true;
@@ -259,6 +263,10 @@ void Root::Update()
         if (ImGui::CollapsingHeader("Main camera"))
         {
             mCamera->debug_GUI();
+        }
+        if (ImGui::CollapsingHeader("Scene - light"))
+        {
+            mScene->debug_GUI();
         }
         if (ImGui::CollapsingHeader("Particle Module"))
         {

@@ -1,12 +1,13 @@
 #pragma once
 
 #include "config.hpp"
+#include "scene.hpp"
 #include "shader.hpp"
 
 class IRenderer {
 public:
 	
-    virtual void Render() = 0;
+    virtual void Render(const Scene* scene) = 0;
 
 #ifdef IMGUI_ENABLE
     virtual void debug_GUI() const;

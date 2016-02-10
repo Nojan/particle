@@ -15,7 +15,7 @@ class Texture2D;
 class BillboardRenderer : public IRenderer {
 public:
 
-    void Render() override;
+    void Render(const Scene * scene) override;
 
     BillboardRenderer();
     ~BillboardRenderer();

@@ -19,7 +19,7 @@ public:
     Skybox(Texture2D& xPos, Texture2D& xNeg, Texture2D& yPos, Texture2D& yNeg, Texture2D& zPos, Texture2D& zNeg);
     ~Skybox();
 
-    void Render() override;
+    void Render(const Scene * scene) override;
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const;

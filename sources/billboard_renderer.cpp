@@ -58,7 +58,7 @@ void BillboardRenderer::PushToRenderQueue(const Billboard* billboard)
     mRenderQueue.push_back(billboard);
 }
 
-void BillboardRenderer::Render() 
+void BillboardRenderer::Render(const Scene * scene)
 {
 	if (mRenderQueue.empty())
         return;
