@@ -118,12 +118,36 @@ void Skybox::Render(const Scene * scene)
     GLuint cubemapID = glGetUniformLocation(mShaderProgram->ProgramID(), "cubemapSampler"); 
     GLuint matrixMVP_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "MVP"); 
 
-    glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(glo_scale, glo_scale, glo_scale));
+    const glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(glo_scale, glo_scale, glo_scale));
     const Camera * camera = Root::Instance().GetCamera();
     glm::mat4 view = camera->View();
     view[3][0] = 0; view[3][1] = 0; view[3][2] = 0; // Pas de translation pour la skybox
-    glm::mat4 MVP = Root::Instance().GetCamera()->Projection() * view * model;
+    const glm::mat4 viewModel = view * model;
+    glm::mat4 MVP = camera->Projection() * viewModel;
     glUniformMatrix4fv(matrixMVP_ID, 1, GL_FALSE, glm::value_ptr(MVP)); 
+
+    {
+        const GLuint uniformID = glGetUniformLocation(mShaderProgram->ProgramID(), "viewMatrix");
+        glUniformMatrix4fv(uniformID, 1, GL_FALSE, glm::value_ptr(viewModel));
+    }
+
+    {
+        const Camera::frustum f = Camera::ConvertTo(camera->Perspective());
+        #define setupFrustumUniform(name, value) { const GLuint uniformID = glGetUniformLocation(mShaderProgram->ProgramID(), name); glUniform1f(uniformID, value); }
+        setupFrustumUniform("left", f.left);
+        setupFrustumUniform("right", f.right);
+        setupFrustumUniform("top", f.top);
+        setupFrustumUniform("bottom", f.bottom);
+        setupFrustumUniform("near", f.zNear);
+        setupFrustumUniform("far", f.zFar);
+        #undef setupFrustumUniform
+    }
+
+    {
+        const GLuint uniformID = glGetUniformLocation(mShaderProgram->ProgramID(), "lightDirectionWS");
+        const glm::vec3& direction = scene->GetDirectionalLight().mDirection;
+        glUniform3fv(uniformID, 1, glm::value_ptr(direction));
+    }
 
     // Bind our texture in Texture Unit 0
     glActiveTexture(GL_TEXTURE0); 

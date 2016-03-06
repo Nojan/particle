@@ -63,6 +63,7 @@ MeshRenderer::~MeshRenderer()
 
 void MeshRenderer::Render(const Scene* scene)
 {
+    if(false)
     {
         const DirectionalLight& dirLight = scene->GetDirectionalLight();
         const Color::rgbap color = Color::rgbp2rgbap(dirLight.mDiffuseColor, 1.f);

@@ -29,8 +29,8 @@ Camera::Camera()
 , mScreenSize(1, 1)
 , mMousePosition(0.f)
 , mMouseDirectionWorld(0.f)
-, mPosition(0.f, 0.f, 100.f)
-, mDirection(0.f, 0.f, -1.f)
+, mPosition(0.f, 30.f, 500.f)
+, mDirection(glm::normalize(glm::vec3(0.f, -0.05f, -1.f)))
 , mUp(0.f, 1.f, 0.f)
 , mOrthoDirection(glm::cross(mDirection, mUp))
 {
@@ -72,9 +72,23 @@ void Camera::Update(const float frameDuration)
     }
     if(mUpdateView || mUpdateProjection) {
         mProjectionView = mProjection*mView;
+        mProjectionViewInv = glm::inverse(mProjectionView);
         mUpdateView = false;
         mUpdateProjection = false;
     }
+}
+
+Camera::frustum Camera::ConvertTo(Camera::perspective const & perspective)
+{
+    Camera::frustum f;
+    f.zNear = perspective.zNear;
+    f.zFar = perspective.zFar;
+    const float tanHalfFovy = glm::tan(perspective.fov / 2.f);
+    f.top = tanHalfFovy;
+    f.bottom = -f.top;
+    f.right = perspective.ratio * tanHalfFovy;
+    f.left = -f.right;
+    return f;
 }
 
 Camera::perspective const& Camera::Perspective() const
@@ -151,6 +165,11 @@ glm::mat4 const& Camera::View() const
     return mView;
 }
 
+glm::mat4 const& Camera::ViewInv() const
+{
+    return mViewInv;
+}
+
 glm::mat4 const& Camera::Projection() const
 {
     return mProjection;
@@ -159,6 +178,11 @@ glm::mat4 const& Camera::Projection() const
 glm::mat4 const& Camera::ProjectionView() const
 {
     return mProjectionView;
+}
+
+glm::mat4 const & Camera::ProjectionViewInv() const
+{
+    return mProjectionViewInv;
 }
 
 void Camera::HandleWindowResize(int width, int height)

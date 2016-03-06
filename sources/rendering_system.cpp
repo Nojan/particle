@@ -29,8 +29,6 @@ void RenderingComponent::draw(MeshRenderer* renderer)
     //mRenderable->mScale = glm::mat4(5.f);
     mRenderable->mScale[3][3] = 1.f;
     renderer->PushToRenderQueue(mRenderable.get());
-    const VisualDebugBoundingBoxCommand boundingbox(mRenderable->mMesh->mBBox, { 0, 0, 1, 0.1f }, mRenderable->mTransform * mRenderable->mScale);
-    Root::Instance().GetVisualDebugRenderer()->PushCommand(boundingbox);
 }
 
 RenderingSystem::RenderingSystem()

@@ -16,11 +16,21 @@ public:
         float zFar;
     };
 
+    struct frustum {
+        float left;
+        float right;
+        float bottom;
+        float top;
+        float zNear;
+        float zFar;
+    };
+
     Camera();
     ~Camera();
 
     void Update(const float frameDuration) override;
 
+    static frustum ConvertTo(perspective const& perspective); 
     perspective const& Perspective() const;
     glm::ivec2 const& ScreenSize() const;
 
@@ -38,8 +48,10 @@ public:
     void SetUp(glm::vec3 const& up);
 
     glm::mat4 const& View() const;
+    glm::mat4 const& ViewInv() const;
     glm::mat4 const& Projection() const;
     glm::mat4 const& ProjectionView() const;
+    glm::mat4 const& ProjectionViewInv() const;
 
     // Mouse and keyboard handle
     void EventKey(int key, int action);
@@ -77,6 +89,7 @@ private:
     glm::mat4 mProjectionView;
     glm::mat4 mViewInv;
     glm::mat4 mProjectionInv;
+    glm::mat4 mProjectionViewInv;
 };
 
 #endif

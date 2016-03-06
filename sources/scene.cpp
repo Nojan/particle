@@ -3,7 +3,7 @@
 #include "imgui/imgui_header.hpp"
 
 namespace Constant {
-    IMGUI_CONST float Direction[] = { 0.f, 1.f, 0.f };
+    IMGUI_CONST float Direction[] = { 0.f, 0.1f, -0.5f };
     IMGUI_CONST float DiffuseColor[] = { 1.f, 1.f, 1.f };
     IMGUI_CONST float SpecularColor[] = { 1.f, 1.f, 1.f };
 }
