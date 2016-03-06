@@ -132,6 +132,12 @@ void Skybox::Render(const Scene * scene)
     }
 
     {
+        const GLuint uniformID = glGetUniformLocation(mShaderProgram->ProgramID(), "screenSize"); 
+        const glm::vec2& screenSize = camera->ScreenSize();
+        glUniform2f(uniformID, (float)screenSize.x, (float)screenSize.y);
+    }
+
+    {
         const Camera::frustum f = Camera::ConvertTo(camera->Perspective());
         #define setupFrustumUniform(name, value) { const GLuint uniformID = glGetUniformLocation(mShaderProgram->ProgramID(), name); glUniform1f(uniformID, value); }
         setupFrustumUniform("left", f.left);
