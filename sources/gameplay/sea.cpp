@@ -30,6 +30,8 @@ namespace Constant {
     IMGUI_VAR(WaveSpawnLifetime, 10.f);
     IMGUI_VAR(WaveSpeed, 0.5f);
     IMGUI_VAR(WaveSize, 10.f);
+    IMGUI_VAR(WaveDistanceMin, 100.f);
+    IMGUI_VAR(WaveDistanceMax, 200.f);
 }
 
 #ifdef IMGUI_ENABLE
@@ -43,6 +45,8 @@ void Sea::debug_GUI()
     ImGui::SliderFloat("WaveSpawnLifetime", &Constant::WaveSpawnLifetime, 1.f, 20.f);
     ImGui::SliderFloat("WaveSpeed", &Constant::WaveSpeed, 0.f, 5.f);
     ImGui::SliderFloat("WaveSize", &Constant::WaveSize, 1.f, 25.f);
+    ImGui::SliderFloat("WaveDistanceMin", &Constant::WaveDistanceMin, 100.f, 200.f);
+    ImGui::SliderFloat("WaveDistanceMax", &Constant::WaveDistanceMax, 200.f, 300.f);
 }
 #endif
 
@@ -140,19 +144,25 @@ void Gameplay::Sea::FrameStep()
     {
         BoundingBox3D seaBox;
         const TransformComponent* transform = mEntity->getComponent<TransformComponent>();
-        const glm::vec3 planeOrigin(transform->Position());
-        const glm::vec3 planeNormal(0, 1, 0);
-        float intersectionDistance = -1.f;
+        const glm::vec3 seaPlaneOrigin(transform->Position());
+        const glm::vec3 seaPlaneNormal(0, 1, 0);
         glm::vec2 screenCoord[5] = { glm::vec2(-1.f, -1.f), glm::vec2(-1.f, 1.f), glm::vec2(1.f, 1.f), glm::vec2(1.f, -1.f), glm::vec2(0, 0) };
         const Camera* camera = Root::Instance().GetCamera();
-        const glm::vec3 cameraPosition = camera->Position();
+        const glm::vec3 cameraPosition = camera->Position() + camera->Direction()*Constant::WaveDistanceMin;
+        const glm::vec3 backPlaneOrigin(cameraPosition + camera->Direction()*Constant::WaveDistanceMax);
+        const glm::vec3 backPlaneNormal = -camera->Direction();
         for (uint i = 0; i < 5; ++i)
         {
             const glm::vec3 corner = camera->ProjectScreenCoordNormalizedToWorld(screenCoord[i]);
-            const bool intersect = glm::intersectRayPlane(cameraPosition, corner, planeOrigin, planeNormal, intersectionDistance);
-            if (intersect)
+            float distanceBack = FLT_MAX;
+            float distanceSea = FLT_MAX;
+            const bool intersectBack = glm::intersectRayPlane(cameraPosition, corner, backPlaneOrigin, backPlaneNormal, distanceBack);
+            const bool intersectSea = glm::intersectRayPlane(cameraPosition, corner, seaPlaneOrigin, seaPlaneNormal, distanceSea);
+            if (intersectBack || intersectSea)
             {
-                const glm::vec3 intersectionPosition = cameraPosition + corner*intersectionDistance;
+                const float distance = glm::min(distanceBack, distanceSea);
+                glm::vec3 intersectionPosition = cameraPosition + corner*distance;
+                intersectionPosition.y = 0;
                 seaBox.Add(intersectionPosition);
             }
         }
