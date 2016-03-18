@@ -38,7 +38,6 @@ namespace Constant {
 #ifdef IMGUI_ENABLE
 void Seagull::debug_GUI()
 {
-    ImGui::Checkbox("Show History", &Constant::History);
     ImGui::SliderFloat("Catch Radius", &Constant::CatchRadius, 0.f, 5.f);
     ImGui::SliderFloat("Target Lifetime", &Constant::TargetLifetime, 1.f, 10.f);
 
@@ -117,31 +116,33 @@ static void WanderInside(const BoundingBox3D& box, glm::vec3& position, glm::vec
     speed = glm::normalize(speed) * std::min(glm::length(speed), maxSpeed);
 }
 
-struct VisualDebugHistory {
-    std::deque<glm::vec3> targetPosition;
-    std::deque<glm::vec3> seagullPosition;
-};
-
-static VisualDebugHistory vdHistory;
-
 Seagull::Seagull()
-: mEntity(Global::gameSytem()->createEntity())
 {
+    mEntities.resize(3);
     GameSystem* gameSystem = Global::gameSytem();
-    gameSystem->getSystem<TransformSystem>()->attachEntity(mEntity);
-    TransformComponent* transform = mEntity->getComponent<TransformComponent>();
-    transform->SetPosition(glm::vec4(0, 0, -25.f, 1.f));
-    gameSystem->getSystem<PhysicSystem>()->attachEntity(mEntity);
-    gameSystem->getSystem<RenderingSystem>()->attachEntity(mEntity);
-    RenderingComponent* renderingComponent = mEntity->getComponent<RenderingComponent>();
-    renderingComponent->mColor = { 1.f, 1.f, 0.f, 1.f };
-    renderingComponent->mRenderable.reset(new RenderableMesh());
-    renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/Bird.obj"));
+    for (size_t idx = 0; idx < mEntities.size(); ++idx)
+    {
+        GameEntity* entity = gameSystem->createEntity();
+        mEntities[idx] = entity;
+        gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
+        TransformComponent* transform = entity->getComponent<TransformComponent>();
+        transform->SetPosition(glm::vec4(0, 0, -25.f, 1.f));
+        gameSystem->getSystem<PhysicSystem>()->attachEntity(entity);
+        gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
+        RenderingComponent* renderingComponent = entity->getComponent<RenderingComponent>();
+        renderingComponent->mColor = { 1.f, 1.f, 0.f, 1.f };
+        renderingComponent->mRenderable.reset(new RenderableMesh());
+        renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/Bird.obj"));
+    }   
 }
 
 Seagull::~Seagull()
 {
-    Global::gameSytem()->removeEntity(mEntity);
+    GameSystem* gameSystem = Global::gameSytem();
+    for (size_t idx = 0; idx < mEntities.size(); ++idx)
+    {
+        gameSystem->removeEntity(mEntities[idx]);
+    }
 }
 
 void Seagull::Init()
@@ -166,46 +167,38 @@ void Seagull::Update(const float deltaTime)
 {
     const Color::rgbap red = { 1.f, 0.f, 0.f, 1.f };
     const Color::rgbap yellow = { 1.f, 1.f, 0.f, 1.f };
+    const glm::vec3 boxCenter(0.f, 6.f, -15.f);
+    const glm::vec3 boxExtent(Constant::WanderBoxX, Constant::WanderBoxY, Constant::WanderBoxZ);
+    const BoundingBox3D box(boxCenter - boxExtent, boxCenter + boxExtent);
+    //const VisualDebugBoundingBoxCommand dbgBox(box, { 0, 1.f, 0.f, 0.2f }, glm::mat4());
+    //VisualDebug()->PushCommand(dbgBox);
     mTarget.lifetime -= deltaTime;
-    TransformComponent* transform = mEntity->getComponent<TransformComponent>();
-    TransformComponent* targetTransform = mTarget.mEntity->getComponent<TransformComponent>();
-    glm::vec3 position(transform->Position());
-    PhysicComponent* physic = mEntity->getComponent<PhysicComponent>();
-    glm::vec3 speed(physic->Velocity());
-    glm::vec3 targetTranslate = glm::vec3(targetTransform->Position());
-    if (0 < mTarget.lifetime) {
-        UpdateTowardTarget(targetTranslate, position, speed, deltaTime);
-        const float targetDistance = glm::length(targetTranslate - position);
-        if (targetDistance < Constant::CatchRadius)
-        {
-            mTarget.lifetime = 0;
-            FireworksManager* fireworksManager = Root::Instance().GetFireworksManager();
-            fireworksManager->spawnPeony(targetTranslate, 50.f, 3.f);
-            RenderingComponent* targetRenderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
-            targetRenderingComponent->mEnable = false;
-        }
-    }
-    else {
-        const glm::vec3 boxCenter(0.f, 6.f, -15.f);
-        const glm::vec3 boxExtent(Constant::WanderBoxX, Constant::WanderBoxY, Constant::WanderBoxZ);
-        const BoundingBox3D box(boxCenter - boxExtent, boxCenter + boxExtent);
-        WanderInside(box, position, speed, deltaTime);
-        //const VisualDebugBoundingBoxCommand dbgBox(box, { 0, 1.f, 0.f, 0.2f }, glm::mat4());
-        //VisualDebug()->PushCommand(dbgBox);
-    }
-    physic->SetVelocity(glm::vec4(speed, 0.f));
-    if (Constant::History)
+    for (size_t idx = 0; idx < mEntities.size(); ++idx)
     {
-        vdHistory.seagullPosition.push_back(position);
-        if (vdHistory.seagullPosition.size() > 50)
-        {
-            vdHistory.seagullPosition.pop_front();
+        GameEntity* entity = mEntities[idx];
+        TransformComponent* transform = entity->getComponent<TransformComponent>();
+        TransformComponent* targetTransform = mTarget.mEntity->getComponent<TransformComponent>();
+        glm::vec3 position(transform->Position());
+        PhysicComponent* physic = entity->getComponent<PhysicComponent>();
+        glm::vec3 speed(physic->Velocity());
+        glm::vec3 targetTranslate = glm::vec3(targetTransform->Position());
+        if (0 < mTarget.lifetime) {
+            UpdateTowardTarget(targetTranslate, position, speed, deltaTime);
+            const float targetDistance = glm::length(targetTranslate - position);
+            if (targetDistance < Constant::CatchRadius)
+            {
+                mTarget.lifetime = 0;
+                FireworksManager* fireworksManager = Root::Instance().GetFireworksManager();
+                fireworksManager->spawnPeony(targetTranslate, 50.f, 3.f);
+                RenderingComponent* targetRenderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
+                targetRenderingComponent->mEnable = false;
+            }
         }
-        for (size_t i = 0; i < vdHistory.seagullPosition.size(); ++i)
+        else 
         {
-            const VisualDebugCubeCommand seagullHistory(vdHistory.seagullPosition[i], 0.25f, yellow);
-            VisualDebug()->PushCommand(seagullHistory);
+            WanderInside(box, position, speed, deltaTime);
         }
+        physic->SetVelocity(glm::vec4(speed, 0.f));
     }
 }
 

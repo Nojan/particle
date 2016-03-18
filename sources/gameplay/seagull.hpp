@@ -30,7 +30,7 @@ public:
 #endif
 
 private:
-    GameEntity* mEntity;
+    std::vector< GameEntity* > mEntities;
     Target mTarget;
 };
 
