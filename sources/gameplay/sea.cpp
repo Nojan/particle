@@ -29,9 +29,9 @@ namespace Constant {
     IMGUI_VAR(WaveSpawnDirection, 0.f);
     IMGUI_VAR(WaveSpawnLifetime, 10.f);
     IMGUI_VAR(WaveSpeed, 0.5f);
-    IMGUI_VAR(WaveSize, 10.f);
-    IMGUI_VAR(WaveDistanceMin, 100.f);
-    IMGUI_VAR(WaveDistanceMax, 200.f);
+    IMGUI_VAR(WaveSize, 5.f);
+    IMGUI_VAR(WaveDistanceMin, 10.f);
+    IMGUI_VAR(WaveDistanceMax, 100.f);
 }
 
 #ifdef IMGUI_ENABLE
@@ -45,8 +45,8 @@ void Sea::debug_GUI()
     ImGui::SliderFloat("WaveSpawnLifetime", &Constant::WaveSpawnLifetime, 1.f, 20.f);
     ImGui::SliderFloat("WaveSpeed", &Constant::WaveSpeed, 0.f, 5.f);
     ImGui::SliderFloat("WaveSize", &Constant::WaveSize, 1.f, 25.f);
-    ImGui::SliderFloat("WaveDistanceMin", &Constant::WaveDistanceMin, 100.f, 200.f);
-    ImGui::SliderFloat("WaveDistanceMax", &Constant::WaveDistanceMax, 200.f, 300.f);
+    ImGui::SliderFloat("WaveDistanceMin", &Constant::WaveDistanceMin, 1.f, 100.f);
+    ImGui::SliderFloat("WaveDistanceMax", &Constant::WaveDistanceMax, 100.f, 300.f);
 }
 #endif
 
@@ -54,6 +54,7 @@ void Sea::debug_GUI()
 
 Gameplay::Sea::Sea()
 : mEntity(Global::gameSytem()->createEntity())
+, mDock(Global::gameSytem()->createEntity())
 , mBillboardRenderer(Global::rendererList()->getRenderer<BillboardRenderer>())
 , mTimeLastSpawn(Constant::WaveSpawnPeriod)
 {
@@ -61,28 +62,46 @@ Gameplay::Sea::Sea()
     mWaves.reserve(Max_Wave);
     
     GameSystem* gameSystem = Global::gameSytem();
-    gameSystem->getSystem<TransformSystem>()->attachEntity(mEntity);
-    TransformComponent* transform = mEntity->getComponent<TransformComponent>();
-    transform->SetPosition(glm::vec4(0.f, 0.f, 0.f, 1.f));
-    gameSystem->getSystem<RenderingSystem>()->attachEntity(mEntity);
-    RenderingComponent* renderingComponent = mEntity->getComponent<RenderingComponent>();
-    renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
-    renderingComponent->mRenderable.reset(new RenderableMesh());
-    std::shared_ptr<Texture2D> seaTexture = std::move(Texture2D::generateUniform(16, 16, { 0, 156, 255 }));
-    std::shared_ptr<ShaderProgram> seaShader;
-    renderingComponent->mRenderable->mMaterial = Material(seaShader, seaTexture);
-    renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/plane.obj"));
+    //Setup sea
+    {
+        gameSystem->getSystem<TransformSystem>()->attachEntity(mEntity);
+        TransformComponent* transform = mEntity->getComponent<TransformComponent>();
+        transform->SetPosition(glm::vec4(0.f, 0.f, 0.f, 1.f));
+        gameSystem->getSystem<RenderingSystem>()->attachEntity(mEntity);
+        RenderingComponent* renderingComponent = mEntity->getComponent<RenderingComponent>();
+        renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
+        renderingComponent->mRenderable.reset(new RenderableMesh());
+        std::shared_ptr<Texture2D> seaTexture = std::move(Texture2D::generateUniform(16, 16, { 0, 156, 255 }));
+        std::shared_ptr<ShaderProgram> seaShader;
+        renderingComponent->mRenderable->mMaterial = Material(seaShader, seaTexture);
+        renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/plane.obj"));
+    }
+    //Setup dock
+    {
+        gameSystem->getSystem<TransformSystem>()->attachEntity(mDock);
+        TransformComponent* transform = mDock->getComponent<TransformComponent>();
+        transform->SetPosition(glm::vec4(0.f, 0.f, 0.f, 1.f));
+        gameSystem->getSystem<RenderingSystem>()->attachEntity(mDock);
+        RenderingComponent* renderingComponent = mDock->getComponent<RenderingComponent>();
+        renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
+        renderingComponent->mRenderable.reset(new RenderableMesh());
+        std::shared_ptr<Texture2D> texture = std::move(Texture2D::generateUniform(16, 16, { 110, 110, 110 }));
+        std::shared_ptr<ShaderProgram> shader;
+        renderingComponent->mRenderable->mMaterial = Material(shader, texture);
+        renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/quai.obj"));
+    }
 }
 
 Gameplay::Sea::~Sea()
 {
     Global::gameSytem()->removeEntity(mEntity);
+    Global::gameSytem()->removeEntity(mDock);
 }
 
 void Gameplay::Sea::Init()
 {
     std::shared_ptr< Texture2DRGBA > texture = std::make_shared< Texture2DRGBA >();
-    Texture2DRGBA::loadFromFile("../asset/texture/wave.png", *texture);
+    Texture2DRGBA::loadFromFile("../asset/texture/wave2.png", *texture);
     mBillboards.resize(Max_Wave);
     for (size_t i = 0; i < Max_Wave; ++i)
     {

@@ -23,16 +23,16 @@ namespace Constant {
     IMGUI_VAR(CatchRadius, 1.f);
     IMGUI_VAR(TargetLifetime, 5.f);
 
-    IMGUI_VAR(PursuitMaxSpeed, 20.f);
-    IMGUI_VAR(PursuitMaxSteering, 2.f);
-    IMGUI_VAR(PursuitEvadeDistance, 5.f);
+    IMGUI_VAR(PursuitMaxSpeed, 7.f);
+    IMGUI_VAR(PursuitMaxSteering, 1.2f);
+    IMGUI_VAR(PursuitEvadeDistance, 3.f);
 
-    IMGUI_VAR(WanderMaxSpeed, 15.f);
-    IMGUI_VAR(WanderMaxSteering, 1.5f);
-    IMGUI_VAR(WanderMaxDistance, 10.f);
-    IMGUI_VAR(WanderBoxX, 15.f);
-    IMGUI_VAR(WanderBoxY, 15.f);
-    IMGUI_VAR(WanderBoxZ, 15.f);
+    IMGUI_VAR(WanderMaxSpeed, 5.f);
+    IMGUI_VAR(WanderMaxSteering, 1.0f);
+    IMGUI_VAR(WanderMaxDistance, 1.f);
+    IMGUI_VAR(WanderBoxX, 5.f);
+    IMGUI_VAR(WanderBoxY, 5.f);
+    IMGUI_VAR(WanderBoxZ, 5.f);
 }
 
 #ifdef IMGUI_ENABLE
@@ -50,9 +50,9 @@ void Seagull::debug_GUI()
     ImGui::SliderFloat("Wander Max Steering", &Constant::WanderMaxSteering, 0.f, 5.f);
     ImGui::SliderFloat("Wander Distance", &Constant::WanderMaxDistance, 0.f, 20.f);
 
-    ImGui::SliderFloat("Wander Box X", &Constant::WanderBoxX, 1.f, 50.f);
-    ImGui::SliderFloat("Wander Box Y", &Constant::WanderBoxY, 1.f, 50.f);
-    ImGui::SliderFloat("Wander Box Z", &Constant::WanderBoxZ, 1.f, 50.f);
+    ImGui::SliderFloat("Wander Box X", &Constant::WanderBoxX, 1.f, 10.f);
+    ImGui::SliderFloat("Wander Box Y", &Constant::WanderBoxY, 1.f, 10.f);
+    ImGui::SliderFloat("Wander Box Z", &Constant::WanderBoxZ, 1.f, 10.f);
 }
 #endif
 
@@ -86,7 +86,7 @@ static void WanderAround(const glm::vec3& target, glm::vec3& position, glm::vec3
     const glm::vec3 targetDirection = target - position;
     const float targetDistance = glm::length(targetDirection);
     const glm::vec3 direction = targetDistance < maxDistance ? glm::normalize(speed) : glm::normalize(targetDirection);
-    const glm::vec3 randomDirection = glm::ballRand(maxSpeed*0.01f);
+    const glm::vec3 randomDirection = glm::ballRand(maxSpeed*0.001f);
     speed += randomDirection;
     speed = glm::normalize(speed) * std::min(glm::length(speed), maxSpeed);
 }
@@ -186,10 +186,12 @@ void Seagull::Update(const float deltaTime)
         }
     }
     else {
-        const glm::vec3 boxCenter(0.f, 0.f, -25.f);
+        const glm::vec3 boxCenter(0.f, 6.f, -15.f);
         const glm::vec3 boxExtent(Constant::WanderBoxX, Constant::WanderBoxY, Constant::WanderBoxZ);
         const BoundingBox3D box(boxCenter - boxExtent, boxCenter + boxExtent);
         WanderInside(box, position, speed, deltaTime);
+        //const VisualDebugBoundingBoxCommand dbgBox(box, { 0, 1.f, 0.f, 0.2f }, glm::mat4());
+        //VisualDebug()->PushCommand(dbgBox);
     }
     physic->SetVelocity(glm::vec4(speed, 0.f));
     if (Constant::History)

@@ -36,6 +36,7 @@ private:
 private:
     static const size_t Max_Wave = 32;
     GameEntity* mEntity;
+    GameEntity* mDock;
     BillboardRenderer* mBillboardRenderer;
     std::vector< std::unique_ptr< Billboard > > mBillboards;
     std::vector< Wave > mWaves;

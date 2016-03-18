@@ -55,7 +55,7 @@ void LoopManager::EventKey(int key, int action)
         if (0.f == cosTheta)
             return;
         const glm::vec3& cameraPosition = camera->Position();
-        const float planeDistance = 25.f;
+        const float planeDistance = 15.f;
         const float t = -(glm::dot(cameraPosition, planeNormal) + planeDistance) / cosTheta;
         const Camera::perspective& parameter = camera->Perspective();
         if (t < parameter.zNear || parameter.zFar < t)
