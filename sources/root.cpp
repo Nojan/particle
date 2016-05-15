@@ -7,6 +7,7 @@
 #include "renderer.hpp"
 #include "billboard_renderer.hpp"
 #include "meshRenderer.hpp"
+#include "skinMeshRenderer.hpp"
 #include "scene.hpp"
 #include "skybox.hpp"
 #include "visualdebug.hpp"
@@ -155,6 +156,11 @@ void Root::Init()
     {
         renderList->addRenderer(mVisualDebugRenderer.get());
         mRendererList.push_back(mVisualDebugRenderer);
+    }
+    {
+        std::shared_ptr<SkinMeshRenderer> renderer = std::make_shared<SkinMeshRenderer>();
+        renderList->addRenderer(renderer.get());
+        mRendererList.push_back(renderer);
     }
     {
         std::shared_ptr<BillboardRenderer> renderer = std::make_shared<BillboardRenderer>();
