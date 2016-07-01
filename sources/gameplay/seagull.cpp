@@ -33,6 +33,7 @@ namespace Constant {
     IMGUI_VAR(WanderMaxSpeed, 5.f);
     IMGUI_VAR(WanderMaxSteering, 1.0f);
     IMGUI_VAR(WanderMaxDistance, 1.f);
+    IMGUI_VAR(WanderBoxCenter, glm::vec3(0.f, 6.f, -15.f));
     IMGUI_VAR(WanderBoxX, 5.f);
     IMGUI_VAR(WanderBoxY, 5.f);
     IMGUI_VAR(WanderBoxZ, 5.f);
@@ -124,6 +125,10 @@ Seagull::Seagull()
     mEntities.resize(3);
     GameSystem* gameSystem = Global::gameSytem();
 
+    const glm::vec3 boxCenter = Constant::WanderBoxCenter;
+    const glm::vec3 boxExtent(Constant::WanderBoxX, Constant::WanderBoxY, Constant::WanderBoxZ);
+    const BoundingBox3D box(boxCenter - boxExtent, boxCenter + boxExtent);
+
     std::shared_ptr<Armature> armature;
     armature.reset(new Armature());
     std::shared_ptr<SkinMesh> skinMesh;
@@ -137,7 +142,8 @@ Seagull::Seagull()
         mEntities[idx] = entity;
         gameSystem->getSystem<TransformSystem>()->attachEntity(entity);
         TransformComponent* transform = entity->getComponent<TransformComponent>();
-        transform->SetPosition(glm::vec4(0, 0, -25.f, 1.f));
+        const glm::vec3 position = glm::linearRand(box.Min(), box.Max());
+        transform->SetPosition(glm::vec4(position, 1.f));
         gameSystem->getSystem<PhysicSystem>()->attachEntity(entity);
         gameSystem->getSystem<RenderingSkinSystem>()->attachEntity(entity);
         GraphicSkinComponent* renderingComponent = entity->getComponent<GraphicSkinComponent>();
@@ -178,7 +184,7 @@ void Seagull::Update(const float deltaTime)
 {
     const Color::rgbap red = { 1.f, 0.f, 0.f, 1.f };
     const Color::rgbap yellow = { 1.f, 1.f, 0.f, 1.f };
-    const glm::vec3 boxCenter(0.f, 6.f, -15.f);
+    const glm::vec3 boxCenter = Constant::WanderBoxCenter;
     const glm::vec3 boxExtent(Constant::WanderBoxX, Constant::WanderBoxY, Constant::WanderBoxZ);
     const BoundingBox3D box(boxCenter - boxExtent, boxCenter + boxExtent);
     //const VisualDebugBoundingBoxCommand dbgBox(box, { 0, 1.f, 0.f, 0.2f }, glm::mat4());
