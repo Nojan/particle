@@ -73,6 +73,10 @@ namespace ressource_compiler {
             if (child->Attribute("name", "Armature"))
             {
                 armatureElement = child;
+                const tinyxml2::XMLElement* matrixElement = child->FirstChildElement("Matrix4");
+                convertToMatrix(*matrixElement, armature.transform);
+                glm::mat4 ressourceToEngine(1, 0, 0, 0,  0, 0, -1, 0,  0, 1, 0, 0,  0, 0, 0, 1);
+                armature.transform *= ressourceToEngine;
                 break;
             }
         }

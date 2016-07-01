@@ -68,7 +68,7 @@ Gameplay::Sea::Sea()
         TransformComponent* transform = mEntity->getComponent<TransformComponent>();
         transform->SetPosition(glm::vec4(0.f, 0.f, 0.f, 1.f));
         gameSystem->getSystem<RenderingSystem>()->attachEntity(mEntity);
-        RenderingComponent* renderingComponent = mEntity->getComponent<RenderingComponent>();
+        GraphicMeshComponent* renderingComponent = mEntity->getComponent<GraphicMeshComponent>();
         renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
         renderingComponent->mRenderable.reset(new RenderableMesh());
         std::shared_ptr<Texture2D> seaTexture = std::move(Texture2D::generateUniform(16, 16, { 0, 156, 255 }));
@@ -82,7 +82,7 @@ Gameplay::Sea::Sea()
         TransformComponent* transform = mDock->getComponent<TransformComponent>();
         transform->SetPosition(glm::vec4(0.f, 0.f, 0.f, 1.f));
         gameSystem->getSystem<RenderingSystem>()->attachEntity(mDock);
-        RenderingComponent* renderingComponent = mDock->getComponent<RenderingComponent>();
+        GraphicMeshComponent* renderingComponent = mDock->getComponent<GraphicMeshComponent>();
         renderingComponent->mColor = { 0.f, 0.f, 1.f, 1.f };
         renderingComponent->mRenderable.reset(new RenderableMesh());
         std::shared_ptr<Texture2D> texture = std::move(Texture2D::generateUniform(16, 16, { 110, 110, 110 }));

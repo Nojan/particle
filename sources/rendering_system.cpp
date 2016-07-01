@@ -3,6 +3,7 @@
 #include "game_entity.hpp"
 #include "renderer_list.hpp"
 #include "renderableMesh.hpp"
+#include "renderableSkinMesh.hpp"
 #include "transform_system.hpp"
 #include "visualdebug.hpp"
 
@@ -10,17 +11,10 @@
 
 #include "global.hpp"
 #include "meshRenderer.hpp"
+#include "skinMeshRenderer.hpp"
+#include "armature.hpp"
 
-RenderingComponent::RenderingComponent()
-    : mEnable(true)
-{
-    
-}
-
-RenderingComponent::~RenderingComponent()
-{}
-
-void RenderingComponent::draw(MeshRenderer* renderer)
+void GraphicMeshComponent::draw(MeshRenderer* renderer)
 {
     if(!mRenderable || !mEnable)
         return;
@@ -51,7 +45,7 @@ void RenderingSystem::FrameStep()
 
 void RenderingSystem::attachEntity(GameEntity* entity) 
 {
-    RenderingComponent* component = IComponentSystem::attachPtrComponent<RenderingComponent>(entity, mComponents);
+    GraphicMeshComponent* component = IComponentSystem::attachPtrComponent<GraphicMeshComponent>(entity, mComponents);
     TransformComponent* tranform = entity->getComponent<TransformComponent>();
     assert(tranform);
     component->mTransformComponent = tranform;
@@ -59,5 +53,64 @@ void RenderingSystem::attachEntity(GameEntity* entity)
 
 void RenderingSystem::detachEntity(GameEntity* entity) 
 {
-    IComponentSystem::detachPtrComponent<RenderingComponent>(entity, mComponents);
+    IComponentSystem::detachPtrComponent<GraphicMeshComponent>(entity, mComponents);
+}
+
+GraphicSkinComponent::GraphicSkinComponent()
+    : mAnimationTime(0)
+    , mAnimationIdx(0)
+{
+}
+
+void GraphicSkinComponent::draw(SkinMeshRenderer* renderer)
+{
+    if (!mRenderable || !mEnable)
+        return;
+    mRenderable->mTransform = mTransformComponent->Transform();
+    mRenderable->mScale = mTransformComponent->mScale;
+    mRenderable->mScale[3][3] = 1.f;
+    const float animationLoopTime = mRenderable->mMesh->mArmature->animations[mAnimationIdx].duration;
+    mAnimationTime = fmodf(mAnimationTime, animationLoopTime);
+    mRenderable->mAnimationIdx = mAnimationIdx;
+    mRenderable->mAnimationTime = mAnimationTime;
+    renderer->PushToRenderQueue(mRenderable.get());
+}
+
+RenderingSkinSystem::RenderingSkinSystem()
+    : mRenderer(nullptr)
+{}
+
+RenderingSkinSystem::~RenderingSkinSystem()
+{}
+
+void RenderingSkinSystem::FrameStep()
+{
+    if (!mRenderer)
+        mRenderer = Global::rendererList()->getRenderer<SkinMeshRenderer>();
+    assert(mRenderer);
+    for (auto& component : mComponents)
+    {
+        component->draw(mRenderer);
+    }
+}
+
+void RenderingSkinSystem::Update(const float deltaTime)
+{
+    for (auto& component : mComponents)
+    {
+        component->mAnimationTime += deltaTime;
+    }
+}
+
+void RenderingSkinSystem::attachEntity(GameEntity* entity)
+{
+    GraphicSkinComponent* component = IComponentSystem::attachPtrComponent<GraphicSkinComponent>(entity, mComponents);
+    TransformComponent* tranform = entity->getComponent<TransformComponent>();
+    assert(tranform);
+    component->mTransformComponent = tranform;
+}
+
+void RenderingSkinSystem::detachEntity(GameEntity* entity)
+{
+    IComponentSystem::detachPtrComponent<GraphicSkinComponent>(entity, mComponents);
 }

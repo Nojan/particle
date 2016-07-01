@@ -21,14 +21,11 @@
 #include <assert.h>
 #include <algorithm>
 
-namespace Constant {
-    IMGUI_VAR(TempDebugAnim, 0.f);
-}
 
 #ifdef IMGUI_ENABLE
 void SkinMeshRenderer::debug_GUI() const
 {
-    ImGui::SliderFloat("TempDebugAnim", &Constant::TempDebugAnim, 0.f, 2.f);
+
 }
 #endif
 
@@ -128,26 +125,45 @@ void SkinMeshRenderer::Render(const RenderableSkinMesh& renderable, const Scene*
     {
         GLint uniform_ID = mShaderProgram->GetUniformLocation("bones");
         static std::vector<glm::mat4> bonesTransform(32);
+        const glm::mat4& armatureTransform = renderable.mMesh->mArmature->transform;
         const std::vector<Bone>& bones = renderable.mMesh->mArmature->bones;
         const Animation& animation = renderable.mMesh->mArmature->animations.front();
-        const float time = Constant::TempDebugAnim;
+        const float time = renderable.mAnimationTime;
         const uint invalidBoneId = -1;
         for (size_t idx = 0; idx < bones.size(); ++idx)
         {
             glm::quat animRotation; 
             glm::vec3 animTranslation;
             {
-                const BoneKeyFrames& keyframes = animation.bones_keyframes[idx];
-                const RotationKeyframe& beforeKeyframe = keyframes.rotation[0];
-                const RotationKeyframe& afterKeyframe = keyframes.rotation[1];
+                const std::vector<RotationKeyframe>& keyframes = animation.bones_keyframes[idx].rotation;
+                size_t keyframeIdx = 1;
+                for (size_t idx = 1; idx < keyframes.size(); ++idx)
+                {
+                    if ((keyframes[idx - 1].timestamp <= time) && (keyframes[idx].timestamp >= time) )
+                    {
+                        keyframeIdx = idx;
+                        break;
+                    }
+                }
+                const RotationKeyframe& beforeKeyframe = keyframes[keyframeIdx - 1];
+                const RotationKeyframe& afterKeyframe = keyframes[keyframeIdx];
                 const float interpolation = glm::clamp((time - beforeKeyframe.timestamp) / (afterKeyframe.timestamp - beforeKeyframe.timestamp), 0.f, 1.f);
                 animRotation = glm::slerp(beforeKeyframe.rotation, afterKeyframe.rotation, interpolation);
                 animRotation = glm::normalize(animRotation);
             }
             {
-                const BoneKeyFrames& keyframes = animation.bones_keyframes[idx];
-                const TranslateKeyframe& beforeKeyframe = keyframes.translate[0];
-                const TranslateKeyframe& afterKeyframe = keyframes.translate[1];
+                const std::vector<TranslateKeyframe>& keyframes = animation.bones_keyframes[idx].translate;
+                size_t keyframeIdx = 1;
+                for (size_t idx = 1; idx < keyframes.size(); ++idx)
+                {
+                    if ((keyframes[idx - 1].timestamp <= time) && (keyframes[idx].timestamp >= time))
+                    {
+                        keyframeIdx = idx;
+                        break;
+                    }
+                }
+                const TranslateKeyframe& beforeKeyframe = keyframes[keyframeIdx - 1];
+                const TranslateKeyframe& afterKeyframe = keyframes[keyframeIdx];
                 const float interpolation = glm::clamp((time - beforeKeyframe.timestamp) / (afterKeyframe.timestamp - beforeKeyframe.timestamp), 0.f, 1.f);
                 animTranslation = glm::mix(beforeKeyframe.translate, afterKeyframe.translate, interpolation);
             }
@@ -159,7 +175,7 @@ void SkinMeshRenderer::Render(const RenderableSkinMesh& renderable, const Scene*
             assert(bone.parent < idx || rootBoneIdx == bone.parent);
             if (rootBoneIdx == bone.parent)
             {
-                boneTransformWS = boneTransformLocal;
+                boneTransformWS = armatureTransform*boneTransformLocal;
             }
             else
             {

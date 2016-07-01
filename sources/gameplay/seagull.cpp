@@ -8,7 +8,10 @@
 #include "../transform_system.hpp"
 #include "../rendering_system.hpp"
 #include "../renderableMesh.hpp"
+#include "../renderableSkinMesh.hpp"
 #include "../visualdebug.hpp"
+#include "../armature.hpp"
+#include "../ressource_compiler_armature.hpp"
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/random.hpp>
 
@@ -120,6 +123,14 @@ Seagull::Seagull()
 {
     mEntities.resize(3);
     GameSystem* gameSystem = Global::gameSytem();
+
+    std::shared_ptr<Armature> armature;
+    armature.reset(new Armature());
+    std::shared_ptr<SkinMesh> skinMesh;
+    skinMesh.reset(new SkinMesh());
+    ressource_compiler::compile_armature("../asset/mesh/bird.assxml", *armature, *skinMesh);
+    skinMesh->mArmature = armature;
+
     for (size_t idx = 0; idx < mEntities.size(); ++idx)
     {
         GameEntity* entity = gameSystem->createEntity();
@@ -128,11 +139,11 @@ Seagull::Seagull()
         TransformComponent* transform = entity->getComponent<TransformComponent>();
         transform->SetPosition(glm::vec4(0, 0, -25.f, 1.f));
         gameSystem->getSystem<PhysicSystem>()->attachEntity(entity);
-        gameSystem->getSystem<RenderingSystem>()->attachEntity(entity);
-        RenderingComponent* renderingComponent = entity->getComponent<RenderingComponent>();
+        gameSystem->getSystem<RenderingSkinSystem>()->attachEntity(entity);
+        GraphicSkinComponent* renderingComponent = entity->getComponent<GraphicSkinComponent>();
         renderingComponent->mColor = { 1.f, 1.f, 0.f, 1.f };
-        renderingComponent->mRenderable.reset(new RenderableMesh());
-        renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/Bird.obj"));
+        renderingComponent->mRenderable.reset(new RenderableSkinMesh());
+        renderingComponent->mRenderable->mMesh = skinMesh;
     }   
 }
 
@@ -151,7 +162,7 @@ void Seagull::Init()
     mTarget = { gameSystem->createEntity(), 10.f };
     gameSystem->getSystem<TransformSystem>()->attachEntity(mTarget.mEntity);
     gameSystem->getSystem<RenderingSystem>()->attachEntity(mTarget.mEntity);
-    RenderingComponent * renderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
+    GraphicMeshComponent * renderingComponent = mTarget.mEntity->getComponent<GraphicMeshComponent>();
     renderingComponent->mColor = { 1.f, 0.f, 0.f, 1.f };
     renderingComponent->mRenderable.reset(new RenderableMesh());
     renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/cube.obj"));
@@ -190,7 +201,7 @@ void Seagull::Update(const float deltaTime)
                 mTarget.lifetime = 0;
                 FireworksManager* fireworksManager = Root::Instance().GetFireworksManager();
                 fireworksManager->spawnPeony(targetTranslate, 50.f, 3.f);
-                RenderingComponent* targetRenderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
+                GraphicMeshComponent* targetRenderingComponent = mTarget.mEntity->getComponent<GraphicMeshComponent>();
                 targetRenderingComponent->mEnable = false;
             }
         }
@@ -208,7 +219,7 @@ void Seagull::SetTrackPosition(const glm::vec3& target)
     TransformComponent* transform = mTarget.mEntity->getComponent<TransformComponent>();
     transform->SetPosition(targetPosition);
     mTarget.lifetime = Constant::TargetLifetime;
-    RenderingComponent* renderingComponent = mTarget.mEntity->getComponent<RenderingComponent>();
+    GraphicMeshComponent* renderingComponent = mTarget.mEntity->getComponent<GraphicMeshComponent>();
     renderingComponent->mEnable = true;
 }
 

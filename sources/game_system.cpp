@@ -14,6 +14,7 @@ GameSystem::GameSystem()
     CREATE_SYSTEM(TransformSystem);
     CREATE_SYSTEM(PhysicSystem);
     CREATE_SYSTEM(RenderingSystem);
+    CREATE_SYSTEM(RenderingSkinSystem);
 }
 
 #undef CREATE_SYSTEM

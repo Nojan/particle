@@ -19,6 +19,8 @@ public:
     glm::mat4 mTransform;
     glm::mat4 mScale;
     std::shared_ptr<SkinMesh> mMesh;
+    float mAnimationTime;
+    uint mAnimationIdx;
 
     bool operator<(const RenderableSkinMesh& ref) const;
 };

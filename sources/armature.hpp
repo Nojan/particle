@@ -4,6 +4,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <memory>
 #include <vector>
 
 struct ScaleKeyframe {
@@ -39,6 +40,7 @@ struct Bone {
 };
 
 struct Armature {
+    glm::mat4 transform;
     std::vector<Bone> bones;
     std::vector<Animation> animations;
 };
@@ -51,7 +53,7 @@ struct VertexBoneData
 };
 
 struct SkinMesh {
-    const Armature* mArmature;
+    std::shared_ptr<const Armature> mArmature;
     std::vector<glm::vec3> mVertex;
     std::vector<glm::vec3> mNormal;
     std::vector<glm::vec2> mTextureCoord;
