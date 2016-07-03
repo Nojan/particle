@@ -28,7 +28,9 @@ public:
     Camera();
     ~Camera();
 
+    void FrameStep() override;
     void Update(const float frameDuration) override;
+    void Move(const float speed);
 
     static frustum ConvertTo(perspective const& perspective); 
     perspective const& Perspective() const;
@@ -65,6 +67,7 @@ public:
 #endif
 
 private:
+    bool mUpdateFixedFrameRate;
     bool mUpdateView;
     bool mUpdateProjection;
     bool mMousePan;

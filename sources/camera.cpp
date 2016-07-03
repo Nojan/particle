@@ -21,7 +21,8 @@ static float deg2rad(const float deg) {
 }
 
 Camera::Camera()
-: mUpdateView(true)
+: mUpdateFixedFrameRate(true)
+, mUpdateView(true)
 , mUpdateProjection(true)
 , mMousePan(false)
 , mMoveMask(MV_NONE)
@@ -46,31 +47,47 @@ Camera::Camera()
 Camera::~Camera()
 {}
 
+void Camera::FrameStep()
+{
+    if (mUpdateFixedFrameRate)
+    {
+        const float frameDuration = 16.f / 1000.f;
+        Move(mSpeed / frameDuration);
+    }
+}
+
 void Camera::Update(const float frameDuration)
 {
-    if( MV_NONE != mMoveMask ) {
-        const float moveSpeed = mSpeed / frameDuration;
-        if(MV_LEFT & mMoveMask)
-            mPosition -= mOrthoDirection*moveSpeed;
-        if(MV_RIGHT & mMoveMask)
-            mPosition += mOrthoDirection*moveSpeed;
-        if(MV_UP & mMoveMask)
-            mPosition += mDirection*moveSpeed;
-        if(MV_DOWN & mMoveMask)
-            mPosition -= mDirection*moveSpeed;
+    if (!mUpdateFixedFrameRate)
+    {
+        Move(mSpeed / frameDuration);
+    }
+}
+
+void Camera::Move(const float speed)
+{
+    if (MV_NONE != mMoveMask) {
+        if (MV_LEFT & mMoveMask)
+            mPosition -= mOrthoDirection*speed;
+        if (MV_RIGHT & mMoveMask)
+            mPosition += mOrthoDirection*speed;
+        if (MV_UP & mMoveMask)
+            mPosition += mDirection*speed;
+        if (MV_DOWN & mMoveMask)
+            mPosition -= mDirection*speed;
         mUpdateView = true;
     }
 
-    if(mUpdateView) {
-        glm::vec3 center = mPosition+mDirection; 
+    if (mUpdateView) {
+        glm::vec3 center = mPosition + mDirection;
         mView = glm::lookAt(mPosition, center, mUp);
         mViewInv = glm::inverse(mView);
     }
-    if(mUpdateProjection) {
+    if (mUpdateProjection) {
         mProjection = glm::perspective(mPerspective.fov, mPerspective.ratio, mPerspective.zNear, mPerspective.zFar);
         mProjectionInv = glm::inverse(mProjection);
     }
-    if(mUpdateView || mUpdateProjection) {
+    if (mUpdateView || mUpdateProjection) {
         mProjectionView = mProjection*mView;
         mProjectionViewInv = glm::inverse(mProjectionView);
         mUpdateView = false;
@@ -261,7 +278,7 @@ void Camera::debug_GUI()
 {
     ImGui::Text("Position %s", glm::to_string(mPosition).c_str());
     ImGui::Text("Direction %s", glm::to_string(mDirection).c_str());
-    ImGui::SliderFloat("Move Speed", &mSpeed, 0.05f, 0.5f);
+    ImGui::SliderFloat("Move Speed", &mSpeed, 0.0005f, 0.5f, "%f", 5);
     ImGui::Text("Mouse Screen Position %s", glm::to_string(mMousePosition).c_str());
     ImGui::Text("Mouse World Direction %s", glm::to_string(mMouseDirectionWorld).c_str());
 
