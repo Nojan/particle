@@ -226,6 +226,7 @@ void Root::Update()
     float lastFrameDuration = mFrameDuration.count() / 1000.f;
     if (std::chrono::milliseconds(100) < mFrameDuration)
         lastFrameDuration = frameDuration; //abnormal frame duration (breakpoint?)
+    lastFrameDuration += mFrameLeftover;
     const auto beginFrame = std::chrono::high_resolution_clock::now();
     const size_t windowTitleSize = 265;
     char windowTitle[windowTitleSize];
