@@ -57,5 +57,6 @@ private:
     int mFramesCounter;
     std::chrono::milliseconds mFrameDuration;
     float mFrameLeftover;
+    float mFrameMultiplier;
 };
 #endif

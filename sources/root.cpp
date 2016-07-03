@@ -81,6 +81,7 @@ Root::Root()
 , mFramesCounter(0)
 , mFrameDuration(1)
 , mFrameLeftover(0)
+, mFrameMultiplier(1)
 {
 }
 
@@ -237,13 +238,18 @@ void Root::Update()
         updater->FrameStep();
     }
     Global::gameSytem()->FrameStep();
+    if (mFrameMultiplier <= 0)
+    {
+        lastFrameDuration = 0;
+    }
     while (frameDuration <= lastFrameDuration) {
         lastFrameDuration -= frameDuration;
+        const float frameStep = frameDuration * mFrameMultiplier;
         for (std::shared_ptr<IUpdater>& updater : mUpdaterList)
         {
-            updater->Update(frameDuration);
+            updater->Update(frameStep);
         }
-        Global::gameSytem()->Update(frameDuration);
+        Global::gameSytem()->Update(frameStep);
     }
     for (auto& renderer : mRendererList)
     {
@@ -257,6 +263,7 @@ void Root::Update()
     {
         ImGui::Text("Frame %.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::Text("Last frame %.3f ms", lastFrameDuration * 1000.f);
+        ImGui::SliderFloat("Frame multiplier", &mFrameMultiplier, 0, 10);
         if (ImGui::CollapsingHeader("OpenGL"))
         {
             static bool wireframe = false;
