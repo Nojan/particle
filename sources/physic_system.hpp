@@ -17,6 +17,8 @@ public:
     bool HasFiniteMass() const;
     void SetMass(const float mass);
 
+    void Reset();
+
     void Integrate(const float deltaTime);
     void AddForce(const glm::vec3& force);
 

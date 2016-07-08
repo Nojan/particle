@@ -5,7 +5,7 @@
 #include <cassert>
 
 TransformComponent::TransformComponent()
-: mPosition(0.f)
+: mPosition(0.f, 0.f, 0.f, 1.f)
 , mScale(1.f)
 , mRotation(1,0,0,0)
 {}

@@ -12,6 +12,7 @@
 #include "../visualdebug.hpp"
 #include "../armature.hpp"
 #include "../ressource_compiler_armature.hpp"
+#include "../world_constant.hpp"
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/random.hpp>
 
@@ -167,6 +168,7 @@ void Seagull::Init()
     GameSystem* gameSystem = Global::gameSytem();
     mTarget = { gameSystem->createEntity(), 10.f };
     gameSystem->getSystem<TransformSystem>()->attachEntity(mTarget.mEntity);
+    gameSystem->getSystem<PhysicSystem>()->attachEntity(mTarget.mEntity);
     gameSystem->getSystem<RenderingSystem>()->attachEntity(mTarget.mEntity);
     GraphicMeshComponent * renderingComponent = mTarget.mEntity->getComponent<GraphicMeshComponent>();
     renderingComponent->mColor = { 1.f, 0.f, 0.f, 1.f };
@@ -189,7 +191,7 @@ void Seagull::Update(const float deltaTime)
     const BoundingBox3D box(boxCenter - boxExtent, boxCenter + boxExtent);
     //const VisualDebugBoundingBoxCommand dbgBox(box, { 0, 1.f, 0.f, 0.2f }, glm::mat4());
     //VisualDebug()->PushCommand(dbgBox);
-    mTarget.lifetime -= deltaTime;
+    
     for (size_t idx = 0; idx < mEntities.size(); ++idx)
     {
         GameEntity* entity = mEntities[idx];
@@ -217,6 +219,30 @@ void Seagull::Update(const float deltaTime)
         }
         physic->SetVelocity(glm::vec4(speed, 0.f));
     }
+
+    {
+        const float lifetime = mTarget.lifetime - deltaTime;
+        bool disable = lifetime <= 0 && 0 < mTarget.lifetime;
+        mTarget.lifetime = lifetime;
+        PhysicComponent* physic = mTarget.mEntity->getComponent<PhysicComponent>();
+        if (!disable)
+        {
+            TransformComponent* transform = mTarget.mEntity->getComponent<TransformComponent>();
+            disable = transform->Position()[World::up_idx] < 0.f;
+        }
+        if(disable)
+        {
+            // disable target
+            physic->Reset();
+            GraphicMeshComponent* renderingComponent = mTarget.mEntity->getComponent<GraphicMeshComponent>();
+            renderingComponent->mEnable = false;
+            mTarget.lifetime = -0.f;
+        }
+        else
+        {
+            physic->AddForce(glm::vec3(World::gravity));
+        }    
+    }
 }
 
 void Seagull::SetTrackPosition(const glm::vec3& target)
@@ -225,6 +251,8 @@ void Seagull::SetTrackPosition(const glm::vec3& target)
     TransformComponent* transform = mTarget.mEntity->getComponent<TransformComponent>();
     transform->SetPosition(targetPosition);
     mTarget.lifetime = Constant::TargetLifetime;
+    PhysicComponent* physic = mTarget.mEntity->getComponent<PhysicComponent>();
+    physic->Reset();
     GraphicMeshComponent* renderingComponent = mTarget.mEntity->getComponent<GraphicMeshComponent>();
     renderingComponent->mEnable = true;
 }

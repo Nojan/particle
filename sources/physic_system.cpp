@@ -9,7 +9,7 @@ PhysicComponent::PhysicComponent()
 : mTransformComponent(nullptr)
 , mInvMass(1)
 , mForceAccum(0)
-, mVelocity(1,0,0,0)
+, mVelocity(0,0,0,0)
 , mAcceleration(0,0,0,1)
 {}
 
@@ -33,6 +33,13 @@ void PhysicComponent::SetMass(const float mass)
         mInvMass = FLT_MAX;
     else
         mInvMass = 1.f / mass;
+}
+
+void PhysicComponent::Reset()
+{
+    mForceAccum = glm::vec3(0);
+    mVelocity = glm::vec4(0, 0, 0, 0);
+    mAcceleration = glm::vec4(0, 0, 0, 1);
 }
 
 void PhysicComponent::Integrate(const float deltaTime)
