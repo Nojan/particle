@@ -4,6 +4,7 @@
 #include "visualdebug/visualdebug_renderer.hpp"
 #include "visualdebug/cube.hpp"
 #include "visualdebug/sphere.hpp"
+#include "visualdebug/segment.hpp"
 #include "visualdebug/vdb_geometry.hpp"
 #include "visualdebug/VisualDebugBone.hpp"
 #include "visualdebug/VisualDebugBoundingBoxCommand.h"
