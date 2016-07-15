@@ -29,6 +29,7 @@ namespace Constant {
 
     IMGUI_VAR(PursuitMaxSpeed, 7.f);
     IMGUI_VAR(PursuitMaxSteering, 1.2f);
+    IMGUI_VAR(PursuitMaxClimb, 0.5f);
     IMGUI_VAR(PursuitEvadeDistance, 3.f);
 
     IMGUI_VAR(WanderMaxSpeed, 5.f);
@@ -48,6 +49,7 @@ void Seagull::debug_GUI()
 
     ImGui::SliderFloat("Pursuit Max Speed", &Constant::PursuitMaxSpeed, 1.f, 50.f);
     ImGui::SliderFloat("Pursuit Max Steering", &Constant::PursuitMaxSteering, 0.f, 5.f);
+    ImGui::SliderFloat("Pursuit Max Climb", &Constant::PursuitMaxClimb, 0.1f, 1.f);
     ImGui::SliderFloat("Pursuit Evade Distance", &Constant::PursuitEvadeDistance, 0.f, 20.f);
 
     ImGui::SliderFloat("Wander Max Speed", &Constant::WanderMaxSpeed, 1.f, 50.f);
@@ -60,14 +62,28 @@ void Seagull::debug_GUI()
 }
 #endif
 
-static void UpdateTowardTarget(const glm::vec3& target, glm::vec3& position, glm::vec3& speed, float deltaTime) { 
+static void PreventLooping(const TransformComponent& transform, glm::vec3& speed, float deltaTime) {
+    const glm::vec4 up = transform.Rotation() * World::up;
+    const float dotAngle = glm::dot(up, World::up);
+    Color::rgbap color = { 0, 1, 0, 1 };
+    if (dotAngle < Constant::PursuitMaxClimb)
+    {
+        speed[World::up_idx] = 0;
+        color = { 1, 0, 0, 1 };
+    }
+    
+    const VisualDebugSegmentCommand segment(glm::vec3(transform.mPosition), glm::vec3(transform.mPosition) + glm::vec3(up)*2.f, color);
+    VisualDebugBone bone(glm::vec3(transform.mPosition), glm::vec3(transform.mPosition) + glm::vec3(up)*2.f, color);
+    VisualDebug()->PushCommand(bone);
+}
+
+static void UpdateTowardTarget(const glm::vec3& target, const glm::vec3& position, glm::vec3& speed, float deltaTime) { 
     const float maxSpeed = Constant::PursuitMaxSpeed;
     const float maxSteering = Constant::PursuitMaxSteering;
     const glm::vec3 targetDirection = target - position;
     const float targetDistance = glm::length(targetDirection);
     const glm::vec3 targetDirectionNormalized = glm::normalize(targetDirection) / targetDistance;
     const glm::vec3 speedNormalized = glm::normalize(speed);
-    
     glm::vec3 seekVelocityDesired = targetDirectionNormalized;
     const float dotSeekSpeed = glm::dot(seekVelocityDesired, speedNormalized);
     if (0 > dotSeekSpeed)
@@ -83,7 +99,7 @@ static void UpdateTowardTarget(const glm::vec3& target, glm::vec3& position, glm
     speed = glm::normalize(speed) * std::max(1.f, std::min(glm::length(speed), maxSpeed));
 }
 
-static void WanderAround(const glm::vec3& target, glm::vec3& position, glm::vec3& speed, float deltaTime) {
+static void WanderAround(const glm::vec3& target, const glm::vec3& position, glm::vec3& speed, float deltaTime) {
     const float maxSpeed = Constant::WanderMaxSpeed;
     const float maxSteering = Constant::WanderMaxSteering;
     const float maxDistance = Constant::WanderMaxDistance;
@@ -95,7 +111,7 @@ static void WanderAround(const glm::vec3& target, glm::vec3& position, glm::vec3
     speed = glm::normalize(speed) * std::min(glm::length(speed), maxSpeed);
 }
 
-static void WanderInside(const BoundingBox3D& box, glm::vec3& position, glm::vec3& speed, float deltaTime) {
+static void WanderInside(const BoundingBox3D& box, const glm::vec3& position, glm::vec3& speed, float deltaTime) {
     if (!box.Inside(position))
     {
         UpdateTowardTarget(box.Center(), position, speed, deltaTime);
@@ -124,6 +140,7 @@ static void WanderInside(const BoundingBox3D& box, glm::vec3& position, glm::vec
 Seagull::Seagull()
 {
     mEntities.resize(3);
+    mTargets.resize(10);
     GameSystem* gameSystem = Global::gameSytem();
 
     const glm::vec3 boxCenter = Constant::WanderBoxCenter;
@@ -151,7 +168,21 @@ Seagull::Seagull()
         renderingComponent->mColor = { 1.f, 1.f, 0.f, 1.f };
         renderingComponent->mRenderable.reset(new RenderableSkinMesh());
         renderingComponent->mRenderable->mMesh = skinMesh;
-    }   
+    }
+
+    for (size_t idx = 0; idx < mTargets.size(); ++idx)
+    {
+        Target& target = mTargets[idx];
+        target = { gameSystem->createEntity(), 10.f };
+        gameSystem->getSystem<TransformSystem>()->attachEntity(target.mEntity);
+        gameSystem->getSystem<PhysicSystem>()->attachEntity(target.mEntity);
+        gameSystem->getSystem<RenderingSystem>()->attachEntity(target.mEntity);
+        GraphicMeshComponent * renderingComponent = target.mEntity->getComponent<GraphicMeshComponent>();
+        renderingComponent->mColor = { 1.f, 0.f, 0.f, 1.f };
+        renderingComponent->mRenderable.reset(new RenderableMesh());
+        renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/cube.obj"));
+        renderingComponent->mEnable = false;
+    }
 }
 
 Seagull::~Seagull()
@@ -161,25 +192,20 @@ Seagull::~Seagull()
     {
         gameSystem->removeEntity(mEntities[idx]);
     }
+    for (size_t idx = 0; idx < mTargets.size(); ++idx)
+    {
+        gameSystem->removeEntity(mTargets[idx].mEntity);
+    }
 }
 
 void Seagull::Init()
 {
-    GameSystem* gameSystem = Global::gameSytem();
-    mTarget = { gameSystem->createEntity(), 10.f };
-    gameSystem->getSystem<TransformSystem>()->attachEntity(mTarget.mEntity);
-    gameSystem->getSystem<PhysicSystem>()->attachEntity(mTarget.mEntity);
-    gameSystem->getSystem<RenderingSystem>()->attachEntity(mTarget.mEntity);
-    GraphicMeshComponent * renderingComponent = mTarget.mEntity->getComponent<GraphicMeshComponent>();
-    renderingComponent->mColor = { 1.f, 0.f, 0.f, 1.f };
-    renderingComponent->mRenderable.reset(new RenderableMesh());
-    renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/cube.obj"));
-    renderingComponent->mEnable = false;
+
 }
 
 void Seagull::Terminate()
 {
-    Global::gameSytem()->removeEntity(mTarget.mEntity);
+
 }
 
 void Seagull::Update(const float deltaTime)
@@ -196,47 +222,87 @@ void Seagull::Update(const float deltaTime)
     {
         GameEntity* entity = mEntities[idx];
         TransformComponent* transform = entity->getComponent<TransformComponent>();
-        TransformComponent* targetTransform = mTarget.mEntity->getComponent<TransformComponent>();
-        glm::vec3 position(transform->Position());
+        const glm::vec3 position(transform->Position());
         PhysicComponent* physic = entity->getComponent<PhysicComponent>();
         glm::vec3 speed(physic->Velocity());
-        glm::vec3 targetTranslate = glm::vec3(targetTransform->Position());
-        if (0 < mTarget.lifetime) {
-            UpdateTowardTarget(targetTranslate, position, speed, deltaTime);
-            const float targetDistance = glm::length(targetTranslate - position);
+        float targetDistance = FLT_MAX;
+        uint targetIdx = -1;
+        for (size_t ydx = 0; ydx < mTargets.size(); ++ydx)
+        {
+            Target& target = mTargets[ydx];
+            if (0.f < target.lifetime)
+            {
+                TransformComponent* targetTransform = target.mEntity->getComponent<TransformComponent>();
+                const glm::vec3 targetPosition = glm::vec3(targetTransform->Position());
+                const float distance = glm::length(targetPosition - position);
+                if (distance < targetDistance)
+                {
+                    targetDistance = distance;
+                    targetIdx = ydx;
+                }
+            }
+        }
+
+        if (-1 != targetIdx)
+        {
+            Target& target = mTargets[targetIdx];
+            TransformComponent* targetTransform = target.mEntity->getComponent<TransformComponent>();
+            glm::vec3 targetTranslate = glm::vec3(targetTransform->Position());
             if (targetDistance < Constant::CatchRadius)
             {
-                mTarget.lifetime = 0;
+                target.lifetime = -0;
                 FireworksManager* fireworksManager = Root::Instance().GetFireworksManager();
                 fireworksManager->spawnPeony(targetTranslate, 50.f, 3.f);
-                GraphicMeshComponent* targetRenderingComponent = mTarget.mEntity->getComponent<GraphicMeshComponent>();
+                GraphicMeshComponent* targetRenderingComponent = target.mEntity->getComponent<GraphicMeshComponent>();
                 targetRenderingComponent->mEnable = false;
+            }
+            else
+            {
+                const float targetEta = targetDistance / Constant::PursuitMaxSpeed * 0.25f;
+                const PhysicComponent* targetPhysic = target.mEntity->getComponent<PhysicComponent>();
+                //glm::vec3 targetSpeed = glm::vec3(targetPhysic->Velocity()) + 0.5f*glm::vec3(World::gravity)*targetEta;
+                targetTranslate += glm::vec3(targetPhysic->Velocity()) * targetEta + 0.5f*glm::vec3(World::gravity)*targetEta*targetEta;
+                UpdateTowardTarget(targetTranslate, position, speed, deltaTime);
+                const int count = 100;
+                for (int i = 0; i < count; ++i)
+                {
+                    const float t0 = deltaTime * 10.f * i;
+                    const float t1 = t0 + deltaTime * 10.f;
+                    const glm::vec3 p0 = glm::vec3(targetTransform->Position()) + glm::vec3(targetPhysic->Velocity()) * t0 + 0.5f*glm::vec3(World::gravity)*t0*t0;
+                    const glm::vec3 p1 = glm::vec3(targetTransform->Position()) + glm::vec3(targetPhysic->Velocity()) * t1 + 0.5f*glm::vec3(World::gravity)*t1*t1;
+
+                    const VisualDebugSegmentCommand segment(p0, p1, { 0, 1.f, 0.f, 1.f });
+                    VisualDebug()->PushCommand(segment);
+                }
             }
         }
         else 
         {
             WanderInside(box, position, speed, deltaTime);
         }
+        //PreventLooping(*transform, speed, deltaTime);
         physic->SetVelocity(glm::vec4(speed, 0.f));
     }
 
+    for(size_t idx = 0; idx < mTargets.size(); ++idx)
     {
-        const float lifetime = mTarget.lifetime - deltaTime;
-        bool disable = lifetime <= 0 && 0 < mTarget.lifetime;
-        mTarget.lifetime = lifetime;
-        PhysicComponent* physic = mTarget.mEntity->getComponent<PhysicComponent>();
+        Target& target = mTargets[idx];
+        const float lifetime = target.lifetime - deltaTime;
+        bool disable = lifetime <= 0 && 0 < target.lifetime;
+        target.lifetime = lifetime;
+        PhysicComponent* physic = target.mEntity->getComponent<PhysicComponent>();
         if (!disable)
         {
-            TransformComponent* transform = mTarget.mEntity->getComponent<TransformComponent>();
+            TransformComponent* transform = target.mEntity->getComponent<TransformComponent>();
             disable = transform->Position()[World::up_idx] < 0.f;
         }
         if(disable)
         {
             // disable target
             physic->Reset();
-            GraphicMeshComponent* renderingComponent = mTarget.mEntity->getComponent<GraphicMeshComponent>();
+            GraphicMeshComponent* renderingComponent = target.mEntity->getComponent<GraphicMeshComponent>();
             renderingComponent->mEnable = false;
-            mTarget.lifetime = -0.f;
+            target.lifetime = -0.f;
         }
         else
         {
@@ -247,14 +313,26 @@ void Seagull::Update(const float deltaTime)
 
 void Seagull::SetTrackPosition(const glm::vec3& target)
 {
-    const glm::vec4 targetPosition(target, 1);
-    TransformComponent* transform = mTarget.mEntity->getComponent<TransformComponent>();
-    transform->SetPosition(targetPosition);
-    mTarget.lifetime = Constant::TargetLifetime;
-    PhysicComponent* physic = mTarget.mEntity->getComponent<PhysicComponent>();
-    physic->Reset();
-    GraphicMeshComponent* renderingComponent = mTarget.mEntity->getComponent<GraphicMeshComponent>();
-    renderingComponent->mEnable = true;
+    const glm::vec4 targetPosition(target, 0);
+    const glm::vec4 position(0, 0, 0, 1);
+
+    for (size_t idx = 0; idx < mTargets.size(); ++idx)
+    {
+        Target& target = mTargets[idx];
+        if (target.lifetime <= 0.f)
+        {
+            TransformComponent* transform = target.mEntity->getComponent<TransformComponent>();
+            transform->SetPosition(position);
+            target.lifetime = Constant::TargetLifetime;
+            PhysicComponent* physic = target.mEntity->getComponent<PhysicComponent>();
+            physic->Reset();
+            physic->SetVelocity(targetPosition);
+            GraphicMeshComponent* renderingComponent = target.mEntity->getComponent<GraphicMeshComponent>();
+            renderingComponent->mEnable = true;
+            break;
+        }
+    }
+
 }
 
 } //namespace Gameplay

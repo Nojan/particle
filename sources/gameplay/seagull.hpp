@@ -31,7 +31,7 @@ public:
 
 private:
     std::vector< GameEntity* > mEntities;
-    Target mTarget;
+    std::vector< Target > mTargets;
 };
 
 } // namespace
