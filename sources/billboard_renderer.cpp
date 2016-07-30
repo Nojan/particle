@@ -5,7 +5,7 @@
 #include "global.hpp"
 #include "opengl_helpers.hpp"
 #include "shader.hpp"
-#include "shadercache.hpp"
+#include "resourcemanager.hpp"
 #include "shader_loader.hpp"
 #include "texture.hpp"
 #include "root.hpp"
@@ -30,7 +30,7 @@ BillboardRenderer::BillboardRenderer()
 , mTextureId(0)
 , mSamplerId(0)
 {
-    mShaderProgram = Global::shaderCache()->get("billboard");
+    mShaderProgram = Global::resourceManager()->shader("billboard");
     generate_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW, glm::vec3>(4, &mVboVerticesId);
     generate_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW, glm::vec3>(4, &mVboNormalId);
     generate_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW, glm::vec2>(4, &mVboTexCoordId);

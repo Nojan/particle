@@ -6,7 +6,7 @@
 #include "opengl_helpers.hpp"
 #include "renderableSkinMesh.hpp"
 #include "shader.hpp"
-#include "shadercache.hpp"
+#include "resourcemanager.hpp"
 #include "shader_loader.hpp"
 #include "texture.hpp"
 #include "root.hpp"
@@ -40,7 +40,7 @@ SkinMeshRenderer::SkinMeshRenderer()
 , mVboIndexId(0)
 , mVboIndexSize(0)
 {
-    mShaderProgram = Global::shaderCache()->get("SkinTexture");
+    mShaderProgram = Global::resourceManager()->shader("SkinTexture");
     mShaderProgram->RegisterAttrib("vertexPosition_modelspace");
     mShaderProgram->RegisterAttrib("vertexNormal_modelspace");
     mShaderProgram->RegisterAttrib("textureCoord");

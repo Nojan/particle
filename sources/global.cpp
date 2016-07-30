@@ -2,24 +2,25 @@
 
 #include "game_system.hpp"
 #include "renderer_list.hpp"
+#include "resourcemanager.hpp"
 #include "shadercache.hpp"
 
 namespace Global {
     GameSystem* gloGameSystem = nullptr;
     RendererList* gloRendererList = nullptr;
-    ShaderCache* gloShaderCache = nullptr;
+    ResourceManager* gloResourceManager = nullptr;
 }
 
 void Global::Load() {
-    gloShaderCache = new ShaderCache();
     gloRendererList = new RendererList();
+    gloResourceManager = new ResourceManager();
     gloGameSystem = new GameSystem();
 }
 
 void Global::Unload() {
     delete gloGameSystem;
+    delete gloResourceManager;
     delete gloRendererList;
-    delete gloShaderCache;
 }
 
 GameSystem* Global::gameSytem() {
@@ -31,6 +32,7 @@ RendererList* Global::rendererList()
     return gloRendererList;
 }
 
-ShaderCache* Global::shaderCache() {
-    return gloShaderCache;
+ResourceManager * Global::resourceManager()
+{
+    return gloResourceManager;
 }

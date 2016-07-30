@@ -2,7 +2,7 @@
 
 class GameSystem;
 class RendererList;
-class ShaderCache;
+class ResourceManager;
 
 namespace Global {
     void Load();
@@ -10,5 +10,5 @@ namespace Global {
 
     GameSystem* gameSytem();
     RendererList* rendererList();
-    ShaderCache* shaderCache();
+    ResourceManager* resourceManager();
 }

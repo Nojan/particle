@@ -4,7 +4,7 @@
 #include "global.hpp"
 #include "renderableMesh.hpp"
 #include "shader.hpp"
-#include "shadercache.hpp"
+#include "resourcemanager.hpp"
 #include "shader_loader.hpp"
 #include "texture.hpp"
 #include "root.hpp"
@@ -36,7 +36,7 @@ MeshRenderer::MeshRenderer()
 , mVboIndexId(0)
 , mVboIndexSize(0)
 {
-    mShaderProgram = Global::shaderCache()->get("Texture");
+    mShaderProgram = Global::resourceManager()->shader("Texture");
     mShaderProgram->RegisterAttrib("vertexPosition_modelspace");
     mShaderProgram->RegisterAttrib("vertexNormal_modelspace");
     mShaderProgram->RegisterAttrib("textureCoord");
