@@ -12,7 +12,6 @@
 #include "../visualdebug.hpp"
 #include "../armature.hpp"
 #include "../resourcemanager.hpp"
-#include "../ressource_compiler_armature.hpp"
 #include "../world_constant.hpp"
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/random.hpp>
@@ -148,12 +147,7 @@ Seagull::Seagull()
     const glm::vec3 boxExtent(Constant::WanderBoxX, Constant::WanderBoxY, Constant::WanderBoxZ);
     const BoundingBox3D box(boxCenter - boxExtent, boxCenter + boxExtent);
 
-    std::shared_ptr<Armature> armature;
-    armature.reset(new Armature());
-    std::shared_ptr<SkinMesh> skinMesh;
-    skinMesh.reset(new SkinMesh());
-    ressource_compiler::compile_armature("../asset/mesh/bird.assxml", *armature, *skinMesh);
-    skinMesh->mArmature = armature;
+    std::shared_ptr<SkinMesh> skinMesh = Global::resourceManager()->skinMesh("../asset/mesh/bird.assxml");
 
     for (size_t idx = 0; idx < mEntities.size(); ++idx)
     {
