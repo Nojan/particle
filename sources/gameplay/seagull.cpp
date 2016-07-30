@@ -11,6 +11,7 @@
 #include "../renderableSkinMesh.hpp"
 #include "../visualdebug.hpp"
 #include "../armature.hpp"
+#include "../resourcemanager.hpp"
 #include "../ressource_compiler_armature.hpp"
 #include "../world_constant.hpp"
 #include <glm/gtc/constants.hpp>
@@ -180,7 +181,7 @@ Seagull::Seagull()
         GraphicMeshComponent * renderingComponent = target.mEntity->getComponent<GraphicMeshComponent>();
         renderingComponent->mColor = { 1.f, 0.f, 0.f, 1.f };
         renderingComponent->mRenderable.reset(new RenderableMesh());
-        renderingComponent->mRenderable->mMesh.reset(new Mesh("../asset/mesh/cube.obj"));
+        renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../asset/mesh/bread.obj");
         renderingComponent->mEnable = false;
     }
 }

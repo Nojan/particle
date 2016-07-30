@@ -14,6 +14,7 @@ class Mesh {
 public:
     Mesh(const char* filename);
     Mesh(const Mesh& ref);
+    ~Mesh() = default;
 
     bool Valid() const;
 
