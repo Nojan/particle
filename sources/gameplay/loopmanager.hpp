@@ -6,6 +6,8 @@
 #include <memory>
 #include <vector>
 
+union SDL_Event;
+
 namespace Gameplay {
 	
 class Seagull;
@@ -21,7 +23,7 @@ public:
     void FrameStep() override;
     void Update(const float deltaTime) override;
 
-    void EventKey(int key, int action);
+    void Event(const SDL_Event& e);
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const;

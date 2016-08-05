@@ -10,17 +10,11 @@ addons:
     - gcc-4.9
     - g++-4.9
 before_install:
-    - sudo add-apt-repository ppa:codegear/release -y 
+    - sudo add-apt-repository ppa:codegear/release -y
+    - sudo add-apt-repository ppa:team-xbmc/ppa -y
     - sudo apt-get update -qq
 install: 
-    - sudo apt-get install -y premake4 
-    # Install GLFW
-    - git clone -b 3.1.2 --single-branch --depth 1 https://github.com/glfw/glfw.git
-    - cd glfw
-    - cmake -DBUILD_SHARED_LIBS=ON
-    - make
-    - sudo make install
-    - cd ..
+    - sudo apt-get install -y premake4 libsdl2-dev
 script: 
     # Use g++ 4.8, if tests are run with g++
     - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9"; fi

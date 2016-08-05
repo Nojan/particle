@@ -7,6 +7,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+union SDL_Event;
+
 class Camera : public IUpdater {
 public:
     struct perspective{
@@ -55,12 +57,9 @@ public:
     glm::mat4 const& ProjectionView() const;
     glm::mat4 const& ProjectionViewInv() const;
 
-    // Mouse and keyboard handle
-    void EventKey(int key, int action);
-    void HandleWindowResize(int width, int height);
-    void HandleMousePosition(double x, double y);
-    void HandleMouseButton(int button, int state);
-    void HandleMouseWheel(double wheel);
+    void Event(const SDL_Event& e);
+    
+    void WindowResize(int width, int height);
 
 #ifdef IMGUI_ENABLE
     void debug_GUI();

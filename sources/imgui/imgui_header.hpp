@@ -3,8 +3,8 @@
 #include "../config.hpp"
 
 #ifdef IMGUI_ENABLE
-#include "imgui.hpp"
-#include "imgui_impl_glfw_gl3.hpp"
+#include "imgui.h"
+#include "imgui_impl_sdl_gl3.h"
 
 #define IMGUI_ONLY(x) x
 

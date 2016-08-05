@@ -1,7 +1,7 @@
 #include "camera.hpp"
 
-#include "opengl_includes.hpp"
 #include "imgui/imgui_header.hpp"
+#include <SDL2/SDL.h>
 #include <glm/gtx/transform.hpp>
 #include <glm/ext.hpp>
 
@@ -202,74 +202,82 @@ glm::mat4 const & Camera::ProjectionViewInv() const
     return mProjectionViewInv;
 }
 
-void Camera::HandleWindowResize(int width, int height)
+void Camera::Event(const SDL_Event & e)
+{
+    const bool pressKey = (SDL_KEYDOWN == e.type);
+    const bool releaseKey = (SDL_KEYUP == e.type);
+    if(pressKey || releaseKey)
+    {
+        if (SDLK_DOWN == e.key.keysym.sym)
+        {
+            if (pressKey)
+                mMoveMask |= MV_DOWN;
+            else
+                mMoveMask &= ~MV_DOWN;
+        }
+        if (SDLK_LEFT == e.key.keysym.sym)
+        {
+            if (pressKey)
+                mMoveMask |= MV_LEFT;
+            else
+                mMoveMask &= ~MV_LEFT;
+        }
+        if (SDLK_UP == e.key.keysym.sym)
+        {
+            if (pressKey)
+                mMoveMask |= MV_UP;
+            else
+                mMoveMask &= ~MV_UP;
+        }
+        if (SDLK_RIGHT == e.key.keysym.sym)
+        {
+            if (pressKey)
+                mMoveMask |= MV_RIGHT;
+            else
+                mMoveMask &= ~MV_RIGHT;
+        }
+    }
+    if (SDL_MOUSEBUTTONDOWN == e.type && SDL_BUTTON_RIGHT == e.button.button)
+    {
+        mMousePan = true;
+    }
+    else if (SDL_MOUSEBUTTONUP == e.type && SDL_BUTTON_RIGHT == e.button.button)
+    {
+        mMousePan = false;
+    }
+    if (SDL_MOUSEMOTION == e.type)
+    {
+        const glm::vec2 newMousePosition(static_cast<float>(e.motion.x), static_cast<float>(e.motion.y));
+        if (mMousePan)
+        {
+            const float gain = 0.005f;
+            const glm::vec2 vec = (newMousePosition - mMousePosition)*gain;
+
+            const glm::mat3 pitch = glm::mat3(glm::rotate(vec.x, mUp));
+            const glm::mat3 yaw = glm::mat3(glm::rotate(vec.y, mOrthoDirection));
+
+            mDirection = glm::normalize(yaw * pitch * mDirection);
+            mUp = glm::normalize(pitch * mUp);
+            mOrthoDirection = glm::cross(mDirection, mUp);
+            mUpdateView = true;
+        }
+        mMousePosition = newMousePosition;
+        mMouseDirectionWorld = ProjectScreenCoordToWorld(mMousePosition);
+    }
+    if (SDL_MOUSEWHEEL == e.type)
+    {
+        if (e.wheel.y < 0)
+            mPerspective.fov += 0.1f;
+        else if (e.wheel.y > 0)
+            mPerspective.fov -= 0.1f;
+        mUpdateProjection = true;
+    }
+}
+
+void Camera::WindowResize(int width, int height)
 {
     mScreenSize = glm::ivec2(max(1, width), max(1, height));
     mPerspective.ratio = static_cast<float>(mScreenSize.x) / static_cast<float>(mScreenSize.y);
-    mUpdateProjection = true;
-}
-
-void Camera::EventKey(int key, int action)
-{
-    if(GLFW_KEY_DOWN == key) {
-        if(GLFW_PRESS == action)
-            mMoveMask |= MV_DOWN;
-        else if(GLFW_RELEASE == action)
-            mMoveMask &= ~MV_DOWN;
-    }
-
-    if( key == GLFW_KEY_LEFT ) {
-        if(GLFW_PRESS == action)
-            mMoveMask |= MV_LEFT;
-        else if(GLFW_RELEASE == action)
-            mMoveMask &= ~MV_LEFT;
-    }
-
-    if( key == GLFW_KEY_UP ) {
-        if(GLFW_PRESS == action)
-            mMoveMask |= MV_UP;
-        else if(GLFW_RELEASE == action)
-            mMoveMask &= ~MV_UP;
-    }
-
-    if( key == GLFW_KEY_RIGHT ) {
-        if(GLFW_PRESS == action)
-            mMoveMask |= MV_RIGHT;
-        else if(GLFW_RELEASE == action)
-            mMoveMask &= ~MV_RIGHT;
-    }
-}
-void Camera::HandleMousePosition(double x, double y)
-{
-    const glm::vec2 newMousePosition(static_cast<float>(x), static_cast<float>(y));
-    if(mMousePan)
-    {
-        const float gain = 0.005f;
-        const glm::vec2 vec = (newMousePosition-mMousePosition)*gain;
-
-        const glm::mat3 pitch = glm::mat3(glm::rotate(vec.x, mUp));
-        const glm::mat3 yaw = glm::mat3(glm::rotate(vec.y, mOrthoDirection));
-
-        mDirection = glm::normalize(yaw * pitch * mDirection);
-        mUp = glm::normalize(pitch * mUp);
-        mOrthoDirection = glm::cross(mDirection, mUp);
-        mUpdateView = true;
-    }
-    mMousePosition = newMousePosition;
-    mMouseDirectionWorld = ProjectScreenCoordToWorld(mMousePosition);
-}
-
-void Camera::HandleMouseButton(int button, int state)
-{
-    mMousePan = (button == GLFW_MOUSE_BUTTON_RIGHT) && (state == GLFW_PRESS);
-}
-
-void Camera::HandleMouseWheel(double wheel)
-{
-    if (wheel < 0)
-        mPerspective.fov+=0.1f;
-    else if (wheel > 0)
-        mPerspective.fov-=0.1f;
     mUpdateProjection = true;
 }
 

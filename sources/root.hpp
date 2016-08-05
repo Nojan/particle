@@ -12,7 +12,7 @@ class IRenderer;
 class Scene;
 class ParticleUpdater;
 class VisualDebugRenderer;
-struct GLFWwindow;
+struct SDL_Context;
 
 class MeshRenderer;
 
@@ -33,10 +33,6 @@ public:
     void Update();
     bool IsRunning();
 
-    void HandleWindowCursorPosition(GLFWwindow* window, double x, double y);
-    void HandleWindowKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods);
-    void HandleMouseButton(GLFWwindow* window, int button, int action, int mods);
-
 private:
     Root();
     ~Root();
@@ -49,7 +45,7 @@ private:
     std::shared_ptr<FireworksManager> mFireworkManager;
     std::shared_ptr<VisualDebugRenderer> mVisualDebugRenderer;
     std::shared_ptr<Gameplay::LoopManager> mGameplayLoopManager;
-    GLFWwindow* mWindow;
+    SDL_Context* mSDL_ctx;
 
     int mRunning;
 

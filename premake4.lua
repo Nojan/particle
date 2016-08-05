@@ -15,12 +15,12 @@ solution "Particle"
         
     configuration "windows"
         defines { "WIN32", "NOMINMAX" }
-        links { "glfw3", "glu32", "opengl32"}
+        links { "sdl2", "glu32", "opengl32"}
 
     configuration "linux"
         buildoptions "-std=c++11"
         defines "__linux__"
-        links { "glfw", "dl", "GLU", "GL" }
+        links { "SDL2", "dl", "GLU", "GL" }
  
     configuration "Debug" 
         defines { "DEBUG" }

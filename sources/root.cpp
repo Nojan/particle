@@ -17,6 +17,7 @@
 #include "imgui/imgui_header.hpp"
 
 #include "opengl_includes.hpp"
+#include <SDL2/SDL.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/random.hpp>
 
@@ -34,40 +35,10 @@ extern "C" {
 }
 #endif
 
-//
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    }
-    Root::Instance().HandleWindowKeyEvent(window, key, scancode, action, mods);
-}
-
-//Called when the window is resized
-static void handleFramebufferResize(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-    Root::Instance().GetCamera()->HandleWindowResize(width, height);
-}
-
-//Called when the mouse move over the window
-static void handleCursorPosition(GLFWwindow* window, double x, double y)
-{
-    Root::Instance().HandleWindowCursorPosition(window, x, y);
-}
-
-//Called when a mouse button state changed
-static void handleMouseButton(GLFWwindow* window, int button, int action, int mods)
-{
-    Root::Instance().HandleMouseButton(window, button, action, mods);
-}
-
-//Called when the mouse move over the window
-static void handleMouseWheel(GLFWwindow* window, double xOffset, double yOffset)
-{
-    Root::Instance().GetCamera()->HandleMouseWheel(yOffset);
-}
+struct SDL_Context {
+    SDL_Window *window;
+    SDL_GLContext context;
+};
 
 Root& Root::Instance()
 {
@@ -76,7 +47,7 @@ Root& Root::Instance()
 }
 
 Root::Root()
-: mWindow(nullptr)
+: mSDL_ctx(nullptr)
 , mRunning(GL_FALSE)
 , mFramesCounter(0)
 , mFrameDuration(1)
@@ -98,42 +69,63 @@ void Root::Init()
 {
     srand(42);
 
-    // Initialize GLFW
-    if( !glfwInit() ) {
-        exit( EXIT_FAILURE );
-    } else {
-        // Get GLFW Version
-        int majorGLFW, minorGLFW, revGLFW;
-        glfwGetVersion(&majorGLFW, &minorGLFW, &revGLFW);
-        std::cout << "GLFW Version " << majorGLFW << "." << minorGLFW << "." << revGLFW << " loaded." << std::endl;
+    mSDL_ctx = new SDL_Context();
+    mSDL_ctx->window = nullptr;
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
     }
 
-    // Open an OpenGL window
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+
     const int windowsWidth = 800;
     const int windowsHeight = 600;
-    mWindow = glfwCreateWindow(windowsWidth, windowsHeight, "Particle", NULL, NULL);
-    if (!mWindow) {
-        glfwTerminate();
-        exit(EXIT_FAILURE);
-    } 
-    glfwSetWindowPos(mWindow, 30, 30);
-    glfwMakeContextCurrent(mWindow);
-    glfwSwapInterval(1);
-
-    // Setup ImGui binding
-    IMGUI_ONLY(ImGui_ImplGlfwGL3_Init(mWindow, true));
-
-    // Initialize Glew AFTER glfwMakeContextCurrent
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize OpenGL context" << std::endl;
+    mSDL_ctx->window = SDL_CreateWindow(
+        "SDL Bootstrap", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        windowsWidth, windowsHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    if (nullptr == mSDL_ctx->window) {
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+        SDL_assert(false);
         exit(EXIT_FAILURE);
     }
-    printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
+    SDL_GL_LoadLibrary(nullptr);
+    mSDL_ctx->context = SDL_GL_CreateContext(mSDL_ctx->window);
+    if (nullptr == mSDL_ctx->context) {
+        printf("OpenGL context could not be created! SDL Error: %s\n",
+            SDL_GetError());
+        SDL_assert(false);
+        exit(EXIT_FAILURE);
+    }
+    printf("OpenGL loaded\n"); 
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
+    {
+        printf("Failed to initialize OpenGL context! SDL Error: %s\n",
+            SDL_GetError());
+        exit(EXIT_FAILURE);
+    }
+    printf("Vendor:   %s\n", glGetString(GL_VENDOR));
+    printf("Renderer: %s\n", glGetString(GL_RENDERER));
+    printf("Version:  %s\n", glGetString(GL_VERSION));
+
+    if (SDL_GL_SetSwapInterval(1) < 0) {
+        printf("Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError());
+    }
+
+    // Setup ImGui binding
+    IMGUI_ONLY(ImGui_ImplSdlGL3_Init(mSDL_ctx->window));
+
     Global::Load();
 
     mCamera.reset(new Camera());
-    mCamera->HandleWindowResize(windowsWidth, windowsHeight);
+    mCamera->WindowResize(windowsWidth, windowsHeight);
 
     mScene.reset(new Scene());
 
@@ -177,15 +169,6 @@ void Root::Init()
     mUpdaterList.push_back(mGameplayLoopManager);
     mUpdaterList.push_back(mFireworkManager);
 
-    glfwSetKeyCallback(mWindow, key_callback);
-
-    // Callbacks
-    glfwSetInputMode(mWindow, GLFW_STICKY_KEYS, GL_TRUE);
-    glfwSetFramebufferSizeCallback(mWindow, handleFramebufferResize);
-    glfwSetCursorPosCallback(mWindow, handleCursorPosition);
-    glfwSetMouseButtonCallback(mWindow, handleMouseButton);
-    glfwSetScrollCallback(mWindow, handleMouseWheel);
-
     mRunning = GL_TRUE;
 }
 
@@ -202,9 +185,11 @@ void Root::Terminate()
     
     Global::Unload();
 
-    IMGUI_ONLY(ImGui_ImplGlfwGL3_Shutdown());
-    glfwDestroyWindow(mWindow); //no callback from mWindow will be fired
-    glfwTerminate();
+    IMGUI_ONLY(ImGui_ImplSdlGL3_Shutdown());
+    if (mSDL_ctx->window)
+        SDL_DestroyWindow(mSDL_ctx->window);
+    SDL_Quit();
+    mSDL_ctx = nullptr;
 }
 
 void glPerspective( GLdouble fovY, GLdouble aspect, GLdouble zNear, GLdouble zFar )
@@ -231,9 +216,28 @@ void Root::Update()
     const size_t windowTitleSize = 265;
     char windowTitle[windowTitleSize];
     snprintf(windowTitle, windowTitleSize, "Particle : %lldms", mFrameDuration.count());
-    glfwSetWindowTitle(mWindow, windowTitle);
-    glfwPollEvents();
-    IMGUI_ONLY(ImGui_ImplGlfwGL3_NewFrame());
+    SDL_SetWindowTitle(mSDL_ctx->window, windowTitle);
+    SDL_Event e;
+    while (SDL_PollEvent(&e) != 0) {
+        if (SDL_QUIT == e.type) {
+            mRunning = false;
+            break;
+        }
+        if (SDL_KEYDOWN == e.type && SDLK_ESCAPE == e.key.keysym.sym) {
+            mRunning = false;
+            break;
+        }
+        if (SDL_WINDOWEVENT == e.type && SDL_WINDOWEVENT_RESIZED == e.window.event)
+        {
+            const int width = static_cast<int>(e.window.data1);
+            const int height = static_cast<int>(e.window.data2);
+            glViewport(0, 0, width, height);
+            mCamera->WindowResize(width, height);
+        }
+        mCamera->Event(e);
+        mGameplayLoopManager->Event(e);
+    }
+    IMGUI_ONLY(ImGui_ImplSdlGL3_NewFrame(mSDL_ctx->window));
     for (std::shared_ptr<IUpdater>& updater : mUpdaterList)
     {
         updater->FrameStep();
@@ -300,14 +304,14 @@ void Root::Update()
     ImGui::End();
 #endif
     IMGUI_ONLY(ImGui::Render());
-    glfwSwapBuffers(mWindow); 
+    SDL_GL_SwapWindow(mSDL_ctx->window);
     glClearDepth(1.0f); 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
     const auto endFrame = std::chrono::high_resolution_clock::now();
     const auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFrame - beginFrame);
 
     ++mFramesCounter;
-    //std::this_thread::sleep_for(frameLimiter - renderingDuration);
+    std::this_thread::sleep_for(frameLimiter - renderingDuration);
     const auto endSleep = std::chrono::high_resolution_clock::now();
     mFrameDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endSleep - beginFrame);
     if (autoSpawnParticle && mFramesCounter > autoSpawnParticleFrame)
@@ -320,23 +324,6 @@ void Root::Update()
 bool Root::IsRunning()
 {
     return (GL_TRUE == mRunning);
-}
-
-void Root::HandleWindowCursorPosition(GLFWwindow* window, double x, double y) {
-    assert(window = mWindow);
-    mCamera->HandleMousePosition(x, y);
-}
-
-void Root::HandleWindowKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    assert(window = mWindow);
-    mRunning = !(glfwWindowShouldClose(mWindow));
-    mCamera->EventKey(key, action);
-}
-
-void Root::HandleMouseButton(GLFWwindow* window, int button, int action, int mods) {
-    assert(window = mWindow);
-    mCamera->HandleMouseButton(button, action);
-    mGameplayLoopManager->EventKey(button, action);
 }
 
 Camera * Root::GetCamera()

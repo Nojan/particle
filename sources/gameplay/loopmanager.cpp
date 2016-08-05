@@ -9,7 +9,8 @@
 
 #include "../opengl_includes.hpp"
 
-#include <assert.h>
+#include <SDL2/SDL.h>
+#include <cassert>
 #include <algorithm>
 
 namespace Gameplay {
@@ -45,9 +46,10 @@ void LoopManager::Update(const float deltaTime)
     mSea->Update(deltaTime);
 }
 
-void LoopManager::EventKey(int key, int action)
+void LoopManager::Event(const SDL_Event & e)
 {
-    if (GLFW_MOUSE_BUTTON_LEFT == key && GLFW_PRESS == action) {
+    if (SDL_MOUSEBUTTONUP == e.type && SDL_BUTTON_LEFT == e.button.button)
+    {
         const Camera* camera = Root::Instance().GetCamera();
         const glm::vec3& mouseDirection = camera->MouseDirection();
         const glm::vec3 planeNormal(0, 0, 1.f);
