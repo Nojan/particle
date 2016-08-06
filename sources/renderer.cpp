@@ -99,6 +99,8 @@ void Renderer::Update(const float deltaTime)
 void Renderer::Render(const Scene * scene)
 {
     mShaderProgram->Bind();
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     {
         GLuint textureID = glGetUniformLocation(mShaderProgram->ProgramID(), "uTexture"); 
         glActiveTexture(GL_TEXTURE0); 
@@ -149,6 +151,8 @@ void Renderer::Render(const Scene * scene)
     glDrawArrays(GL_POINTS, 0, mParticleData->mCount); 
     glBindVertexArray(0); 
     glBindTexture(GL_TEXTURE_2D, 0); 
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
     mShaderProgram->Unbind();
 }
 
