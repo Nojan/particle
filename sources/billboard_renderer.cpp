@@ -64,7 +64,6 @@ void BillboardRenderer::Render(const Scene * scene)
         return;
 	glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
-    glGenerateMipmap(GL_TEXTURE_2D);
     glActiveTexture(GL_TEXTURE0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -140,6 +139,7 @@ void BillboardRenderer::Render(const Billboard* billboard)
         glBindTexture(GL_TEXTURE_2D, mTextureId);
         const std::shared_ptr< Texture2DRGBA >& texture = billboard->mTexture;
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->getWidth(), texture->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->getData());
+        glGenerateMipmap(GL_TEXTURE_2D);
         GLuint textureSampler_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "textureSampler");
         glUniform1i(textureSampler_ID, 0);
         glBindSampler(0, mSamplerId);

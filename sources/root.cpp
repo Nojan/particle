@@ -82,6 +82,8 @@ void Root::Init()
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
@@ -114,7 +116,7 @@ void Root::Init()
     printf("Vendor:   %s\n", glGetString(GL_VENDOR));
     printf("Renderer: %s\n", glGetString(GL_RENDERER));
     printf("Version:  %s\n", glGetString(GL_VERSION));
-
+    glEnable(GL_MULTISAMPLE);
     if (SDL_GL_SetSwapInterval(1) < 0) {
         printf("Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError());
     }

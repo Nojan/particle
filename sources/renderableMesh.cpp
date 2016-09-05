@@ -9,6 +9,8 @@
 
 Mesh::Mesh(const char* filename)
 {
+    printf("loading %s\n", filename);
+    
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     const std::string res = tinyobj::LoadObj(shapes, materials, filename, "../asset/mesh");
