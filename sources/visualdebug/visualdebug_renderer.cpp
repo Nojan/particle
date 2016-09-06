@@ -58,33 +58,9 @@ void VisualDebugRenderer_vao::Render(const Scene * scene)
 
 void VisualDebugRenderer_vao::DrawFill()
 {
-    {
-        const size_t elementSize = sizeof(glm::vec3);
-        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionFillId); 
-        glBufferData(GL_ARRAY_BUFFER, mVertexFill.size() * elementSize, 0, GL_DYNAMIC_DRAW); 
-        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); 
-        assert(mappedVbo);
-        memcpy(mappedVbo, mVertexFill.data(), mVertexFill.size() * elementSize);
-        glUnmapBuffer(GL_ARRAY_BUFFER); 
-    }
-    {
-        const size_t elementSize = sizeof(Color::rgbap);
-        glBindBuffer(GL_ARRAY_BUFFER, mVboColorFillId); 
-        glBufferData(GL_ARRAY_BUFFER, mColorFill.size() * elementSize, 0, GL_DYNAMIC_DRAW); 
-        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); 
-        assert(mappedVbo);
-        memcpy(mappedVbo, mColorFill.data(), mColorFill.size() * elementSize);
-        glUnmapBuffer(GL_ARRAY_BUFFER); 
-    }
-    {
-        const size_t elementSize = sizeof(uint);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVboIndexFillId); 
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndexFill.size() * elementSize, 0, GL_DYNAMIC_DRAW); 
-        void * mappedVbo = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY); 
-        assert(mappedVbo);
-        memcpy(mappedVbo, mIndexFill.data(), mIndexFill.size() * elementSize);
-        glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER); 
-    }
+    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mVertexFill, mVboPositionFillId);
+    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mColorFill, mVboColorFillId);
+    update_gl_array_buffer<GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mIndexFill, mVboIndexFillId);
     {
         GLuint matrixMVP_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "mvp"); 
         glm::mat4 mvp = Root::Instance().GetCamera()->ProjectionView();
@@ -100,33 +76,9 @@ void VisualDebugRenderer_vao::DrawFill()
 
 void VisualDebugRenderer_vao::DrawLine()
 {
-    {
-        const size_t elementSize = sizeof(glm::vec3);
-        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionLineId); 
-        glBufferData(GL_ARRAY_BUFFER, mVertexLine.size() * elementSize, 0, GL_DYNAMIC_DRAW); 
-        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); 
-        assert(mappedVbo);
-        memcpy(mappedVbo, mVertexLine.data(), mVertexLine.size() * elementSize);
-        glUnmapBuffer(GL_ARRAY_BUFFER); 
-    }
-    {
-        const size_t elementSize = sizeof(Color::rgbap);
-        glBindBuffer(GL_ARRAY_BUFFER, mVboColorLineId); 
-        glBufferData(GL_ARRAY_BUFFER, mColorLine.size() * elementSize, 0, GL_DYNAMIC_DRAW); 
-        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); 
-        assert(mappedVbo);
-        memcpy(mappedVbo, mColorLine.data(), mColorLine.size() * elementSize);
-        glUnmapBuffer(GL_ARRAY_BUFFER); 
-    }
-    {
-        const size_t elementSize = sizeof(uint);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVboIndexLineId); 
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndexLine.size() * elementSize, 0, GL_DYNAMIC_DRAW); 
-        void * mappedVbo = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY); 
-        assert(mappedVbo);
-        memcpy(mappedVbo, mIndexLine.data(), mIndexLine.size() * elementSize);
-        glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER); 
-    }
+    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mVertexLine, mVboPositionLineId);
+    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mColorLine, mVboColorLineId);
+    update_gl_array_buffer<GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mIndexLine, mVboIndexLineId);
     {
         GLuint matrixMVP_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "mvp"); 
         glm::mat4 mvp = Root::Instance().GetCamera()->ProjectionView();

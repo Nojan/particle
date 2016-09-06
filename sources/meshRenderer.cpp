@@ -98,42 +98,10 @@ void MeshRenderer::Render(const RenderableMesh& renderable, const Scene* scene)
         return;
     const glm::mat4& modelTransform = renderable.mTransform;
     const glm::mat4 modelTransformAndScale = renderable.mTransform *renderable.mScale;
-    {
-        const size_t elementSize = sizeof(glm::vec3);
-        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); 
-        glBufferData(GL_ARRAY_BUFFER, renderable.mMesh->mVertex.size() * elementSize, 0, GL_DYNAMIC_DRAW); 
-        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); 
-        assert(mappedVbo);
-        memcpy(mappedVbo, renderable.mMesh->mVertex.data(), renderable.mMesh->mVertex.size() * elementSize);
-        glUnmapBuffer(GL_ARRAY_BUFFER); 
-    }
-    {
-        const size_t elementSize = sizeof(glm::vec3);
-        glBindBuffer(GL_ARRAY_BUFFER, mVboNormalId); 
-        glBufferData(GL_ARRAY_BUFFER, renderable.mMesh->mNormal.size() * elementSize, 0, GL_DYNAMIC_DRAW); 
-        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); 
-        assert(mappedVbo);
-        memcpy(mappedVbo, renderable.mMesh->mNormal.data(), renderable.mMesh->mNormal.size() * elementSize);
-        glUnmapBuffer(GL_ARRAY_BUFFER); 
-    }
-    {
-        const size_t elementSize = sizeof(glm::vec2);
-        glBindBuffer(GL_ARRAY_BUFFER, mVboTextureCoordId); 
-        glBufferData(GL_ARRAY_BUFFER, renderable.mMesh->mTextureCoord.size() * elementSize, 0, GL_DYNAMIC_DRAW); 
-        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); 
-        assert(mappedVbo);
-        memcpy(mappedVbo, renderable.mMesh->mTextureCoord.data(), renderable.mMesh->mTextureCoord.size() * elementSize);
-        glUnmapBuffer(GL_ARRAY_BUFFER); 
-    }
-    {
-        const size_t elementSize = sizeof(uint);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVboIndexId); 
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, renderable.mMesh->mIndex.size() * elementSize, 0, GL_DYNAMIC_DRAW); 
-        void * mappedVbo = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY); 
-        assert(mappedVbo);
-        memcpy(mappedVbo, renderable.mMesh->mIndex.data(), renderable.mMesh->mIndex.size() * elementSize);
-        glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER); 
-    }
+    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(renderable.mMesh->mVertex, mVboPositionId);
+    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(renderable.mMesh->mNormal, mVboNormalId);
+    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(renderable.mMesh->mTextureCoord, mVboTextureCoordId);
+    update_gl_array_buffer<GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(renderable.mMesh->mIndex, mVboIndexId);
     {
         glActiveTexture(GL_TEXTURE0); 
         glBindTexture(GL_TEXTURE_2D, mTextureSamplerId);

@@ -108,24 +108,8 @@ void Renderer::Render(const Scene * scene)
         glUniform1i(textureID, 0); 
         glBindSampler(0, mSamplerId); 
     }
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); 
-        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(vec4), 0, GL_STREAM_DRAW); 
-        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); 
-        assert(mappedVbo);
-        memcpy(mappedVbo, &(mParticleData->mPosition[0]), mParticleData->mCount * sizeof(vec4));
-        glUnmapBuffer(GL_ARRAY_BUFFER); 
-        glBindBuffer(GL_ARRAY_BUFFER, 0); 
-    }
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, mVboColorId); 
-        glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(Color::rgbap), 0, GL_STREAM_DRAW); 
-        void * mappedVbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY); 
-        assert(mappedVbo);
-        memcpy(mappedVbo, &(mParticleData->mColor[0]), mParticleData->mCount * sizeof(Color::rgbap));
-        glUnmapBuffer(GL_ARRAY_BUFFER); 
-        glBindBuffer(GL_ARRAY_BUFFER, 0); 
-    }
+    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW>(mParticleData->mPosition.get(), mParticleData->mCount, mVboPositionId);
+    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW>(mParticleData->mColor.get(), mParticleData->mCount, mVboPositionId);
     {
         GLuint matrixView_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "view"); 
         glm::mat4 view = Root::Instance().GetCamera()->View();
