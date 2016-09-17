@@ -60,6 +60,7 @@ namespace ressource_compiler {
 
     void compile_armature(const char* filepath, Armature& armature, SkinMesh& skinMesh)
     {
+        printf("Compiling armature %s\n", filepath);
         tinyxml2::XMLDocument doc;
         tinyxml2::XMLError error = doc.LoadFile(filepath);
         assert(!error);
@@ -154,7 +155,7 @@ namespace ressource_compiler {
         }
         const tinyxml2::XMLElement* meshElement = meshList->FirstChildElement("Mesh");
         const tinyxml2::XMLElement* boneListElement = meshElement->FirstChildElement("BoneList");
-        assert(boneListElement->IntAttribute("num") <= bone_dict_size);
+        assert(boneListElement->IntAttribute("num") <= numeric_cast<int>(bone_dict_size));
         const tinyxml2::XMLElement* positionsElement = meshElement->FirstChildElement("Positions");
         const int vertexCount = positionsElement->IntAttribute("num");
         skinMesh.mVertexBone.resize(vertexCount);
@@ -171,14 +172,14 @@ namespace ressource_compiler {
         {  
             const char* boneName = child->Attribute("name");
             int boneId;
-            for (boneId = 0; boneId < bone_dict_size; ++boneId)
+            for (boneId = 0; boneId < numeric_cast<int>(bone_dict_size); ++boneId)
             {
                 if (0 == strcmp(boneName, bones_dict[boneId]))
                 {
                     break;
                 }
             }
-            assert(boneId < bone_dict_size);
+            assert(boneId < numeric_cast<int>(bone_dict_size));
             Bone& bone = armature.bones[boneId];
             const tinyxml2::XMLElement* matrixElement = child->FirstChildElement("Matrix4");
             convertToMatrix(*matrixElement, bone.offset);
