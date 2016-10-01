@@ -1,5 +1,8 @@
 #include "image.hpp"
 
+#include "global.hpp"
+#include "platform/platform.hpp"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
@@ -7,9 +10,13 @@
 
 Image::Image(const char * filepath)
 {
+    Platform* platform = Global::platform();
+    FileHandle fileHandle(platform->OpenFile(filepath, "rb"));
+    FILE* file = fileHandle.get();
     int comp;
-    mData.reset(stbi_load(filepath, &mWidth, &mHeight, &comp, STBI_default));
+    mData.reset(stbi_load_from_file(file, &mWidth, &mHeight, &comp, STBI_default));
     mChannel = static_cast<ColorsChannel>(comp);
+    printf("Image %s %d %d %d\n", filepath, mWidth, mHeight, comp);
 }
 
 std::unique_ptr<uint8_t[]> Image::data()
