@@ -246,8 +246,6 @@ void Seagull::Update(const float deltaTime)
             if (targetDistance < Constant::CatchRadius)
             {
                 target.lifetime = -0;
-                FireworksManager* fireworksManager = Root::Instance().GetFireworksManager();
-                fireworksManager->spawnPeony(targetTranslate, 50.f, 3.f);
                 GraphicMeshComponent* targetRenderingComponent = target.mEntity->getComponent<GraphicMeshComponent>();
                 targetRenderingComponent->mEnable = false;
             }
