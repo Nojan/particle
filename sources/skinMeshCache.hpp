@@ -13,7 +13,7 @@ protected:
         armature.reset(new Armature());
         std::shared_ptr<SkinMesh> skinMesh;
         skinMesh.reset(new SkinMesh());
-        ressource_compiler::compile_armature(name.c_str(), *armature, *skinMesh);
+        resource_compiler::compile_armature(name.c_str(), *armature, *skinMesh);
         skinMesh->mArmature = armature;
 
         return skinMesh;

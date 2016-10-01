@@ -1,23 +1,15 @@
 #include "ressource_compiler_armature.hpp"
 
 #include "armature.hpp"
+#include "global.hpp"
+#include "platform/platform.hpp"
+#include "resource_compiler.hpp"
 
 #include "tinyxml/tinyxml2.h"
 
 using BoneDictionnary = std::vector<const char*>;
 
-namespace ressource_compiler {
-
-    void convertToMatrix(const tinyxml2::XMLElement& element, glm::mat4& mat)
-    {
-        assert(0 == strcmp(element.Value(), "Matrix4"));
-        const char* matrix_text = element.GetText();
-        float matrix[16];
-        sscanf(matrix_text, "%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", &matrix[0], &matrix[1], &matrix[2], &matrix[3], &matrix[4], &matrix[5], &matrix[6], &matrix[7], &matrix[8], &matrix[9], &matrix[10], &matrix[11], &matrix[12], &matrix[13], &matrix[14], &matrix[15]);
-        //mat = glm::mat4(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5], matrix[6], matrix[7], matrix[8], matrix[9], matrix[10], matrix[11], matrix[12], matrix[13], matrix[14], matrix[15]);
-        mat = glm::mat4(matrix[0], matrix[4], matrix[8], matrix[12], matrix[1], matrix[5], matrix[9], matrix[13], matrix[2], matrix[6], matrix[10], matrix[14], matrix[3], matrix[7], matrix[11], matrix[15]);
-    }
-
+namespace resource_compiler {
     class Bones_visitor : public tinyxml2::XMLVisitor {
     public:
         Bones_visitor(Armature& armature, BoneDictionnary& bone_names)
@@ -60,9 +52,11 @@ namespace ressource_compiler {
 
     void compile_armature(const char* filepath, Armature& armature, SkinMesh& skinMesh)
     {
-        printf("Compiling armature %s\n", filepath);
+        Platform* platform = Global::platform();
+        FileHandle fileHandle = platform->OpenFile(filepath, "rb");
+        FILE* file = fileHandle.get();
         tinyxml2::XMLDocument doc;
-        tinyxml2::XMLError error = doc.LoadFile(filepath);
+        tinyxml2::XMLError error = doc.LoadFile(file);
         assert(!error);
         const tinyxml2::XMLElement* visualSceneElement = doc.FirstChildElement("ASSIMP")->FirstChildElement("Scene");
         const tinyxml2::XMLElement* meshList = visualSceneElement->FirstChildElement("MeshList");
@@ -216,114 +210,16 @@ namespace ressource_compiler {
             }
             assert(glm::abs(weightSum - 1.f) < 0.05f);
         }
-        skinMesh.mVertex.resize(vertexCount);
+        GetVertex(meshElement, skinMesh.mVertex);
+        GetNormal(meshElement, skinMesh.mNormal);
+        GetUV(meshElement, skinMesh.mTextureCoord);
+        GetFace(meshElement, skinMesh.mIndex);
+        assert(vertexCount == skinMesh.mVertex.size());
+        assert(vertexCount == skinMesh.mNormal.size());
+        assert(vertexCount == skinMesh.mTextureCoord.size());
+        for (uint faceIdx = 0; faceIdx < skinMesh.mIndex.size(); ++faceIdx)
         {
-            static const int bufferSize = 128;
-            char buffer[bufferSize];
-            const char* v = positionsElement->GetText();
-            for(int vertexIdx = 0; vertexIdx <vertexCount; ++vertexIdx )
-            {
-                glm::vec3& vertex = skinMesh.mVertex[vertexIdx];
-                for (int comp = 0; comp < 3; ++comp)
-                {
-                    int bufferIdx;
-                    while (isspace(*v))
-                    {
-                        ++v;
-                    }
-                    for (bufferIdx = 0; bufferIdx < bufferSize; ++bufferIdx)
-                    {
-                        if (isspace(*v))
-                        {
-                            buffer[bufferIdx] = '\0';
-                            break;
-                        }
-                        buffer[bufferIdx] = *v;
-                        ++v;
-                    }
-                    assert(bufferIdx < bufferSize);
-                    vertex[comp] = static_cast<float>(atof(buffer));
-                }
-            }
-        }
-        const tinyxml2::XMLElement* normalsElement = meshElement->FirstChildElement("Normals");
-        assert(vertexCount == normalsElement->IntAttribute("num"));
-        skinMesh.mNormal.resize(vertexCount);
-        {
-            static const int bufferSize = 128;
-            char buffer[bufferSize];
-            const char* v = normalsElement->GetText();
-            for (int vertexIdx = 0; vertexIdx <vertexCount; ++vertexIdx)
-            {
-                glm::vec3& normal = skinMesh.mNormal[vertexIdx];
-                for (int comp = 0; comp < 3; ++comp)
-                {
-                    int bufferIdx;
-                    while (isspace(*v))
-                    {
-                        ++v;
-                    }
-                    for (bufferIdx = 0; bufferIdx < bufferSize; ++bufferIdx)
-                    {
-                        if (isspace(*v))
-                        {
-                            buffer[bufferIdx] = '\0';
-                            break;
-                        }
-                        buffer[bufferIdx] = *v;
-                        ++v;
-                    }
-                    assert(bufferIdx < bufferSize);
-                    normal[comp] = atof(buffer);
-                }
-                assert(glm::abs(glm::length(normal) - 1.f) < 0.05f);
-            }
-        }
-        const tinyxml2::XMLElement* textureCoordElement = meshElement->FirstChildElement("TextureCoords");
-        assert(vertexCount == textureCoordElement->IntAttribute("num"));
-        skinMesh.mTextureCoord.resize(vertexCount);
-        {
-            static const int bufferSize = 128;
-            char buffer[bufferSize];
-            const char* v = textureCoordElement->GetText();
-            for (int vertexIdx = 0; vertexIdx <vertexCount; ++vertexIdx)
-            {
-                glm::vec2& uv = skinMesh.mTextureCoord[vertexIdx];
-                for (int comp = 0; comp < 2; ++comp)
-                {
-                    int bufferIdx;
-                    while (isspace(*v))
-                    {
-                        ++v;
-                    }
-                    for (bufferIdx = 0; bufferIdx < bufferSize; ++bufferIdx)
-                    {
-                        if (isspace(*v))
-                        {
-                            buffer[bufferIdx] = '\0';
-                            break;
-                        }
-                        buffer[bufferIdx] = *v;
-                        ++v;
-                    }
-                    assert(bufferIdx < bufferSize);
-                    uv[comp] = atof(buffer);
-                }
-            }
-        }
-        const tinyxml2::XMLElement* faceListElement = meshElement->FirstChildElement("FaceList");
-        skinMesh.mIndex.reserve(faceListElement->IntAttribute("num")*3);
-        for (const tinyxml2::XMLElement* faceElement = faceListElement->FirstChildElement(); faceElement != nullptr; faceElement = faceElement->NextSiblingElement())
-        {
-            const int vertexPerFace = 3;
-            assert(vertexPerFace == faceElement->IntAttribute("num"));
-            glm::ivec3 face;
-            sscanf(faceElement->GetText(),"%d %d %d", &face[0], &face[1], &face[2]);
-            for (int vertexPerFaceIdx = 0; vertexPerFaceIdx < vertexPerFace; ++vertexPerFaceIdx)
-            {
-                assert(face[vertexPerFaceIdx] < vertexCount);
-                skinMesh.mIndex.push_back(face[vertexPerFaceIdx]);
-            }
+            assert(skinMesh.mIndex[faceIdx] < vertexCount);
         }
     }
 };
