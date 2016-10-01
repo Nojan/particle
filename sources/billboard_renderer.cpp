@@ -28,7 +28,6 @@ BillboardRenderer::BillboardRenderer()
 , mVboTexCoordId(0)
 , mVboIndexId(0)
 , mTextureId(0)
-, mSamplerId(0)
 {
     mShaderProgram = Global::resourceManager()->shader("billboard");
     generate_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW, glm::vec3>(4, &mVboVerticesId);
@@ -36,11 +35,6 @@ BillboardRenderer::BillboardRenderer()
     generate_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW, glm::vec2>(4, &mVboTexCoordId);
     generate_gl_array_buffer<GL_ELEMENT_ARRAY_BUFFER, GL_STREAM_DRAW, uint>(6, &mVboIndexId);
     glGenTextures(1, &mTextureId);
-    glGenSamplers(1, &mSamplerId);
-    glSamplerParameteri(mSamplerId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glSamplerParameteri(mSamplerId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glSamplerParameteri(mSamplerId, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glSamplerParameteri(mSamplerId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 BillboardRenderer::~BillboardRenderer()
@@ -63,7 +57,6 @@ void BillboardRenderer::Render(const Scene * scene)
 	if (mRenderQueue.empty())
         return;
 	glEnable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
     glActiveTexture(GL_TEXTURE0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -107,13 +100,13 @@ void BillboardRenderer::Render(const Billboard* billboard)
     vertices[2].y += size.y;
     vertices[3].x += size.x;
     vertices[3].y += size.y;
-    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(vertices, mVboVerticesId);
+    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW>(vertices, mVboVerticesId); 
     std::vector<glm::vec3> normals = { normal, normal, normal, normal };
-    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(normals, mVboNormalId);
-    std::vector<glm::vec2> texCoord = { glm::vec2(0, 1), glm::vec2(1, 1), glm::vec2(0, 0), glm::vec2(1, 0) };
-    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(texCoord, mVboTexCoordId);
+    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW>(normals, mVboNormalId); 
+    std::vector<glm::vec2> texCoord = { glm::vec2(0.01, 0.99), glm::vec2(0.99, 0.99), glm::vec2(0.01, 0.01), glm::vec2(0.99, 0.01) };
+    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW>(texCoord, mVboTexCoordId); 
     std::vector<uint> index = { 0, 1, 2, 2, 1, 3 };
-    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(index, mVboIndexId);
+    update_gl_array_buffer<GL_ELEMENT_ARRAY_BUFFER, GL_STREAM_DRAW>(index, mVboIndexId);
     {
         GLuint uniform_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "alpha");
         glUniform1f(uniform_ID, alpha);
@@ -135,14 +128,24 @@ void BillboardRenderer::Render(const Billboard* billboard)
         glEnableVertexAttribArray(attributeID);
         glVertexAttribPointer(attributeID, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
     }
+    const std::shared_ptr< Texture2DRGBA >& texture = billboard->mTexture;
+    GPUBufferHandle& bufferHandle = texture->BufferHandle();
+    glActiveTexture(GL_TEXTURE0);
+    if (bufferHandle.valid())
     {
-        glBindTexture(GL_TEXTURE_2D, mTextureId);
-        const std::shared_ptr< Texture2DRGBA >& texture = billboard->mTexture;
+        glBindTexture(GL_TEXTURE_2D, bufferHandle.Id());
+    }
+    else
+    {
+        GLuint id;
+        glGenTextures(1, &id);
+        bufferHandle.setId(id);
+        glBindTexture(GL_TEXTURE_2D, bufferHandle.Id());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->getWidth(), texture->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->getData());
-        glGenerateMipmap(GL_TEXTURE_2D);
-        GLuint textureSampler_ID = glGetUniformLocation(mShaderProgram->ProgramID(), "textureSampler");
-        glUniform1i(textureSampler_ID, 0);
-        glBindSampler(0, mSamplerId);
     }
     // attribute buffer : index
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVboIndexId);

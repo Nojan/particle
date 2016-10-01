@@ -2,7 +2,7 @@
 
 #include "config.hpp"
 #include "color.hpp"
-#include "irenderer.hpp"
+#include "mesh_renderer.hpp"
 #include "types.hpp"
 
 #include "opengl_includes.hpp"
@@ -15,35 +15,26 @@ class RenderableSkinMesh;
 class ShaderProgram;
 class Texture2D;
 
-class SkinMeshRenderer : public IRenderer {
+class SkinMeshRenderer : public GenericMeshRenderer {
 public:
     SkinMeshRenderer();
     ~SkinMeshRenderer();
 
 	void Render(const Scene* scene) override;
 
+    MeshBuffer * RequestMeshBuffer(uint32_t vertexCount, uint32_t indexCount) override;
+
     void PushToRenderQueue(RenderableSkinMesh* renderable);
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const override;
-    const char* debug_name() const override { return "Skin Mesh Renderer"; }
 #endif
+    const char* debug_name() const override { return "Skin Mesh Renderer"; }
 
 private:
-    void GrowGPUBufferIFN();
     void Render(const RenderableSkinMesh& renderable, const Scene* scene);
 
 private:
-    std::shared_ptr<ShaderProgram> mShaderProgram;
     std::unique_ptr<Texture2D> mTexture2D;
     std::vector<RenderableSkinMesh*> mRenderQueue;
-    GLuint mVaoId;
-    GLuint mVboPositionId;
-    GLuint mVboNormalId;
-    GLuint mVboTextureCoordId;
-    GLuint mVboBoneId;
-    GLuint mTextureSamplerId;
-    size_t mVboVertexSize;
-    GLuint mVboIndexId;
-    size_t mVboIndexSize;
 };

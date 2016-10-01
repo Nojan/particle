@@ -18,15 +18,14 @@
 
 Renderer::Renderer()
 : mParticleData(new ParticleData(100000))
-, mVaoId(0)
 , mVboPositionId(0)
 , mVboColorId(0)
 , mTextureId(0)
-, mSamplerId(0)
 , mMousePosition(0.f, 0.f, 100.f)
 {
+    return;
     Texture2D::loadFromFile("../asset/particle_mask.bmp", mParticleMask);
-    mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/Simple.vertexshader", "../shaders/Simple.fragmentshader")));
+    mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/simple.vert", "../shaders/simple.frag")));
     mShaderProgram->Bind();
     GLuint vertexPosition_modelspaceID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace"); 
     GLuint vertexColorID               = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexColor"); 
@@ -34,13 +33,12 @@ Renderer::Renderer()
     {
         glGenTextures(1, &mTextureId); 
         glBindTexture(GL_TEXTURE_2D, mTextureId); 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mParticleMask.getWidth(), mParticleMask.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE, mParticleMask.getData()); 
-
-        glGenSamplers(1, &mSamplerId);
-        glSamplerParameteri(mSamplerId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); 
-        glSamplerParameteri(mSamplerId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); 
-        glSamplerParameteri(mSamplerId, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
-        glSamplerParameteri(mSamplerId, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mParticleMask.getWidth(), mParticleMask.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, mParticleMask.getData()); 
+        glGenerateMipmap(GL_TEXTURE_2D);
     }
     {
         glGenBuffers(1, &mVboPositionId); 
@@ -54,30 +52,6 @@ Renderer::Renderer()
         glBufferData(GL_ARRAY_BUFFER, mParticleData->mMaxCount * sizeof(Color::rgbap), 0, GL_STREAM_DRAW); 
         glBindBuffer(GL_ARRAY_BUFFER, 0); 
     }
-
-    glGenVertexArrays(1, &mVaoId); 
-    glBindVertexArray(mVaoId); 
-
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glEnable(GL_BLEND); 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
-    glEnable(GL_POINT_SPRITE); 
-    glEnable(GL_PROGRAM_POINT_SIZE); 
-    glEnable(GL_TEXTURE_2D); 
-
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); 
-        glVertexAttribPointer(vertexPosition_modelspaceID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); 
-        glEnableVertexAttribArray(vertexPosition_modelspaceID); 
-    }
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, mVboColorId); 
-        glVertexAttribPointer(vertexColorID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0); 
-        glEnableVertexAttribArray(vertexColorID); 
-    }
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-
-    glBindVertexArray(0); 
     mShaderProgram->Unbind();
 }
 
@@ -85,7 +59,6 @@ Renderer::~Renderer()
 {
     glDeleteBuffers(1, &mVboPositionId); 
     glDeleteBuffers(1, &mVboColorId); 
-    glDeleteVertexArrays(1, &mVaoId); 
 }
 
 void Renderer::Update(const float deltaTime)
@@ -98,15 +71,16 @@ void Renderer::Update(const float deltaTime)
 
 void Renderer::Render(const Scene * scene)
 {
+    if (0 == mParticleData->mCount)
+        return;
     mShaderProgram->Bind();
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     {
         GLuint textureID = glGetUniformLocation(mShaderProgram->ProgramID(), "uTexture"); 
         glActiveTexture(GL_TEXTURE0); 
-        glBindTexture(GL_TEXTURE_2D, mTextureId); 
+        glBindTexture(GL_TEXTURE_2D, mTextureId);
         glUniform1i(textureID, 0); 
-        glBindSampler(0, mSamplerId); 
     }
     update_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW>(mParticleData->mPosition.get(), mParticleData->mCount, mVboPositionId);
     update_gl_array_buffer<GL_ARRAY_BUFFER, GL_STREAM_DRAW>(mParticleData->mColor.get(), mParticleData->mCount, mVboPositionId);
@@ -130,10 +104,24 @@ void Renderer::Render(const Scene * scene)
         float spriteSize(2);
         glUniform1f(spriteSize_ID, spriteSize); 
     }
-
-    glBindVertexArray(mVaoId); 
+    {
+        GLuint vertexPosition_modelspaceID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexPosition_modelspace");
+        glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId);
+        glVertexAttribPointer(vertexPosition_modelspaceID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
+        glEnableVertexAttribArray(vertexPosition_modelspaceID);
+    }
+    {
+        GLuint vertexColorID = glGetAttribLocation(mShaderProgram->ProgramID(), "vertexColor");
+        glBindBuffer(GL_ARRAY_BUFFER, mVboColorId);
+        glVertexAttribPointer(vertexColorID, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
+        glEnableVertexAttribArray(vertexColorID);
+    }
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glEnable(GL_POINT_SPRITE); 
+    //glEnable(GL_PROGRAM_POINT_SIZE); 
     glDrawArrays(GL_POINTS, 0, mParticleData->mCount); 
-    glBindVertexArray(0); 
     glBindTexture(GL_TEXTURE_2D, 0); 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);

@@ -11,8 +11,8 @@ protected:
     {
         const size_t string_length_max = 2048;
         char shader_path[2][string_length_max];
-        snprintf(shader_path[0], string_length_max, "../shaders/%s.vertexshader", name.c_str());
-        snprintf(shader_path[1], string_length_max, "../shaders/%s.fragmentshader", name.c_str());
+        snprintf(shader_path[0], string_length_max, "../shaders/%s.vert", name.c_str());
+        snprintf(shader_path[1], string_length_max, "../shaders/%s.frag", name.c_str());
         GLuint shaderId = LoadShaders(shader_path[0], shader_path[1]);
         return std::shared_ptr<ShaderProgram>(new ShaderProgram(shaderId));
     }

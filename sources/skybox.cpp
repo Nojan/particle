@@ -58,23 +58,22 @@ Skybox* Skybox::GenerateCheckered()
 
 Skybox::Skybox(Texture2D& xPos, Texture2D& xNeg, Texture2D& yPos, Texture2D& yNeg, Texture2D& zPos, Texture2D& zNeg)
 {
-    mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/Skybox.vertexshader", "../shaders/Skybox.fragmentshader")));
+    mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/skybox.vert", "../shaders/skybox.frag")));
     glActiveTexture(GL_TEXTURE0); 
-    glEnable(GL_TEXTURE_CUBE_MAP); 
     glGenTextures(1, &mTextureBufferId); 
     glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureBufferId); 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP); 
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP); 
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP); 
+    //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP); 
+    //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP); 
+    //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP); 
 
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGB8, xPos.getWidth(), xPos.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, xPos.getData());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGB8, xNeg.getWidth(), xNeg.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, xNeg.getData());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGB8, yPos.getWidth(), yPos.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, yPos.getData());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGB8, yNeg.getWidth(), yNeg.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, yNeg.getData());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGB8, zPos.getWidth(), zPos.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, zPos.getData());
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGB8, zNeg.getWidth(), zNeg.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, zNeg.getData());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGB, xPos.getWidth(), xPos.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, xPos.getData());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGB, xNeg.getWidth(), xNeg.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, xNeg.getData());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGB, yPos.getWidth(), yPos.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, yPos.getData());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGB, yNeg.getWidth(), yNeg.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, yNeg.getData());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGB, zPos.getWidth(), zPos.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, zPos.getData());
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGB, zNeg.getWidth(), zNeg.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, zNeg.getData());
 
     GLfloat cube_vertices[] = {
       -1.f,  1.f,  1.f,
@@ -90,13 +89,27 @@ Skybox::Skybox(Texture2D& xPos, Texture2D& xNeg, Texture2D& yPos, Texture2D& yNe
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferId); 
     glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW); 
 
+    //GLushort cube_indices[] = {
+    //  0, 1, 2, 3,
+    //  3, 2, 6, 7,
+    //  7, 6, 5, 4,
+    //  4, 5, 1, 0,
+    //  0, 3, 7, 4,
+    //  1, 2, 6, 5,
+    //};
     GLushort cube_indices[] = {
-      0, 1, 2, 3,
-      3, 2, 6, 7,
-      7, 6, 5, 4,
-      4, 5, 1, 0,
-      0, 3, 7, 4,
-      1, 2, 6, 5,
+      0, 1, 2,
+      0, 2, 3,
+      3, 2, 6,
+      3, 6, 7,
+      7, 6, 5,
+      7, 5, 4,
+      4, 5, 1,
+      4, 1, 0,
+      0, 3, 7,
+      0, 7, 4,
+      1, 2, 6,
+      1, 6, 5,
     };
     glGenBuffers(1, &mIndexBufferId); 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferId); 
@@ -157,7 +170,6 @@ void Skybox::Render(const Scene * scene)
 
     // Bind our texture in Texture Unit 0
     glActiveTexture(GL_TEXTURE0); 
-    glEnable(GL_TEXTURE_CUBE_MAP); 
     glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureBufferId); 
     glUniform1i(cubemapID, 0); 
 
@@ -176,10 +188,9 @@ void Skybox::Render(const Scene * scene)
     // attribute buffer : index
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferId); 
 
-    glDrawElements(GL_QUADS, 6*4, GL_UNSIGNED_SHORT, 0); 
+    glDrawElements(GL_TRIANGLES, 6*3*2, GL_UNSIGNED_SHORT, 0); 
 
     glDisableVertexAttribArray(vertexPositionID); 
-    glDisable(GL_TEXTURE_CUBE_MAP); 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
     mShaderProgram->Unbind();
 }

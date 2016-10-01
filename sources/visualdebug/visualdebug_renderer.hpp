@@ -19,6 +19,8 @@ public:
         std::vector<glm::vec3>& vertexLine, std::vector<Color::rgbap>& colorLine, std::vector<uint>& indexLine) const = 0;
 };
 
+#ifndef OPENGL_ES2
+
 class VisualDebugRenderer_vao : public IRenderer {
 public:
     VisualDebugRenderer_vao();
@@ -63,6 +65,7 @@ private:
     glm::vec3 mMousePosition;
 };
 
+#endif
 
 class VisualDebugRenderer : public IRenderer {
 public:
@@ -77,8 +80,8 @@ public:
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const override;
-    const char* debug_name() const override { return "Visual debug Renderer"; }
 #endif
+    const char* debug_name() const override { return "Visual debug Renderer"; }
 
 private:
     void GrowGPUBufferIFN();

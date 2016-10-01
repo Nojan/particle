@@ -1,7 +1,7 @@
 #pragma once
 
 #include "types.hpp"
-#include <Array>
+#include <array>
 
 namespace VertexSemantic {
     enum value {

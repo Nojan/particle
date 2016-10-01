@@ -1,5 +1,5 @@
-#version 120
-
+#version 100
+precision highp float;
 varying vec3 texCoord;
 
 uniform vec2 screenSize;
@@ -17,7 +17,7 @@ uniform float far;
 
 float saturate(float value)
 {
-    return clamp(value, 0.f, 1.f);
+    return clamp(value, 0., 1.);
 }
 
 vec3 saturate(vec3 value)
@@ -25,11 +25,11 @@ vec3 saturate(vec3 value)
     return vec3(saturate(value.x), saturate(value.y), saturate(value.z));
 }
 
-float smoothstep(float edge0, float edge1, float x)
-{
-    float t = saturate((x - edge0) / (edge1 - edge0));
-    return t * t * (3.0 - 2.0 * t);
-}
+//float smoothstep(float edge0, float edge1, float x)
+//{
+//    float t = saturate((x - edge0) / (edge1 - edge0));
+//    return t * t * (3.0 - 2.0 * t);
+//}
 
 void main (void) 
 {
@@ -42,11 +42,11 @@ void main (void)
     mat4 inverseViewModelMatrix = viewMatrix;
     vec4 color = textureCube(cubemapSampler, texCoord);
     vec3 fragSN = vec3(gl_FragCoord.xy / screenSize, gl_FragCoord.z);
-    vec3 fragNDC = fragSN * vec3(2.f) - vec3(1.f);
-    float zeye = 2.f*far*near / (fragNDC.z*(far-near)-(far+near));
-    float xeye = -zeye*(fragNDC.x*(right-left)+(right+left))/(2.f*near);
-    float yeye = -zeye*(fragNDC.y*(top-bottom)+(top+bottom))/(2.f*near);
-    vec4 fragCS = vec4(xeye, yeye, zeye, 1.f);
+    vec3 fragNDC = fragSN * vec3(2.) - vec3(1.);
+    float zeye = 2.*far*near / (fragNDC.z*(far-near)-(far+near));
+    float xeye = -zeye*(fragNDC.x*(right-left)+(right+left))/(2.*near);
+    float yeye = -zeye*(fragNDC.y*(top-bottom)+(top+bottom))/(2.*near);
+    vec4 fragCS = vec4(xeye, yeye, zeye, 1.);
     vec4 fragPositionWS = fragCS * inverseViewModelMatrix;
     vec3 positionWS = vec3(fragPositionWS) / vec3(fragPositionWS.w);
     //if(0.8 < dot(-normalize(cameraDirectionWS), normalize(positionWS)))
@@ -55,16 +55,16 @@ void main (void)
     //}
     vec3 fragDirectionCS = normalize(vec3(fragCS) - worldOriginCS);
     {
-        float minAngle = cos(radians(85.f));
-        float maxAngle = cos(radians(15.f));
+        float minAngle = cos(radians(85.));
+        float maxAngle = cos(radians(15.));
         float angle = dot(fragDirectionCS, upDirectionCS);
         float ratioAngle = smoothstep(minAngle, maxAngle, angle);
-        color.rgb = vec3(0, 0, 0.5f)*ratioAngle + vec3(0, 0.7f, 1.f)*(1.f - ratioAngle);
+        color.rgb = vec3(0, 0, 0.5)*ratioAngle + vec3(0, 0.7, 1.)*(1. - ratioAngle);
     }
     vec3 sun;
     {
-        float minAngle = cos(radians(3.f));
-        float maxAngle = cos(radians(0.5f));
+        float minAngle = cos(radians(3.));
+        float maxAngle = cos(radians(0.5));
         float angle = dot(fragDirectionCS, lightDirectionCS);
         float ratioAngle = smoothstep(minAngle, maxAngle, angle);
         sun = vec3(ratioAngle, ratioAngle, ratioAngle);

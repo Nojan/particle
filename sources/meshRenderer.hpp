@@ -2,7 +2,7 @@
 
 #include "config.hpp"
 #include "color.hpp"
-#include "irenderer.hpp"
+#include "mesh_renderer.hpp"
 #include "types.hpp"
 
 #include "opengl_includes.hpp"
@@ -15,34 +15,25 @@ class RenderableMesh;
 class ShaderProgram;
 class Texture2D;
 
-class MeshRenderer : public IRenderer {
+class MeshRenderer : public GenericMeshRenderer {
 public:
     MeshRenderer();
     ~MeshRenderer();
 
 	void Render(const Scene* scene) override;
 
+    MeshBuffer* RequestMeshBuffer(uint32_t vertexCount, uint32_t indexCount = 0) override;
+
     void PushToRenderQueue(RenderableMesh* renderable);
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const override;
-    const char* debug_name() const override { return "Mesh Renderer"; }
 #endif
+    const char* debug_name() const override { return "Mesh Renderer"; }
 
 private:
-    void GrowGPUBufferIFN();
     void Render(const RenderableMesh& renderable, const Scene* scene);
 
 private:
-    std::shared_ptr<ShaderProgram> mShaderProgram;
-    std::unique_ptr<Texture2D> mTexture2D;
     std::vector<RenderableMesh*> mRenderQueue;
-    GLuint mVaoId;
-    GLuint mVboPositionId;
-    GLuint mVboNormalId;
-    GLuint mVboTextureCoordId;
-    GLuint mTextureSamplerId;
-    size_t mVboVertexSize;
-    GLuint mVboIndexId;
-    size_t mVboIndexSize;
 };

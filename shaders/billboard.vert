@@ -1,4 +1,4 @@
-#version 120
+#version 100
 
 attribute vec3 vertexPosition_modelspace;
 attribute vec2 textureCoord;
@@ -6,7 +6,6 @@ attribute vec2 textureCoord;
 varying vec2 UV;
 
 uniform mat4 mvp;
-
 
 void main(){
     UV = textureCoord;

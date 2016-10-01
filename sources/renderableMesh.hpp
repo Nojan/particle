@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 
+class MeshBuffer;
 class ShaderProgram;
 class Texture2D;
 
@@ -52,6 +53,7 @@ public:
     glm::mat4 mScale;
     Material mMaterial;
     std::shared_ptr<Mesh> mMesh;
+    std::shared_ptr<MeshBuffer> mMeshBuffer;
 
     bool operator<(const RenderableMesh& ref) const;
 };

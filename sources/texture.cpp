@@ -42,6 +42,11 @@ uint Texture2D::getWidth() const
     return mWidth;
 }
 
+GPUBufferHandle & Texture2D::BufferHandle() const
+{
+    return mBufferHandle;
+}
+
 void Texture2D::loadBMP_custom(const char * imagepath, Texture2D & texture)
 {
     assert(!texture.mData);
@@ -157,6 +162,18 @@ Texture2DRGBA::Texture2DRGBA()
 , mWidth(0)
 {}
 
+Texture2DRGBA::Texture2DRGBA(uint height, uint width, Color::rgba color)
+: mHeight(height)
+, mWidth(width)
+{
+    const size_t size = numeric_cast<size_t>(height) * numeric_cast<size_t>(width);
+    mData.reset(new Color::rgba[size]);
+    for (size_t idx = 0; idx < size; ++idx)
+    {
+        mData[idx] = color;
+    }
+}
+
 void Texture2DRGBA::loadFromFile(const char * imagepath, Texture2DRGBA & texture)
 {
     Image image(imagepath);
@@ -190,3 +207,43 @@ uint Texture2DRGBA::getWidth() const
     return mWidth;
 }
 
+GPUBufferHandle & Texture2DRGBA::BufferHandle() const
+{
+    return mBufferHandle;
+}
+
+GPUBufferHandle::GPUBufferHandle()
+    : mId(-1)
+{
+}
+
+GPUBufferHandle::~GPUBufferHandle()
+{
+    FreeResource();
+}
+
+bool GPUBufferHandle::valid() const
+{
+    return -1 != mId;
+}
+
+GLuint GPUBufferHandle::Id() const
+{
+    return mId;
+}
+
+void GPUBufferHandle::setId(GLuint id)
+{
+    //assert(-1 == id || glIsBuffer(id));
+    FreeResource();
+    mId = id;
+}
+
+void GPUBufferHandle::FreeResource()
+{
+    if (-1 != mId)
+    {
+        glDeleteBuffers(1, &mId);
+        mId = -1;
+    }
+}

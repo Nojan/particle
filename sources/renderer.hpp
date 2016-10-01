@@ -32,17 +32,15 @@ public:
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const override;
-    const char* debug_name() const override { return "Particle Renderer"; }
 #endif
+    const char* debug_name() const override { return "Particle Renderer"; }
 
 private:
     std::unique_ptr<ParticleData> mParticleData;
     std::unique_ptr<ShaderProgram> mShaderProgram;
-    GLuint mVaoId;
     GLuint mVboPositionId;
     GLuint mVboColorId;
     GLuint mTextureId;
-    GLuint mSamplerId;
     glm::vec3 mMousePosition;
     Texture2D mParticleMask;
 };

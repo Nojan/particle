@@ -2,8 +2,24 @@
 #define TEXTURE_HPP
 
 #include "types.hpp"
+#include "opengl_helpers.hpp"
 
 #include <memory>
+
+class GPUBufferHandle {
+public:
+    GPUBufferHandle();
+    ~GPUBufferHandle();
+
+    bool valid() const;
+
+    GLuint Id() const;
+    void setId(GLuint id);
+
+private:
+    void FreeResource();
+    GLuint mId;
+};
 
 namespace Color
 {
@@ -28,10 +44,13 @@ public:
     uint getHeight() const;
     uint getWidth() const;
 
+    GPUBufferHandle& BufferHandle() const;
+
 private:
     std::unique_ptr<Color::rgb[]> mData;
     uint mHeight;
     uint mWidth;
+    mutable GPUBufferHandle mBufferHandle;
 };
 
 class Texture2DRGBA
@@ -40,6 +59,8 @@ public:
     Texture2DRGBA();
     ~Texture2DRGBA() = default;
 
+    Texture2DRGBA(uint height, uint width, Color::rgba color);
+
     static void loadFromFile(const char * imagepath, Texture2DRGBA & texture);
 
     void setTexture(std::unique_ptr<Color::rgba[]> data, uint height, uint width);
@@ -47,10 +68,13 @@ public:
     uint getHeight() const;
     uint getWidth() const;
 
+    GPUBufferHandle& BufferHandle() const;
+
 private:
     std::unique_ptr<Color::rgba[]> mData;
     uint mHeight;
     uint mWidth;
+    mutable GPUBufferHandle mBufferHandle;
 };
 
 #endif

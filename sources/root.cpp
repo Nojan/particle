@@ -3,10 +3,12 @@
 #include "camera.hpp"
 #include "firework.hpp"
 #include "particle.hpp"
+#include "platform/platform.hpp"
 #include "renderer_list.hpp"
 #include "renderer.hpp"
 #include "billboard_renderer.hpp"
 #include "meshRenderer.hpp"
+#include "mesh_renderer.hpp"
 #include "skinMeshRenderer.hpp"
 #include "scene.hpp"
 #include "skybox.hpp"
@@ -65,7 +67,7 @@ FireworksManager* Root::GetFireworksManager()
     return mFireworkManager.get();
 }
 
-void Root::Init()
+void Root::CreateContext()
 {
     srand(42);
 
@@ -84,9 +86,10 @@ void Root::Init()
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_EGL, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
     const int windowsWidth = 800;
     const int windowsHeight = 600;
@@ -106,25 +109,41 @@ void Root::Init()
         SDL_assert(false);
         exit(EXIT_FAILURE);
     }
-    printf("OpenGL loaded\n"); 
-    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
+    printf("OpenGL loaded\n");
+#ifdef USE_GLAD
+    if (!gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress))
     {
         printf("Failed to initialize OpenGL context! SDL Error: %s\n",
             SDL_GetError());
         exit(EXIT_FAILURE);
     }
+#endif
     printf("Vendor:   %s\n", glGetString(GL_VENDOR));
     printf("Renderer: %s\n", glGetString(GL_RENDERER));
     printf("Version:  %s\n", glGetString(GL_VERSION));
-    glEnable(GL_MULTISAMPLE);
+    //glEnable(GL_MULTISAMPLE);
     if (SDL_GL_SetSwapInterval(1) < 0) {
         printf("Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError());
     }
+
+    gl_log_error();
 
     // Setup ImGui binding
     IMGUI_ONLY(ImGui_ImplSdlGL3_Init(mSDL_ctx->window));
 
     Global::Load();
+}
+
+void Root::Init()
+{
+    if (!Global::platform()->Ready())
+    {
+        printf("Platform not ready\n");
+        return;
+    }
+
+    int windowsWidth, windowsHeight;
+    SDL_GetWindowSize(mSDL_ctx->window, &windowsWidth, &windowsHeight);
 
     mCamera.reset(new Camera());
     mCamera->WindowResize(windowsWidth, windowsHeight);
@@ -171,11 +190,14 @@ void Root::Init()
     mUpdaterList.push_back(mGameplayLoopManager);
     mUpdaterList.push_back(mFireworkManager);
 
+    printf("Engine initialization done\n");
+    gl_log_error();
     mRunning = GL_TRUE;
 }
 
 void Root::Terminate()
 {
+    printf("Engine terminate...\n");
     mGameplayLoopManager->Terminate();
     mRendererList.clear();
     mUpdaterList.clear();
@@ -194,17 +216,6 @@ void Root::Terminate()
     mSDL_ctx = nullptr;
 }
 
-void glPerspective( GLdouble fovY, GLdouble aspect, GLdouble zNear, GLdouble zFar )
-{
-    const GLdouble pi = 3.1415926535897932384626433832795;
-    GLdouble fW, fH;
-
-    fH = tan( fovY / 360 * pi ) * zNear;
-    fW = fH * aspect;
-
-    glFrustum( -fW, fW, -fH, fH, zNear, zFar );
-}
-
 void Root::Update()
 {
     assert(GL_TRUE == mRunning);
@@ -215,6 +226,8 @@ void Root::Update()
         lastFrameDuration = frameDuration; //abnormal frame duration (breakpoint?)
     lastFrameDuration += mFrameLeftover;
     const auto beginFrame = std::chrono::high_resolution_clock::now();
+    //glClearDepth(1.0f); 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     const size_t windowTitleSize = 265;
     char windowTitle[windowTitleSize];
     snprintf(windowTitle, windowTitleSize, "Particle : %lldms", mFrameDuration.count());
@@ -263,7 +276,7 @@ void Root::Update()
         renderer->Render(mScene.get());
     }
     mFrameLeftover = lastFrameDuration;
-    static bool autoSpawnParticle = true;
+    static bool autoSpawnParticle = false;
     static int autoSpawnParticleFrame = 100;
 #ifdef IMGUI_ENABLE
     if (ImGui::Begin("Debug_Info"))
@@ -271,15 +284,15 @@ void Root::Update()
         ImGui::Text("Frame %.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::Text("Last frame %.3f ms", lastFrameDuration * 1000.f);
         ImGui::SliderFloat("Frame multiplier", &mFrameMultiplier, 0, 10);
-        if (ImGui::CollapsingHeader("OpenGL"))
-        {
-            static bool wireframe = false;
-            ImGui::Checkbox("Wireframe", &wireframe);
-            if (wireframe)
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            else
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
+        //if (ImGui::CollapsingHeader("OpenGL"))
+        //{
+        //    static bool wireframe = false;
+        //    ImGui::Checkbox("Wireframe", &wireframe);
+        //    if (wireframe)
+        //        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        //    else
+        //        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        //}
         if (ImGui::CollapsingHeader("Main camera"))
         {
             mCamera->debug_GUI();
@@ -307,15 +320,17 @@ void Root::Update()
 #endif
     IMGUI_ONLY(ImGui::Render());
     SDL_GL_SwapWindow(mSDL_ctx->window);
-    glClearDepth(1.0f); 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
     const auto endFrame = std::chrono::high_resolution_clock::now();
     const auto renderingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFrame - beginFrame);
 
     ++mFramesCounter;
-    std::this_thread::sleep_for(frameLimiter - renderingDuration);
+    //std::this_thread::sleep_for(frameLimiter - renderingDuration);
     const auto endSleep = std::chrono::high_resolution_clock::now();
+#ifdef __EMSCRIPTEN__
+    mFrameDuration = frameLimiter;
+#else
     mFrameDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endSleep - beginFrame);
+#endif
     if (autoSpawnParticle && mFramesCounter > autoSpawnParticleFrame)
     {
         mFireworkManager->spawnPeony(glm::ballRand(200.f) + glm::vec3(0.f, 400.f, -500.f), 100.f, 3.f);

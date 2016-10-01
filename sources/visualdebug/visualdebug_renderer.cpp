@@ -12,6 +12,8 @@
 #include <assert.h>
 #include <algorithm>
 
+#ifndef OPENGL_ES2
+
 VisualDebugRenderer_vao::VisualDebugRenderer_vao()
 : mVaoFillId(0)
 , mVboPositionFillId(0)
@@ -26,7 +28,7 @@ VisualDebugRenderer_vao::VisualDebugRenderer_vao()
 , mVboIndexLineSize(0)
 , mMousePosition(0.f, 0.f, 100.f)
 {
-    mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/visualdebug.vertexshader", "../shaders/visualdebug.fragmentshader")));
+    mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/visualdebug.vert", "../shaders/visualdebug.frag")));
 }
 
 VisualDebugRenderer_vao::~VisualDebugRenderer_vao()
@@ -224,6 +226,8 @@ void VisualDebugRenderer_vao::GrowGPUBufferIFN() {
     }
 }
 
+#endif 
+
 //==============================================================================================================================
 
 VisualDebugRenderer::VisualDebugRenderer()
@@ -239,7 +243,7 @@ VisualDebugRenderer::VisualDebugRenderer()
 , mVboIndexLineSize(0)
 , mMousePosition(0.f, 0.f, 100.f)
 {
-    mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/visualdebug.vertexshader", "../shaders/visualdebug.fragmentshader")));
+    mShaderProgram.reset(new ShaderProgram(LoadShaders("../shaders/visualdebug.vert", "../shaders/visualdebug.frag")));
 }
 
 VisualDebugRenderer::~VisualDebugRenderer()

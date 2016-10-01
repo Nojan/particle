@@ -3,6 +3,7 @@
 #include "camera.hpp"
 #include "global.hpp"
 #include "renderableMesh.hpp"
+#include "mesh_buffer_gpu.hpp"
 #include "shader.hpp"
 #include "resourcemanager.hpp"
 #include "shader_loader.hpp"
@@ -27,19 +28,11 @@ void MeshRenderer::debug_GUI() const
 #endif
 
 MeshRenderer::MeshRenderer()
-: mVaoId(0)
-, mVboPositionId(0)
-, mVboNormalId(0)
-, mVboTextureCoordId(0)
-, mTextureSamplerId(0)
-, mVboVertexSize(0)
-, mVboIndexId(0)
-, mVboIndexSize(0)
 {
-    mShaderProgram = Global::resourceManager()->shader("Texture");
-    mShaderProgram->RegisterAttrib("vertexPosition_modelspace");
-    mShaderProgram->RegisterAttrib("vertexNormal_modelspace");
-    mShaderProgram->RegisterAttrib("textureCoord");
+    mShaderProgram = Global::resourceManager()->shader("texture");
+    mShaderProgram->RegisterAttrib("Position");
+    mShaderProgram->RegisterAttrib("Normal");
+    mShaderProgram->RegisterAttrib("TexCoord0");
     mShaderProgram->RegisterUniform("textureSampler");
     mShaderProgram->RegisterUniform("mvp");
     mShaderProgram->RegisterUniform("mv");
@@ -47,18 +40,11 @@ MeshRenderer::MeshRenderer()
     mShaderProgram->RegisterUniform("lightPosition");
     mShaderProgram->RegisterUniform("lightDiffuse");
     mShaderProgram->RegisterUniform("lightSpecular");
-    mTexture2D = std::move(Texture2D::generateCheckeredBoard(8, 128, 128, { 255, 255, 255 }, { 0, 0, 0 }));
-    glGenTextures(1, &mTextureSamplerId); 
 }
 
 MeshRenderer::~MeshRenderer()
 {
-    glDeleteBuffers(1, &mVboPositionId); 
-    glDeleteBuffers(1, &mVboNormalId); 
-    glDeleteBuffers(1, &mVboTextureCoordId); 
-    glDeleteBuffers(1, &mTextureSamplerId); 
-    glDeleteBuffers(1, &mVboIndexId); 
-    glDeleteVertexArrays(1, &mVaoId); 
+
 }
 
 void MeshRenderer::Render(const Scene* scene)
@@ -79,7 +65,6 @@ void MeshRenderer::Render(const Scene* scene)
         return;
     glEnable(GL_DEPTH_TEST);
     mShaderProgram->Bind();
-    GrowGPUBufferIFN();
 
     for (const RenderableMesh* renderable: mRenderQueue)
     {
@@ -98,15 +83,27 @@ void MeshRenderer::Render(const RenderableMesh& renderable, const Scene* scene)
         return;
     const glm::mat4& modelTransform = renderable.mTransform;
     const glm::mat4 modelTransformAndScale = renderable.mTransform *renderable.mScale;
-    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(renderable.mMesh->mVertex, mVboPositionId);
-    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(renderable.mMesh->mNormal, mVboNormalId);
-    update_gl_array_buffer<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(renderable.mMesh->mTextureCoord, mVboTextureCoordId);
-    update_gl_array_buffer<GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(renderable.mMesh->mIndex, mVboIndexId);
     {
-        glActiveTexture(GL_TEXTURE0); 
-        glBindTexture(GL_TEXTURE_2D, mTextureSamplerId);
         const std::shared_ptr<Texture2D>& texture = renderable.mMaterial.Texture();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, texture->getWidth(), texture->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, texture->getData());
+        GPUBufferHandle& bufferHandle = texture->BufferHandle();
+        glActiveTexture(GL_TEXTURE0);
+        if (bufferHandle.valid())
+        {
+            glBindTexture(GL_TEXTURE_2D, bufferHandle.Id());
+        }
+        else
+        {
+            GLuint id;
+            glGenTextures(1, &id);
+            bufferHandle.setId(id);
+            glBindTexture(GL_TEXTURE_2D, bufferHandle.Id());
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);   
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture->getWidth(), texture->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, texture->getData());
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
         GLint textureSampler_ID = mShaderProgram->GetUniformLocation("textureSampler");
         glUniform1i(textureSampler_ID, 0);  
     }
@@ -142,108 +139,43 @@ void MeshRenderer::Render(const RenderableMesh& renderable, const Scene* scene)
         GLint lightPosition_ID = mShaderProgram->GetUniformLocation("lightSpecular");
         glUniform4fv(lightPosition_ID, 1, &(color.r));
     }
-    glBindVertexArray(mVaoId);
-    glDrawElements(GL_TRIANGLES, renderable.mMesh->mIndex.size(), GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
+    GenericMeshRenderer::Render(renderable.mMeshBuffer.get());
 }
 
 void MeshRenderer::PushToRenderQueue(RenderableMesh* renderable)
 {
     assert(renderable->mMesh->Valid());
+    MeshBufferGpu* meshBuffer = dynamic_cast<MeshBufferGpu*>(renderable->mMeshBuffer.get());
+    if (!meshBuffer)
+    {
+        const std::vector<glm::vec3>& vertex = renderable->mMesh->mVertex;
+        const std::vector<uint>& indexes = renderable->mMesh->mIndex;
+        const size_t vertexCount = vertex.size();
+        const size_t indexCount = indexes.size();
+        meshBuffer = dynamic_cast<MeshBufferGpu*>(RequestMeshBuffer(vertexCount, indexCount));
+        for (size_t idx = 0; idx < indexCount; ++idx) {
+            meshBuffer->SetIndex(idx, indexes[idx]);
+            assert(indexes[idx] == meshBuffer->IndexBuffer().AsU16()[idx]);
+        }
+        for (size_t idx = 0; idx < vertexCount; ++idx) {
+            meshBuffer->SetComponent(idx, VertexSemantic::Position, glm::value_ptr(renderable->mMesh->mVertex[idx]));
+            assert(renderable->mMesh->mVertex[idx] == reinterpret_cast<const glm::vec3*>(meshBuffer->VertexBufferComponent(VertexSemantic::Position))[idx]);
+            meshBuffer->SetComponent(idx, VertexSemantic::Normal, glm::value_ptr(renderable->mMesh->mNormal[idx]));
+            assert(renderable->mMesh->mNormal[idx] == reinterpret_cast<const glm::vec3*>(meshBuffer->VertexBufferComponent(VertexSemantic::Normal))[idx]);
+            meshBuffer->SetComponent(idx, VertexSemantic::TexCoord0, glm::value_ptr(renderable->mMesh->mTextureCoord[idx]));
+            assert(renderable->mMesh->mTextureCoord[idx] == reinterpret_cast<const glm::vec2*>(meshBuffer->VertexBufferComponent(VertexSemantic::TexCoord0))[idx]);
+        }
+        meshBuffer->Update();
+        renderable->mMeshBuffer.reset(meshBuffer);
+    }
     mRenderQueue.push_back(renderable);
 }
 
-void MeshRenderer::GrowGPUBufferIFN() {
-    assert(mShaderProgram->IsBind());
-    bool grow = false;
-    size_t vertexSize = 0;
-    size_t normalSize = 0;
-    size_t textureCoordSize = 0;
-    size_t indexSize = 0;
-    for (const RenderableMesh* renderable : mRenderQueue)
-    {
-        assert(nullptr != renderable);
-        Mesh* mesh = renderable->mMesh.get();
-        assert(nullptr != mesh);
-        vertexSize = std::max(vertexSize, mesh->mVertex.size());
-        normalSize = std::max(normalSize, mesh->mNormal.size());
-        textureCoordSize = std::max(textureCoordSize, mesh->mTextureCoord.size());
-        indexSize = std::max(indexSize, mesh->mIndex.size());
-    }
-    assert(vertexSize == normalSize);
-    assert(vertexSize == textureCoordSize);
-    if (mVboVertexSize < vertexSize)
-    {
-        grow = true;
-        mVboVertexSize = vertexSize;
-        {
-            glDeleteBuffers(1, &mVboPositionId); 
-            glGenBuffers(1, &mVboPositionId); 
-            glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); 
-            const size_t elementSize = sizeof(glm::vec3);
-            glBufferData(GL_ARRAY_BUFFER, mVboVertexSize * elementSize, 0, GL_DYNAMIC_DRAW); 
-            glBindBuffer(GL_ARRAY_BUFFER, 0); 
-        }
-        {
-            glDeleteBuffers(1, &mVboNormalId); 
-            glGenBuffers(1, &mVboNormalId); 
-            glBindBuffer(GL_ARRAY_BUFFER, mVboNormalId); 
-            const size_t elementSize = sizeof(glm::vec3);
-            glBufferData(GL_ARRAY_BUFFER, mVboVertexSize * elementSize, 0, GL_DYNAMIC_DRAW); 
-            glBindBuffer(GL_ARRAY_BUFFER, 0); 
-        }
-        {
-            glDeleteBuffers(1, &mVboTextureCoordId); 
-            glGenBuffers(1, &mVboTextureCoordId); 
-            glBindBuffer(GL_ARRAY_BUFFER, mVboTextureCoordId); 
-            const size_t elementSize = sizeof(glm::vec2);
-            glBufferData(GL_ARRAY_BUFFER, mVboVertexSize * elementSize, 0, GL_DYNAMIC_DRAW); 
-            glBindBuffer(GL_ARRAY_BUFFER, 0); 
-        }
-    }
-    if (mVboIndexSize < indexSize)
-    {
-        grow = true;
-        mVboIndexSize = indexSize;
-        glDeleteBuffers(1, &mVboIndexId); 
-        glGenBuffers(1, &mVboIndexId); 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVboIndexId); 
-        const size_t elementSize = sizeof(uint);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mVboIndexSize * elementSize, 0, GL_DYNAMIC_DRAW); 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
-    }
-    if (grow)
-    {
-        glDeleteVertexArrays(1, &mVaoId); 
-        glGenVertexArrays(1, &mVaoId); 
-        glBindVertexArray(mVaoId); 
-        {
-            GLint attributeID = mShaderProgram->GetAttribLocation("vertexPosition_modelspace");
-            glBindBuffer(GL_ARRAY_BUFFER, mVboPositionId); 
-            glEnableVertexAttribArray(attributeID); 
-            glVertexAttribPointer(attributeID, 3, GL_FLOAT, GL_FALSE, 0, (void*)0); 
-        }
-        {
-            GLint attributeID = mShaderProgram->GetAttribLocation("vertexNormal_modelspace");
-            glBindBuffer(GL_ARRAY_BUFFER, mVboNormalId); 
-            glEnableVertexAttribArray(attributeID); 
-            glVertexAttribPointer(attributeID, 3, GL_FLOAT, GL_TRUE, 0, (void*)0); 
-        }
-        {
-            GLint attributeID = mShaderProgram->GetAttribLocation("textureCoord");
-            glBindBuffer(GL_ARRAY_BUFFER, mVboTextureCoordId); 
-            glEnableVertexAttribArray(attributeID); 
-            glVertexAttribPointer(attributeID, 2, GL_FLOAT, GL_FALSE, 0, (void*)0); 
-        }
-        glEnable(GL_TEXTURE_2D); 
-        glGenerateMipmap(GL_TEXTURE_2D); 
-        glActiveTexture(GL_TEXTURE0);  
-        glBindTexture(GL_TEXTURE_2D, mTextureSamplerId); 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mTexture2D->getWidth(), mTexture2D->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, mTexture2D->getData());
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVboIndexId); 
-
-        glBindVertexArray(0); 
-        glBindBuffer(GL_ARRAY_BUFFER, 0); 
-        glEnableVertexAttribArray(0); 
-    }
+MeshBuffer * MeshRenderer::RequestMeshBuffer(uint32_t vertexCount, uint32_t indexCount)
+{
+    VertexBufferLayout layout;
+    layout.Add(VertexSemantic::Position, VertexType::Float3)
+        .Add(VertexSemantic::Normal, VertexType::Float3Normalize)
+        .Add(VertexSemantic::TexCoord0, VertexType::Float2);
+    return new MeshBufferGpu(layout, vertexCount, indexCount);
 }

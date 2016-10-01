@@ -1,5 +1,5 @@
-#version 120
-
+#version 100
+precision highp float;
 // Interpolated values from the vertex shaders
 varying vec2 UV;
 varying vec3 vertexNormal_eyespace;
@@ -15,7 +15,7 @@ const in vec3 lightDir,  const in vec3 eye) {
     vec4 diffuse = vec4(0.5);
     vec4 ambient = lightDiffuse;
     vec4 specular = lightSpecular;
-    float shininess = 2;
+    float shininess = 2.0;
     
     float intensity = max(dot(fragNormal, lightDir), 0.0);
     vec4 spec = vec4(0.0);

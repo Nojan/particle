@@ -28,6 +28,7 @@ public:
     VisualDebugRenderer* GetVisualDebugRenderer();
     FireworksManager* GetFireworksManager();
 
+    void CreateContext();
     void Init();
     void Terminate();
     void Update();

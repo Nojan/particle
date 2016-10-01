@@ -24,8 +24,8 @@ public:
 
 #ifdef IMGUI_ENABLE
     void debug_GUI() const override;
-    const char* debug_name() const override { return "Billboard Renderer"; }
 #endif
+    const char* debug_name() const override { return "Billboard Renderer"; }
 
 private:
     void Render(const Billboard* billboard);
@@ -40,5 +40,4 @@ private:
     GLuint mVboTexCoordId;
     GLuint mVboIndexId;
     GLuint mTextureId;
-    GLuint mSamplerId;
 };
