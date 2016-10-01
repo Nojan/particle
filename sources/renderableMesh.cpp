@@ -3,54 +3,13 @@
 #include "color.hpp"
 #include "shader.hpp"
 #include "texture.hpp"
-#include "tinyobj/tiny_obj_loader.hpp"
+#include "resource_compiler_mesh.hpp"
 
 #include <cassert>
 
 Mesh::Mesh(const char* filename)
 {
-    printf("loading %s\n", filename);
-    
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    const std::string res = tinyobj::LoadObj(shapes, materials, filename, "../asset/mesh");
-    assert(res.empty());
-
-    // pre allocate
-    {
-        size_t vertexSize = mVertex.size();
-        size_t indexSize = mIndex.size();
-        for (size_t i = 0; i < shapes.size(); ++i) {
-            const tinyobj::mesh_t& mesh = shapes[i].mesh;
-            vertexSize += mesh.positions.size() / 3;
-            indexSize += mesh.indices.size();
-        }
-        mVertex.reserve(vertexSize);
-        mNormal.reserve(vertexSize);
-        mTextureCoord.reserve(vertexSize);
-        mIndex.reserve(indexSize);
-    }
-
-    for (size_t i = 0; i < shapes.size(); ++i) {
-        const size_t firstVertex = mVertex.size();
-        const size_t firstIndex = mIndex.size();
-        const tinyobj::mesh_t& mesh = shapes[i].mesh;
-        const size_t meshVertexCount = mesh.positions.size() / 3;
-        for (size_t vertexI = 0; vertexI < meshVertexCount; ++vertexI) {
-            const size_t vec2Index = vertexI * 2;
-            const size_t vec3Index = vertexI * 3;
-            const glm::vec3 vertex(mesh.positions[vec3Index + 0], mesh.positions[vec3Index + 1], mesh.positions[vec3Index + 2]);
-            mVertex.push_back(vertex);
-            mBBox.Add(vertex);
-            const glm::vec3 normal(mesh.normals[vec3Index + 0], mesh.normals[vec3Index + 1], mesh.normals[vec3Index + 2]);
-            mNormal.push_back(normal);
-            const glm::vec2 textureUV(mesh.texcoords[vec2Index + 0], mesh.texcoords[vec2Index + 1]);
-            mTextureCoord.push_back(textureUV);
-        }
-        for (size_t index = 0; index < mesh.indices.size(); ++index) {
-            mIndex.push_back(firstVertex + mesh.indices[index]);
-        }
-    }
+    resource_compiler::compile_mesh(filename, *this);
     assert(Valid());
 }
 
