@@ -8,6 +8,11 @@
 #include <algorithm>
 #include <iostream>
 
+#define FREE_CAM
+#ifdef __EMSCRIPTEN__
+#undef FREE_CAM
+#endif
+
 using namespace std;
 
 #define MV_NONE  0
@@ -204,6 +209,7 @@ glm::mat4 const & Camera::ProjectionViewInv() const
 
 void Camera::Event(const SDL_Event & e)
 {
+#ifdef FREE_CAM
     const bool pressKey = (SDL_KEYDOWN == e.type);
     const bool releaseKey = (SDL_KEYUP == e.type);
     if(pressKey || releaseKey)
@@ -245,6 +251,15 @@ void Camera::Event(const SDL_Event & e)
     {
         mMousePan = false;
     }
+    if (SDL_MOUSEWHEEL == e.type)
+    {
+        if (e.wheel.y < 0)
+            mPerspective.fov += 0.1f;
+        else if (e.wheel.y > 0)
+            mPerspective.fov -= 0.1f;
+        mUpdateProjection = true;
+    }
+#endif
     if (SDL_MOUSEMOTION == e.type)
     {
         const glm::vec2 newMousePosition(static_cast<float>(e.motion.x), static_cast<float>(e.motion.y));
@@ -263,14 +278,6 @@ void Camera::Event(const SDL_Event & e)
         }
         mMousePosition = newMousePosition;
         mMouseDirectionWorld = ProjectScreenCoordToWorld(mMousePosition);
-    }
-    if (SDL_MOUSEWHEEL == e.type)
-    {
-        if (e.wheel.y < 0)
-            mPerspective.fov += 0.1f;
-        else if (e.wheel.y > 0)
-            mPerspective.fov -= 0.1f;
-        mUpdateProjection = true;
     }
 }
 
