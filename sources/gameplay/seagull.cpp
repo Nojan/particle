@@ -139,6 +139,16 @@ static void WanderInside(const BoundingBox3D& box, const glm::vec3& position, gl
 
 Seagull::Seagull()
 {
+
+}
+
+Seagull::~Seagull()
+{
+
+}
+
+void Seagull::Init()
+{
     mEntities.resize(3);
     mTargets.resize(10);
     GameSystem* gameSystem = Global::gameSytem();
@@ -175,12 +185,12 @@ Seagull::Seagull()
         GraphicMeshComponent * renderingComponent = target.mEntity->getComponent<GraphicMeshComponent>();
         renderingComponent->mColor = { 1.f, 0.f, 0.f, 1.f };
         renderingComponent->mRenderable.reset(new RenderableMesh());
-        renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../asset/mesh/bread.obj");
+        renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../asset/mesh/bread.assxml");
         renderingComponent->mEnable = false;
     }
 }
 
-Seagull::~Seagull()
+void Seagull::Terminate()
 {
     GameSystem* gameSystem = Global::gameSytem();
     for (size_t idx = 0; idx < mEntities.size(); ++idx)
@@ -191,16 +201,6 @@ Seagull::~Seagull()
     {
         gameSystem->removeEntity(mTargets[idx].mEntity);
     }
-}
-
-void Seagull::Init()
-{
-
-}
-
-void Seagull::Terminate()
-{
-
 }
 
 void Seagull::Update(const float deltaTime)

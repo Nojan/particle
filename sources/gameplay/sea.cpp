@@ -75,7 +75,7 @@ Gameplay::Sea::Sea()
         std::shared_ptr<Texture2D> seaTexture = std::move(Texture2D::generateUniform(16, 16, { 0, 156, 255 }));
         std::shared_ptr<ShaderProgram> seaShader;
         renderingComponent->mRenderable->mMaterial = Material(seaShader, seaTexture);
-        renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../asset/mesh/plane.obj");
+        renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../asset/mesh/plane.assxml");
     }
     //Setup dock
     {
@@ -89,7 +89,7 @@ Gameplay::Sea::Sea()
         std::shared_ptr<Texture2D> texture = std::move(Texture2D::generateUniform(16, 16, { 110, 110, 110 }));
         std::shared_ptr<ShaderProgram> shader;
         renderingComponent->mRenderable->mMaterial = Material(shader, texture);
-        renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../asset/mesh/quai.obj");
+        renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../asset/mesh/quai.assxml");
     }
 }
 
