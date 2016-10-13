@@ -320,6 +320,7 @@ void Seagull::SetTrackPosition(const glm::vec3& target)
             PhysicComponent* physic = target.mEntity->getComponent<PhysicComponent>();
             physic->Reset();
             physic->SetLinearVelocity(targetPosition);
+            physic->SetAngularVelocity(glm::vec4(glm::ballRand(3.f), 0.f));
             GraphicMeshComponent* renderingComponent = target.mEntity->getComponent<GraphicMeshComponent>();
             renderingComponent->mEnable = true;
             break;

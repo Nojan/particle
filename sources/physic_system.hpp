@@ -25,11 +25,15 @@ public:
     const glm::vec4& LinearVelocity() const;
     void SetLinearVelocity(const glm::vec4& velocity);
 
+    const glm::vec4& AngularVelocity() const;
+    void SetAngularVelocity(const glm::vec4& velocity);
+
     TransformComponent* mTransformComponent;
 private:
     float mInvMass;
     glm::vec4 mLinearVelocity;
     glm::vec4 mLinearAcceleration;
+    glm::vec4 mAngularVelocity;
     glm::vec3 mForceAccum;
 
 };

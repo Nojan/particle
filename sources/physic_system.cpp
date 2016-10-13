@@ -11,6 +11,7 @@ PhysicComponent::PhysicComponent()
 , mForceAccum(0)
 , mLinearVelocity(0,0,0,0)
 , mLinearAcceleration(0,0,0,1)
+, mAngularVelocity(0,0,0,0)
 {}
 
 PhysicComponent::PhysicComponent(const PhysicComponent& ref)
@@ -40,6 +41,7 @@ void PhysicComponent::Reset()
     mForceAccum = glm::vec3(0);
     mLinearVelocity = glm::vec4(0, 0, 0, 0);
     mLinearAcceleration = glm::vec4(0, 0, 0, 1);
+    mAngularVelocity = glm::vec4(0, 0, 0, 0);
 }
 
 void PhysicComponent::Integrate(const float deltaTime)
@@ -57,19 +59,19 @@ void PhysicComponent::Integrate(const float deltaTime)
     const glm::vec4 nextPosition = position + mLinearVelocity*deltaTime;
     mTransformComponent->SetPosition(nextPosition);
 
-    const glm::vec3 direction = glm::vec3(nextPosition) - glm::vec3(position);
-    const float directionLength = glm::length(direction);
-    if (0 < directionLength)
-    {
-        const glm::vec3 directionNormalized = direction / directionLength;
-        mTransformComponent->SetRotation(glm::quat(glm::vec3(0, 0, 1), directionNormalized));
-    }
+    const glm::quat& currentOrientation = mTransformComponent->Rotation();
+    const glm::quat angularVelocityQuat(0, mAngularVelocity.x, mAngularVelocity.y, mAngularVelocity.z);
+    const glm::quat spin = deltaTime * 0.5f * angularVelocityQuat * currentOrientation;
+    const glm::quat newOrientation = currentOrientation + spin;
+    mTransformComponent->SetRotation(glm::normalize(newOrientation));
 
     //Reset
     mForceAccum = glm::vec3(0.f);
     mLinearAcceleration = glm::vec4(0.f);
     //Drag
-    mLinearVelocity = mLinearVelocity * glm::vec4(0.9999f);
+    const glm::vec4 drag(0.9999f);
+    mLinearVelocity = mLinearVelocity * drag;
+    mAngularVelocity = mAngularVelocity  * drag;
 }
 
 void PhysicComponent::AddForce(const glm::vec3& force)
@@ -85,6 +87,16 @@ const glm::vec4& PhysicComponent::LinearVelocity() const
 void PhysicComponent::SetLinearVelocity(const glm::vec4& velocity)
 {
     mLinearVelocity = velocity;
+}
+
+const glm::vec4 & PhysicComponent::AngularVelocity() const
+{
+    return mAngularVelocity;
+}
+
+void PhysicComponent::SetAngularVelocity(const glm::vec4 & velocity)
+{
+    mAngularVelocity = velocity;
 }
 
 PhysicSystem::PhysicSystem()
