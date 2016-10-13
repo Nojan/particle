@@ -219,7 +219,7 @@ void Seagull::Update(const float deltaTime)
         TransformComponent* transform = entity->getComponent<TransformComponent>();
         const glm::vec3 position(transform->Position());
         PhysicComponent* physic = entity->getComponent<PhysicComponent>();
-        glm::vec3 speed(physic->Velocity());
+        glm::vec3 speed(physic->LinearVelocity());
         float targetDistance = FLT_MAX;
         uint targetIdx = -1;
         for (size_t ydx = 0; ydx < mTargets.size(); ++ydx)
@@ -254,15 +254,15 @@ void Seagull::Update(const float deltaTime)
                 const float targetEta = targetDistance / Constant::PursuitMaxSpeed * 0.25f;
                 const PhysicComponent* targetPhysic = target.mEntity->getComponent<PhysicComponent>();
                 //glm::vec3 targetSpeed = glm::vec3(targetPhysic->Velocity()) + 0.5f*glm::vec3(World::gravity)*targetEta;
-                targetTranslate += glm::vec3(targetPhysic->Velocity()) * targetEta + 0.5f*glm::vec3(World::gravity)*targetEta*targetEta;
+                targetTranslate += glm::vec3(targetPhysic->LinearVelocity()) * targetEta + 0.5f*glm::vec3(World::gravity)*targetEta*targetEta;
                 UpdateTowardTarget(targetTranslate, position, speed, deltaTime);
                 const int count = 100;
                 for (int i = 0; i < count; ++i)
                 {
                     const float t0 = deltaTime * 10.f * i;
                     const float t1 = t0 + deltaTime * 10.f;
-                    const glm::vec3 p0 = glm::vec3(targetTransform->Position()) + glm::vec3(targetPhysic->Velocity()) * t0 + 0.5f*glm::vec3(World::gravity)*t0*t0;
-                    const glm::vec3 p1 = glm::vec3(targetTransform->Position()) + glm::vec3(targetPhysic->Velocity()) * t1 + 0.5f*glm::vec3(World::gravity)*t1*t1;
+                    const glm::vec3 p0 = glm::vec3(targetTransform->Position()) + glm::vec3(targetPhysic->LinearVelocity()) * t0 + 0.5f*glm::vec3(World::gravity)*t0*t0;
+                    const glm::vec3 p1 = glm::vec3(targetTransform->Position()) + glm::vec3(targetPhysic->LinearVelocity()) * t1 + 0.5f*glm::vec3(World::gravity)*t1*t1;
 
                     const VisualDebugSegmentCommand segment(p0, p1, { 0, 1.f, 0.f, 1.f });
                     VisualDebug()->PushCommand(segment);
@@ -274,7 +274,7 @@ void Seagull::Update(const float deltaTime)
             WanderInside(box, position, speed, deltaTime);
         }
         //PreventLooping(*transform, speed, deltaTime);
-        physic->SetVelocity(glm::vec4(speed, 0.f));
+        physic->SetLinearVelocity(glm::vec4(speed, 0.f));
     }
 
     for(size_t idx = 0; idx < mTargets.size(); ++idx)
@@ -319,7 +319,7 @@ void Seagull::SetTrackPosition(const glm::vec3& target)
             target.lifetime = Constant::TargetLifetime;
             PhysicComponent* physic = target.mEntity->getComponent<PhysicComponent>();
             physic->Reset();
-            physic->SetVelocity(targetPosition);
+            physic->SetLinearVelocity(targetPosition);
             GraphicMeshComponent* renderingComponent = target.mEntity->getComponent<GraphicMeshComponent>();
             renderingComponent->mEnable = true;
             break;

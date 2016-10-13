@@ -9,16 +9,16 @@ PhysicComponent::PhysicComponent()
 : mTransformComponent(nullptr)
 , mInvMass(1)
 , mForceAccum(0)
-, mVelocity(0,0,0,0)
-, mAcceleration(0,0,0,1)
+, mLinearVelocity(0,0,0,0)
+, mLinearAcceleration(0,0,0,1)
 {}
 
 PhysicComponent::PhysicComponent(const PhysicComponent& ref)
 : mTransformComponent(ref.mTransformComponent)
 , mInvMass(ref.mInvMass)
 , mForceAccum(ref.mForceAccum)
-, mVelocity(ref.mVelocity)
-, mAcceleration(ref.mAcceleration)
+, mLinearVelocity(ref.mLinearVelocity)
+, mLinearAcceleration(ref.mLinearAcceleration)
 {}
 
 bool PhysicComponent::HasFiniteMass() const
@@ -38,8 +38,8 @@ void PhysicComponent::SetMass(const float mass)
 void PhysicComponent::Reset()
 {
     mForceAccum = glm::vec3(0);
-    mVelocity = glm::vec4(0, 0, 0, 0);
-    mAcceleration = glm::vec4(0, 0, 0, 1);
+    mLinearVelocity = glm::vec4(0, 0, 0, 0);
+    mLinearAcceleration = glm::vec4(0, 0, 0, 1);
 }
 
 void PhysicComponent::Integrate(const float deltaTime)
@@ -48,13 +48,13 @@ void PhysicComponent::Integrate(const float deltaTime)
         return;
 
     const glm::vec4 force(mForceAccum, 0.f);
-    mAcceleration += force*mInvMass;
-    assert(0.f == mVelocity.w);
-    mVelocity += mAcceleration*deltaTime;
-    mVelocity.w = 0.f;
+    mLinearAcceleration += force*mInvMass;
+    assert(0.f == mLinearVelocity.w);
+    mLinearVelocity += mLinearAcceleration*deltaTime;
+    mLinearVelocity.w = 0.f;
     const glm::vec4 position = mTransformComponent->Position();
     assert(1.f == position.w);
-    const glm::vec4 nextPosition = position + mVelocity*deltaTime;
+    const glm::vec4 nextPosition = position + mLinearVelocity*deltaTime;
     mTransformComponent->SetPosition(nextPosition);
 
     const glm::vec3 direction = glm::vec3(nextPosition) - glm::vec3(position);
@@ -67,9 +67,9 @@ void PhysicComponent::Integrate(const float deltaTime)
 
     //Reset
     mForceAccum = glm::vec3(0.f);
-    mAcceleration = glm::vec4(0.f);
+    mLinearAcceleration = glm::vec4(0.f);
     //Drag
-    mVelocity = mVelocity * glm::vec4(0.9999f);
+    mLinearVelocity = mLinearVelocity * glm::vec4(0.9999f);
 }
 
 void PhysicComponent::AddForce(const glm::vec3& force)
@@ -77,14 +77,14 @@ void PhysicComponent::AddForce(const glm::vec3& force)
     mForceAccum += force;
 }
 
-const glm::vec4& PhysicComponent::Velocity() const
+const glm::vec4& PhysicComponent::LinearVelocity() const
 {
-    return mVelocity;
+    return mLinearVelocity;
 }
 
-void PhysicComponent::SetVelocity(const glm::vec4& velocity)
+void PhysicComponent::SetLinearVelocity(const glm::vec4& velocity)
 {
-    mVelocity = velocity;
+    mLinearVelocity = velocity;
 }
 
 PhysicSystem::PhysicSystem()

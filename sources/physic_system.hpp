@@ -22,14 +22,14 @@ public:
     void Integrate(const float deltaTime);
     void AddForce(const glm::vec3& force);
 
-    const glm::vec4& Velocity() const;
-    void SetVelocity(const glm::vec4& velocity);
+    const glm::vec4& LinearVelocity() const;
+    void SetLinearVelocity(const glm::vec4& velocity);
 
     TransformComponent* mTransformComponent;
 private:
     float mInvMass;
-    glm::vec4 mVelocity;
-    glm::vec4 mAcceleration;
+    glm::vec4 mLinearVelocity;
+    glm::vec4 mLinearAcceleration;
     glm::vec3 mForceAccum;
 
 };
