@@ -62,19 +62,27 @@ void Seagull::debug_GUI()
 }
 #endif
 
-static void PreventLooping(const TransformComponent& transform, glm::vec3& speed, float deltaTime) {
-    const glm::vec4 up = transform.Rotation() * World::up;
-    const float dotAngle = glm::dot(up, World::up);
-    Color::rgbap color = { 0, 1, 0, 1 };
-    if (dotAngle < Constant::PursuitMaxClimb)
+static void FaceDirection(const TransformComponent& transform, glm::vec3& linearVelocity, glm::vec3& angularVelocity, float deltaTime) {
+    const glm::vec3 direction = glm::normalize(linearVelocity);
+    const glm::vec3 front(transform.Rotation() * World::front);
+    const float dotAngle = glm::dot(front, direction);
+    if (dotAngle < 1.f)
     {
-        speed[World::up_idx] = 0;
-        color = { 1, 0, 0, 1 };
+        const glm::vec3 normal = -1 == dotAngle ? glm::vec3(1, 0, 0) : glm::cross(front, direction);
+        const float angle = glm::acos(dotAngle);
+        angularVelocity += (1.f / deltaTime) * angle * glm::normalize(normal);
     }
-    
-    const VisualDebugSegmentCommand segment(glm::vec3(transform.mPosition), glm::vec3(transform.mPosition) + glm::vec3(up)*2.f, color);
-    VisualDebugBone bone(glm::vec3(transform.mPosition), glm::vec3(transform.mPosition) + glm::vec3(up)*2.f, color);
-    VisualDebug()->PushCommand(bone);
+}
+
+static void PreventLooping(const TransformComponent& transform, glm::vec3& linearVelocity, glm::vec3& angularVelocity, float deltaTime) {
+    const glm::vec3 up(transform.Rotation() * World::up);
+    const float dotAngle = glm::dot(up, glm::vec3(World::up));
+    if (dotAngle < 1.f)
+    {
+        const glm::vec3 normal = -1 == dotAngle ? glm::vec3(1, 0, 0) : glm::cross(up, glm::vec3(World::up));
+        const float angle = glm::acos(dotAngle);
+        angularVelocity += (0.1f / deltaTime) * angle * glm::normalize(normal);
+    }
 }
 
 static void UpdateTowardTarget(const glm::vec3& target, const glm::vec3& position, glm::vec3& speed, float deltaTime) { 
@@ -273,8 +281,13 @@ void Seagull::Update(const float deltaTime)
         {
             WanderInside(box, position, speed, deltaTime);
         }
-        //PreventLooping(*transform, speed, deltaTime);
         physic->SetLinearVelocity(glm::vec4(speed, 0.f));
+        {
+            glm::vec3 angularVelocity(0);// physic->AngularVelocity());
+            FaceDirection(*transform, speed, angularVelocity, deltaTime);
+            PreventLooping(*transform, speed, angularVelocity, deltaTime);
+            physic->SetAngularVelocity(glm::vec4(angularVelocity, 0.f));
+        }
     }
 
     for(size_t idx = 0; idx < mTargets.size(); ++idx)
