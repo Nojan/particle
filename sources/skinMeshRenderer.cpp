@@ -22,11 +22,18 @@
 #include <assert.h>
 #include <algorithm>
 
+namespace Gameplay {
+namespace Constant {
+    IMGUI_VAR(OverrideAnimation, false);
+    IMGUI_VAR(AnimationTimeOverride, 0.f);
+}
+}
 
 #ifdef IMGUI_ENABLE
 void SkinMeshRenderer::debug_GUI() const
 {
-
+    ImGui::Checkbox("Override Animation", &Gameplay::Constant::OverrideAnimation);
+    ImGui::SliderFloat("Animation Time override", &Gameplay::Constant::AnimationTimeOverride, 0.f, 1.f);
 }
 #endif
 
@@ -132,7 +139,9 @@ void SkinMeshRenderer::Render(const RenderableSkinMesh& renderable, const Scene*
         const glm::mat4& armatureTransform = renderable.mMesh->mArmature->transform;
         const std::vector<Bone>& bones = renderable.mMesh->mArmature->bones;
         const Animation& animation = renderable.mMesh->mArmature->animations.front();
-        const float time = renderable.mAnimationTime;
+        float time = renderable.mAnimationTime;
+        if (Gameplay::Constant::OverrideAnimation)
+            time = Gameplay::Constant::AnimationTimeOverride;
         const uint invalidBoneId = -1;
         for (size_t idx = 0; idx < bones.size(); ++idx)
         {

@@ -40,6 +40,9 @@ namespace Constant {
     IMGUI_VAR(WanderBoxX, 5.f);
     IMGUI_VAR(WanderBoxY, 5.f);
     IMGUI_VAR(WanderBoxZ, 5.f);
+
+    IMGUI_VAR(SpreadWingKeyframe, 0.109f);
+    IMGUI_VAR(DiveWingKeyframe, 0.841f);
 }
 
 #ifdef IMGUI_ENABLE
