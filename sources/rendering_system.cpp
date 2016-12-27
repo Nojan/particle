@@ -58,6 +58,7 @@ void RenderingSystem::detachEntity(GameEntity* entity)
 
 GraphicSkinComponent::GraphicSkinComponent()
     : mAnimationTime(0)
+    , mAnimationRate(1.f)
     , mAnimationIdx(0)
 {
 }
@@ -98,7 +99,10 @@ void RenderingSkinSystem::Update(const float deltaTime)
 {
     for (auto& component : mComponents)
     {
-        component->mAnimationTime += deltaTime;
+        float time = component->mAnimationTime;
+        const float rate = component->mAnimationRate;
+        time += rate * deltaTime;
+        component->mAnimationTime = time;
     }
 }
 

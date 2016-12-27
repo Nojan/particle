@@ -63,6 +63,7 @@ public:
 
     std::unique_ptr<RenderableSkinMesh> mRenderable;
     float mAnimationTime;
+    float mAnimationRate;
     uint mAnimationIdx;
 };
 
