@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <deque>
+#include <random>
 
 namespace Gameplay {
 
@@ -167,6 +168,8 @@ void Seagull::Init()
 
     std::shared_ptr<SkinMesh> skinMesh = Global::resourceManager()->skinMesh("../asset/mesh/bird.assxml");
 
+    std::default_random_engine generator;
+
     for (size_t idx = 0; idx < mEntities.size(); ++idx)
     {
         GameEntity* entity = gameSystem->createEntity();
@@ -181,6 +184,9 @@ void Seagull::Init()
         renderingComponent->mColor = { 1.f, 1.f, 0.f, 1.f };
         renderingComponent->mRenderable.reset(new RenderableSkinMesh());
         renderingComponent->mRenderable->mMesh = skinMesh;
+        const float animationLoopTime = 1.25f;
+        std::uniform_real_distribution<float> distribution(0.f, animationLoopTime);
+        renderingComponent->mAnimationTime = distribution(generator);
     }
 
     for (size_t idx = 0; idx < mTargets.size(); ++idx)
