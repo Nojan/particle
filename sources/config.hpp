@@ -1,4 +1,9 @@
 #pragma once
 
-//#define IMGUI_ENABLE
+#ifdef __EMSCRIPTEN__
+#define WEBGL
+#endif
 
+#ifndef WEBGL
+#define IMGUI_ENABLE
+#endif

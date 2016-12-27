@@ -86,11 +86,16 @@ void Root::CreateContext()
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16);
+#ifdef WEBGL
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_EGL, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-
+#else
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+#endif        
     const int windowsWidth = 800;
     const int windowsHeight = 600;
     mSDL_ctx->window = SDL_CreateWindow(
@@ -129,7 +134,7 @@ void Root::CreateContext()
     gl_log_error();
 
     // Setup ImGui binding
-    IMGUI_ONLY(ImGui_ImplSdlGL3_Init(mSDL_ctx->window));
+    IMGUI_ONLY(ImGui_ImplSdl_Init(mSDL_ctx->window));
 
     Global::Load();
 }
@@ -209,7 +214,7 @@ void Root::Terminate()
     
     Global::Unload();
 
-    IMGUI_ONLY(ImGui_ImplSdlGL3_Shutdown());
+    IMGUI_ONLY(ImGui_ImplSdl_Shutdown());
     if (mSDL_ctx->window)
         SDL_DestroyWindow(mSDL_ctx->window);
     SDL_Quit();
@@ -252,7 +257,7 @@ void Root::Update()
         mCamera->Event(e);
         mGameplayLoopManager->Event(e);
     }
-    IMGUI_ONLY(ImGui_ImplSdlGL3_NewFrame(mSDL_ctx->window));
+    IMGUI_ONLY(ImGui_ImplSdl_NewFrame(mSDL_ctx->window));
     for (std::shared_ptr<IUpdater>& updater : mUpdaterList)
     {
         updater->FrameStep();

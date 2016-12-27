@@ -4,7 +4,7 @@
 
 #ifdef IMGUI_ENABLE
 #include "imgui.h"
-#include "imgui_impl_sdl_gl3.h"
+#include "imgui_impl.hpp"
 
 #define IMGUI_ONLY(x) x
 
