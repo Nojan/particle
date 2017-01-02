@@ -129,6 +129,10 @@ static void WanderInside(const BoundingBox3D& box, const glm::vec3& position, gl
         UpdateTowardTarget(box.Center(), position, speed, deltaTime);
         return;
     }
+    else if ( 0.1f < glm::linearRand(0.f, 1.f) )
+    {
+        return;
+    }
     const float maxSpeed = Constant::WanderMaxSpeed;
     const float maxSteering = Constant::WanderMaxSteering;
     const float maxDistance = Constant::WanderMaxDistance;
