@@ -15,6 +15,7 @@
 #include "../world_constant.hpp"
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/random.hpp>
+#include <glm/gtx/compatibility.hpp>
 
 #include <assert.h>
 #include <algorithm>
@@ -41,6 +42,9 @@ namespace Constant {
     IMGUI_VAR(WanderBoxY, 5.f);
     IMGUI_VAR(WanderBoxZ, 5.f);
 
+    IMGUI_VAR(AvoidRadius, 1.f);
+
+    IMGUI_VAR(MaxWingFlapRate, 3.f);
     IMGUI_VAR(SpreadWingKeyframe, 0.109f);
     IMGUI_VAR(DiveWingKeyframe, 0.841f);
 }
@@ -63,6 +67,8 @@ void Seagull::debug_GUI()
     ImGui::SliderFloat("Wander Box X", &Constant::WanderBoxX, 1.f, 10.f);
     ImGui::SliderFloat("Wander Box Y", &Constant::WanderBoxY, 1.f, 10.f);
     ImGui::SliderFloat("Wander Box Z", &Constant::WanderBoxZ, 1.f, 10.f);
+
+    ImGui::SliderFloat("Max wing flap rate", &Constant::MaxWingFlapRate, 1.f, 3.f);
 }
 #endif
 
@@ -224,8 +230,16 @@ void Seagull::Terminate()
     }
 }
 
+static float cursorize(float v, float min, float max) {
+    assert(min < max);
+    const float cursor = (v - min) / (max - min);
+    return glm::clamp(cursor, 0.f, 1.f);
+}
+
 void Seagull::Update(const float deltaTime)
 {
+    assert(0.f < deltaTime);
+    const float invDeltaTime = 1.f / deltaTime;
     const Color::rgbap red = { 1.f, 0.f, 0.f, 1.f };
     const Color::rgbap yellow = { 1.f, 1.f, 0.f, 1.f };
     const glm::vec3 boxCenter = Constant::WanderBoxCenter;
@@ -234,7 +248,8 @@ void Seagull::Update(const float deltaTime)
     //const VisualDebugBoundingBoxCommand dbgBox(box, { 0, 1.f, 0.f, 0.2f }, glm::mat4());
     //VisualDebug()->PushCommand(dbgBox);
     
-    for (size_t idx = 0; idx < mEntities.size(); ++idx)
+    const size_t entitiesCount = mEntities.size();
+    for (size_t idx = 0; idx < entitiesCount; ++idx)
     {
         GameEntity* entity = mEntities[idx];
         TransformComponent* transform = entity->getComponent<TransformComponent>();
@@ -294,12 +309,59 @@ void Seagull::Update(const float deltaTime)
         {
             WanderInside(box, position, speed, deltaTime);
         }
+
+        // avoid others
+        glm::vec3 avoidance(0);
+        for (size_t idxOther = 0; idxOther < entitiesCount; ++idxOther)
+        {
+            if (idxOther == idx)
+                continue;
+            GameEntity* entityOther = mEntities[idxOther];
+            TransformComponent* transformOther = entityOther->getComponent<TransformComponent>();
+            const glm::vec3 otherPosition(transformOther->Position());
+            const glm::vec3 otherDirection(otherPosition - position);
+            const float distance = glm::length(otherDirection);
+            if (Constant::AvoidRadius < distance)
+                continue;
+            const float avoidanceRatio = glm::clamp(1.f - distance / Constant::AvoidRadius, 0.f, 1.f);
+            avoidance += otherDirection * ( -0.25f * avoidanceRatio * distance * invDeltaTime);
+        }
+        speed += avoidance;
+
         physic->SetLinearVelocity(glm::vec4(speed, 0.f));
         {
             glm::vec3 angularVelocity(0);// physic->AngularVelocity());
             FaceDirection(*transform, speed, angularVelocity, deltaTime);
             PreventLooping(*transform, speed, angularVelocity, deltaTime);
             physic->SetAngularVelocity(glm::vec4(angularVelocity, 0.f));
+        }
+        // animation
+        {
+            GraphicSkinComponent* skinComponent = entity->getComponent<GraphicSkinComponent>();
+            const float upDir = (transform->Rotation() * World::front)[World::up_idx];
+            //const glm::vec3 velocityDir = glm::normalize(speed);
+            //const float upDir = velocityDir[World::up_idx];
+            if (-0.15f < upDir)
+            {
+                const float flapRate = glm::lerp(0.f, Gameplay::Constant::MaxWingFlapRate, cursorize(upDir, -0.15f, 1.f));
+                skinComponent->mAnimationRate = glm::max(0.f, flapRate);
+            }
+            else 
+            {
+                float diff = Gameplay::Constant::SpreadWingKeyframe - skinComponent->mAnimationTime;
+                //if (-0.35f < upDir)
+                //{ 
+                //    diff = Gameplay::Constant::SpreadWingKeyframe - skinComponent->mAnimationTime;
+                //}
+                //else
+                //{ 
+                //    diff = Gameplay::Constant::DiveWingKeyframe - skinComponent->mAnimationTime;
+                //}
+                const float animationLoopTime = skinComponent->mRenderable->mMesh->mArmature->animations.front().duration;
+                const float sign = std::copysignf(1.f, diff);
+                const float rate = cursorize( fabsf(diff), 0, animationLoopTime);
+                skinComponent->mAnimationRate = sign * rate;
+            }
         }
     }
 
