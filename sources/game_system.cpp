@@ -4,6 +4,7 @@
 #include "physic_system.hpp"
 #include "transform_system.hpp"
 #include "rendering_system.hpp"
+#include "sound_system.hpp"
 
 #include <cassert>
 
@@ -15,6 +16,7 @@ GameSystem::GameSystem()
     CREATE_SYSTEM(PhysicSystem);
     CREATE_SYSTEM(RenderingSystem);
     CREATE_SYSTEM(RenderingSkinSystem);
+    CREATE_SYSTEM(SoundSystem);
 }
 
 #undef CREATE_SYSTEM

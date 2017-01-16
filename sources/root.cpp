@@ -73,7 +73,7 @@ void Root::CreateContext()
 
     mSDL_ctx = new SDL_Context();
     mSDL_ctx->window = nullptr;
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         exit(EXIT_FAILURE);
     }
@@ -267,8 +267,10 @@ void Root::Update()
     {
         lastFrameDuration = 0;
     }
+    float playedFrame = 0;
     while (frameDuration <= lastFrameDuration) {
         lastFrameDuration -= frameDuration;
+        playedFrame += frameDuration;
         const float frameStep = frameDuration * mFrameMultiplier;
         for (std::shared_ptr<IUpdater>& updater : mUpdaterList)
         {
