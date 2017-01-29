@@ -11,5 +11,5 @@ install:
 - docker build -t particle . 
 
 script:
-- docker run particle . 
+- docker run -v $(pwd):/workdir particle
 
