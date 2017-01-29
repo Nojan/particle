@@ -1,23 +1,15 @@
-language: cpp
-compiler: g++ 
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    - kubuntu-backports
-    packages:
-    - cmake
-    - gcc-4.9
-    - g++-4.9
-before_install:
-    - sudo add-apt-repository ppa:codegear/release -y
-    - sudo add-apt-repository ppa:team-xbmc/ppa -y
-    - sudo apt-get update -qq
-install: 
-    - sudo apt-get install -y premake4 libsdl2-dev
-script: 
-    # Use g++ 4.8, if tests are run with g++
-    - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9"; fi
-    - if [ "$CC" = "gcc" ]; then export CC="gcc-4.9"; fi
-    # Build
-    - ./build.sh
+# This makes travis use the thin image which boots faster
+language: generic
+
+# sudo:required is needed for docker use
+sudo: required
+
+services:
+- docker
+
+install:
+- docker build -t particle . 
+
+script:
+- docker run -v $(pwd):/workdir particle
+
