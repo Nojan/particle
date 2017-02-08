@@ -37,6 +37,7 @@ void PlatformEmscripten::Init()
         "../asset/mesh/plane.assxml",
         "../asset/mesh/quai.assxml",
         "../asset/texture/wave2.png",
+        "../asset/sound/Rondo_Alla_Turka2.ogg",
     };
 
     auto onLoadFunc = [](const char* filename) { gloPlatformEmscripten->OnLoad(filename); };

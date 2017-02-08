@@ -1,11 +1,17 @@
 #include "sound_system.hpp"
 
+#include "config.hpp"
 #include "game_entity.hpp"
+#include "sound_stream.hpp"
 #include "types.hpp"
 
 #include <SDL2/SDL.h>
 #include <cassert>
 #include <array>
+
+#include "global.hpp"
+#include "platform/platform.hpp"
+#include <stb/stb_vorbis.c>
 
 SoundComponent::SoundComponent()
 : mValid(false)
@@ -125,7 +131,8 @@ class SoundSystemImpl {
 public:
     SoundSystemImpl();
 
-    void fillBuffer(int period);
+    void fillBuffer();
+    void queueAudio();
 
     SDL_AudioSpec mAudioSpecRequest;
     SDL_AudioSpec mAudioSpecObtained;
@@ -152,21 +159,94 @@ SoundSystemImpl::SoundSystemImpl()
         exit(EXIT_FAILURE);
     }
 
-    fillBuffer(128);
+    fillBuffer();
+    queueAudio();
+    SDL_PauseAudioDevice(mAudioDeviceId, 0);
 }
 
-void SoundSystemImpl::fillBuffer(int period)
+void SoundSystemImpl::queueAudio()
 {
-    const float two_pi = 6.283185307179586476925f;
-    const float sampleCountInv = 1.f / static_cast<float>(period);
-    while (period <= (mBuffer.max_size() - mBuffer.size()))
+    const int freq = mAudioSpecObtained.freq;
+    const int max_samples = mAudioSpecObtained.samples;
+    const uint32_t bytePerSample = sizeof(float);
+    SDL_AudioDeviceID audioDeviceID = mAudioDeviceId;
+    uint32_t alreadyQueuedByte = SDL_GetQueuedAudioSize(audioDeviceID);
+    int16_t alreadyQueued = numeric_cast<int16_t>(alreadyQueuedByte / bytePerSample);
+    int16_t toQueue = max_samples - alreadyQueued;
+    int16_t firstReadCount = toQueue;
+    const float* firstReadSeq = mBuffer.read_ptr(&firstReadCount);
+    if (0 < firstReadCount)
     {
-        for (int idx = 0; idx < period; ++idx)
+        int audioError = SDL_QueueAudio(audioDeviceID, (const void*)firstReadSeq, firstReadCount * bytePerSample);
+        if (0 != audioError)
         {
-            const float cursor = static_cast<float>(idx) * sampleCountInv;
-            const float value = sin(cursor*two_pi);
-            mBuffer.write(value);
+            printf("Audio queue error %s\n", SDL_GetError());
         }
+        int16_t secondReadCount = toQueue - firstReadCount;
+        if (0 < secondReadCount)
+        {
+            const float* secondReadSeq = mBuffer.read_ptr(&secondReadCount);
+            audioError = SDL_QueueAudio(audioDeviceID, (const void*)secondReadSeq, secondReadCount * bytePerSample);
+            if (0 != audioError)
+            {
+                printf("Audio queue error %s\n", SDL_GetError());
+            }
+        }
+    }
+}
+
+int vorbis_decode_file(FILE *file, AudioStream& audioStream)
+{
+    int error;
+    stb_vorbis *v = stb_vorbis_open_file(file, false, &error, nullptr);
+    if (v == NULL) return -1;
+    audioStream.mChannels = v->channels;
+    audioStream.mSampleRate = v->sample_rate;
+    for (;;) {
+        float** frame_data;
+        int n = stb_vorbis_get_frame_float(v, &(v->channels), &frame_data);
+        if (n == 0) break;
+        for (int idx = 0; idx < n; ++idx)
+        {
+            for (int channel_idx = 0; channel_idx < v->channels; ++channel_idx)
+            {
+                audioStream.mAudio.push_back(frame_data[channel_idx][idx]);
+            }
+        }
+    }
+    stb_vorbis_close(v);
+    return true;
+}
+
+void SoundSystemImpl::fillBuffer()
+{
+    //const float two_pi = 6.283185307179586476925f;
+    //const float sampleCountInv = 1.f / static_cast<float>(period);
+    //while (period <= (mBuffer.max_size() - mBuffer.size()))
+    //{
+    //    for (int idx = 0; idx < period; ++idx)
+    //    {
+    //        const float cursor = static_cast<float>(idx) * sampleCountInv;
+    //        const float value = sin(cursor*two_pi);
+    //        mBuffer.write(value);
+    //    }
+    //}
+
+    static AudioStream audioStream;
+    static uint32_t index = 0;
+    if (audioStream.mAudio.empty())
+    {
+        FILE *file = Global::platform()->OpenFile("../asset/sound/Rondo_Alla_Turka2.ogg", "rb");
+        assert(file);
+        audioStream.mAudio.reserve(1063330);
+        vorbis_decode_file(file, audioStream);
+    }
+    
+    while (mBuffer.size() < mBuffer.max_size() && index < audioStream.mAudio.size())
+    {
+        const float value = audioStream.mAudio[index];
+        mBuffer.write(value);
+        ++index;
     }
 }
 
@@ -187,33 +267,8 @@ void SoundSystem::Update(const float deltaTime)
     {
         component.Play(deltaTime);
     }
-
-    const int freq = mImpl->mAudioSpecObtained.freq;
-    const int max_samples = mImpl->mAudioSpecObtained.samples;
-    const uint32_t bytePerSample = sizeof(float);
-    SDL_AudioDeviceID audioDeviceID = mImpl->mAudioDeviceId;
-    uint32_t alreadyQueuedByte = SDL_GetQueuedAudioSize(audioDeviceID);
-    int16_t alreadyQueued = numeric_cast<int16_t>(alreadyQueuedByte / bytePerSample);
-    int16_t toQueue = max_samples - alreadyQueued;
-    int16_t firstReadCount = toQueue;
-    const float* firstReadSeq = mImpl->mBuffer.read_ptr(&firstReadCount);
-    int audioError = SDL_QueueAudio(audioDeviceID, (const void*)firstReadSeq, firstReadCount * bytePerSample);
-    if (0 != audioError)
-    {
-        printf("Audio queue error %s\n", SDL_GetError());
-    }
-    int16_t secondReadCount = toQueue - firstReadCount;
-    if (0 < secondReadCount)
-    {
-        const float* secondReadSeq = mImpl->mBuffer.read_ptr(&secondReadCount);
-        int audioError = SDL_QueueAudio(audioDeviceID, (const void*)secondReadSeq, secondReadCount * bytePerSample);
-        if (0 != audioError)
-        {
-            printf("Audio queue error %s\n", SDL_GetError());
-        }
-    }
-    SDL_PauseAudioDevice(audioDeviceID, 0);
-    mImpl->fillBuffer(128);
+    mImpl->fillBuffer();
+    mImpl->queueAudio();
 }
 
 void SoundSystem::attachEntity(GameEntity* entity)
