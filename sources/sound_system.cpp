@@ -160,8 +160,6 @@ SoundSystemImpl::SoundSystemImpl()
     }
     printf("Audio: freq %d, format %d, channels %d, samples %d \n", mAudioSpecObtained.freq, mAudioSpecObtained.format, mAudioSpecObtained.channels, mAudioSpecObtained.samples);
 
-    fillBuffer();
-    queueAudio();
     SDL_PauseAudioDevice(mAudioDeviceId, 0);
 }
 
