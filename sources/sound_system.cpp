@@ -152,12 +152,13 @@ SoundSystemImpl::SoundSystemImpl()
     mAudioSpecRequest.userdata = nullptr;
     SDL_memset(&mAudioSpecObtained, 0, sizeof(mAudioSpecObtained));
 
-    mAudioDeviceId = SDL_OpenAudioDevice(nullptr, false, &mAudioSpecRequest, &mAudioSpecObtained, false);
+    mAudioDeviceId = SDL_OpenAudioDevice(nullptr, false, &mAudioSpecRequest, &mAudioSpecObtained, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
     if (mAudioDeviceId <= 0) {
         printf("Couldn't open audio: %s\n", SDL_GetError());
         SDL_assert(false);
         exit(EXIT_FAILURE);
     }
+    printf("Audio: freq %d, format %d, channels %d, samples %d \n", mAudioSpecObtained.freq, mAudioSpecObtained.format, mAudioSpecObtained.channels, mAudioSpecObtained.samples);
 
     fillBuffer();
     queueAudio();
