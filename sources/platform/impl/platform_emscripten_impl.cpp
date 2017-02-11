@@ -8,7 +8,7 @@
 static PlatformEmscripten* gloPlatformEmscripten = nullptr;
 
 PlatformEmscripten::PlatformEmscripten()
-: mFileToLoad(5)
+: mFileToLoad(6)
 {
     assert(nullptr == gloPlatformEmscripten);
     gloPlatformEmscripten = this;
@@ -24,12 +24,14 @@ void PlatformEmscripten::Init()
     FS.mount(MEMFS, {}, '/../asset');
     FS.mkdir('/../asset/mesh');
     FS.mount(MEMFS, {}, '/../asset/mesh');
+    FS.mkdir('/../asset/sound');
+    FS.mount(MEMFS, {}, '/../asset/sound');
     FS.mkdir('/../asset/texture');
     FS.mount(MEMFS, {}, '/../asset/texture');
     );
 #endif
     printf("Emscripten FS init done\n");
-    const size_t count = 5;
+    const size_t count = 6;
     assert(count == mFileToLoad);
     const char * url[] = {
         "../asset/mesh/bird.assxml",
@@ -37,7 +39,7 @@ void PlatformEmscripten::Init()
         "../asset/mesh/plane.assxml",
         "../asset/mesh/quai.assxml",
         "../asset/texture/wave2.png",
-        "../asset/sound/Rondo_Alla_Turka2.ogg",
+        "../asset/sound/music.ogg",
     };
 
     auto onLoadFunc = [](const char* filename) { gloPlatformEmscripten->OnLoad(filename); };
