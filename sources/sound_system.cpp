@@ -219,23 +219,60 @@ int vorbis_decode_file(FILE *file, AudioStream& audioStream)
 
 void SoundSystemImpl::fillBuffer()
 {
-    //const float two_pi = 6.283185307179586476925f;
-    //const float sampleCountInv = 1.f / static_cast<float>(period);
-    //while (period <= (mBuffer.max_size() - mBuffer.size()))
+    //const int16_t period = 128;
+    //static std::array<float, period> sin_cache;
+    //static bool init = false;
+    //if (!init)
     //{
+    //    const float two_pi = 6.283185307179586476925f;
+    //    const float sampleCountInv = 1.f / static_cast<float>(period);
     //    for (int idx = 0; idx < period; ++idx)
     //    {
     //        const float cursor = static_cast<float>(idx) * sampleCountInv;
     //        const float value = sin(cursor*two_pi);
+    //        sin_cache[idx] = value;  
+    //    }
+    //    init = true;
+    //}
+    //while (period <= (mBuffer.max_size() - mBuffer.size()))
+    //{
+    //    for (int idx = 0; idx < period; ++idx)
+    //    {
+    //        const float value = sin_cache[idx];
     //        mBuffer.write(value);
     //    }
     //}
+    //return;
 
+    int error;
+    static FILE *file = Global::platform()->OpenFile("../asset/sound/music.ogg", "rb");
+    assert(file);
+    static stb_vorbis *v = stb_vorbis_open_file(file, false, &error, nullptr);
+    if (v == nullptr) 
+        return ;
+    static int frame_idx = 0;
+    static int frame_count = 0;
+    while (mBuffer.max_size() - mBuffer.size())
+    {
+        static float** frame_data;
+        if (frame_idx == frame_count)
+        {
+            frame_idx = 0;
+            frame_count = stb_vorbis_get_frame_float(v, &(v->channels), &frame_data);
+        }
+        if (frame_count == 0) return;
+        for (; frame_idx < frame_count && mBuffer.max_size() - mBuffer.size(); ++frame_idx)
+        {
+            const float value = frame_data[0][frame_idx];
+            mBuffer.write(value);
+        }
+    }
+    return;
     static AudioStream audioStream;
     static uint32_t index = 0;
     if (audioStream.mAudio.empty())
     {
-        FILE *file = Global::platform()->OpenFile("../asset/sound/Rondo_Alla_Turka2.ogg", "rb");
+        FILE *file = Global::platform()->OpenFile("../asset/sound/music.ogg", "rb");
         assert(file);
         audioStream.mAudio.reserve(1063330);
         vorbis_decode_file(file, audioStream);
