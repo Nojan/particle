@@ -68,6 +68,10 @@ FILE * PlatformEmscripten::OpenFile(const char* filename, const char * mode) {
     return fopen(filename, mode);
 }
 
+void PlatformEmscripten::CloseFile(FILE * file) {
+    fclose(file);
+}
+
 void PlatformEmscripten::OnLoad(const char * filename)
 {
     printf("wget success %s\n", filename);

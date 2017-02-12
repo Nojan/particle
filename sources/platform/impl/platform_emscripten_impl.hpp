@@ -11,6 +11,7 @@ public:
     void Terminate() override;
 
     FILE * OpenFile(const char* filename, const char * mode) override;
+    void CloseFile(FILE * file) override;
 
 public:
     void OnLoad(const char * filename);

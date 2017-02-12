@@ -68,3 +68,8 @@ FILE* Platform::OpenFile(const char* filename, const char * mode) {
     }
     return file;
 }
+
+void Platform::CloseFile(FILE * file)
+{
+    mImpl->CloseFile(file);
+}

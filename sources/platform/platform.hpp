@@ -28,6 +28,7 @@ public:
     void Terminate();
 
     FILE* OpenFile(const char* filename, const char * mode);
+    void CloseFile(FILE* file);
 
 private:
     std::unique_ptr<IPlatformImpl> mImpl;

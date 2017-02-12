@@ -9,4 +9,5 @@ public:
     virtual void Terminate() = 0;
 
     virtual FILE * OpenFile(const char* filename, const char * mode) = 0;
+    virtual void CloseFile(FILE * file) = 0;
 };

@@ -16,3 +16,7 @@ void PlatformWindows::Terminate() {
 FILE * PlatformWindows::OpenFile(const char* filename, const char * mode) {
     return fopen(filename, mode);
 }
+
+void PlatformWindows::CloseFile(FILE * file) {
+    fclose(file);
+}
