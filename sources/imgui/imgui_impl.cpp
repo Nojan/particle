@@ -7,8 +7,13 @@
 #ifdef IMGUI_ENABLE
 
 #include <SDL2/SDL.h>
+#ifdef __EMSCRIPTEN__
+#include "emscripten.h"
+#include <GLES2/gl2.h>
+#else
 #include <SDL2/SDL_syswm.h>
 #include "../opengl_includes.hpp"
+#endif
 
 // Data
 static double       g_Time = 0.0f;

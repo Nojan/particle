@@ -4,6 +4,4 @@
 #define WEBGL
 #endif
 
-#ifndef WEBGL
 #define IMGUI_ENABLE
-#endif
