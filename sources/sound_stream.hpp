@@ -4,7 +4,7 @@
 
 #include <vector>
 
-struct AudioStream {
+struct SoundStream {
     std::vector<float> mAudio;
     uint16_t mSampleRate;
     uint8_t mChannels;
