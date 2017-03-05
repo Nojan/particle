@@ -50,7 +50,7 @@ void MusicEntity::Update(const float deltaTime)
     SoundSystem* soundSystem = gameSystem->getSystem<SoundSystem>();
     int musicDone = 0;
     assert(0 <= mSubmittedFrame);
-    while (musicDone < 2 && mSubmittedFrame < 4)
+    while (musicDone < 2 && mSubmittedFrame < 2)
     {
         SoundFrame* soundFrame = soundSystem->RequestFrame();
         size_t idx = 0;

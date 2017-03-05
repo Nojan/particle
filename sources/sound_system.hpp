@@ -12,7 +12,7 @@
 struct SoundFrame {
     void Reset();
 
-    using array = std::array<float, 48000/60>; 
+    using array = std::array<float, 2048>; 
     array mSample;
     int32_t mDelay;
     std::atomic_int* mCounter;

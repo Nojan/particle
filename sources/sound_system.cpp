@@ -161,14 +161,15 @@ class SoundSystemImpl {
 public:
     SoundSystemImpl();
 
-    void fillBuffer();
+    int16_t samplesNeeded() const;
     void queueAudio();
+    
 
     SDL_AudioSpec mAudioSpecRequest;
     SDL_AudioSpec mAudioSpecObtained;
     SDL_AudioDeviceID mAudioDeviceId;
 
-    RingBuffer<float, 4096> mBuffer;
+    std::vector<float> mFrameMixer;
 };
 
 #ifdef IMGUI_ENABLE
@@ -195,8 +196,19 @@ SoundSystemImpl::SoundSystemImpl()
         exit(EXIT_FAILURE);
     }
     printf("Audio: freq %d, format %d, channels %d, samples %d \n", mAudioSpecObtained.freq, mAudioSpecObtained.format, mAudioSpecObtained.channels, mAudioSpecObtained.samples);
-
+    mFrameMixer.reserve(mAudioSpecObtained.samples);
     SDL_PauseAudioDevice(mAudioDeviceId, 0);
+}
+
+int16_t SoundSystemImpl::samplesNeeded() const
+{
+    const int freq = mAudioSpecObtained.freq;
+    const int max_samples = mAudioSpecObtained.samples;
+    const uint32_t bytePerSample = sizeof(float);
+    const uint32_t alreadyQueuedByte = SDL_GetQueuedAudioSize(mAudioDeviceId);
+    const int16_t alreadyQueued = numeric_cast<int16_t>(alreadyQueuedByte / bytePerSample);
+    const int16_t toQueue = max_samples - alreadyQueued;
+    return toQueue;
 }
 
 void SoundSystemImpl::queueAudio()
@@ -215,86 +227,20 @@ void SoundSystemImpl::queueAudio()
     {
         g_debug_sample_buffer.read();
     }
-    g_debug_sample_buffer.write(mBuffer.size());
+    g_debug_sample_buffer.write(mFrameMixer.size());
     while (g_debug_required_buffer.max_size() <= g_debug_required_buffer.size())
     {
         g_debug_required_buffer.read();
     }
     g_debug_required_buffer.write(toQueue);
 #endif
-    
-    const float* firstReadSeq = mBuffer.read_ptr(&firstReadCount);
-    if (0 < firstReadCount)
-    {
-        int audioError = SDL_QueueAudio(audioDeviceID, (const void*)firstReadSeq, firstReadCount * bytePerSample);
-        if (0 != audioError)
-        {
-            printf("Audio queue error %s\n", SDL_GetError());
-        }
-        int16_t secondReadCount = toQueue - firstReadCount;
-        if (0 < secondReadCount)
-        {
-            const float* secondReadSeq = mBuffer.read_ptr(&secondReadCount);
-            audioError = SDL_QueueAudio(audioDeviceID, (const void*)secondReadSeq, secondReadCount * bytePerSample);
-            if (0 != audioError)
-            {
-                printf("Audio queue error %s\n", SDL_GetError());
-            }
-        }
-    }
-}
 
-void SoundSystemImpl::fillBuffer()
-{
-    //const int16_t period = 128;
-    //static std::array<float, period> sin_cache;
-    //static bool init = false;
-    //if (!init)
-    //{
-    //    const float two_pi = 6.283185307179586476925f;
-    //    const float sampleCountInv = 1.f / static_cast<float>(period);
-    //    for (int idx = 0; idx < period; ++idx)
-    //    {
-    //        const float cursor = static_cast<float>(idx) * sampleCountInv;
-    //        const float value = sin(cursor*two_pi);
-    //        sin_cache[idx] = value;  
-    //    }
-    //    init = true;
-    //}
-    //while (period <= (mBuffer.max_size() - mBuffer.size()))
-    //{
-    //    for (int idx = 0; idx < period; ++idx)
-    //    {
-    //        const float value = sin_cache[idx];
-    //        mBuffer.write(value);
-    //    }
-    //}
-    //return;
-
-    int error;
-    static FILE *file = Global::platform()->OpenFile("../asset/sound/music.ogg", "rb");
-    assert(file);
-    static stb_vorbis *v = stb_vorbis_open_file(file, false, &error, nullptr);
-    if (v == nullptr) 
-        return ;
-    static int frame_idx = 0;
-    static int frame_count = 0;
-    while (mBuffer.max_size() - mBuffer.size())
+    int audioError = SDL_QueueAudio(audioDeviceID, (const void*)mFrameMixer.data(), mFrameMixer.size() * bytePerSample);
+    if (0 != audioError)
     {
-        static float** frame_data;
-        if (frame_idx == frame_count)
-        {
-            stb_vorbis_info vorbis_info = stb_vorbis_get_info(v);
-            frame_idx = 0;
-            frame_count = stb_vorbis_get_frame_float(v, &(vorbis_info.channels), &frame_data);
-        }
-        if (frame_count == 0) return;
-        for (; frame_idx < frame_count && mBuffer.max_size() - mBuffer.size(); ++frame_idx)
-        {
-            const float value = frame_data[0][frame_idx];
-            mBuffer.write(value);
-        }
+        printf("Audio queue error %s\n", SDL_GetError());
     }
+    mFrameMixer.clear();
 }
 
 SoundSystem::SoundSystem()
@@ -362,43 +308,44 @@ void SoundSystem::Update(const float deltaTime)
         component.Play(deltaTime, this);
     }
 
-    SoundFrame::array array_mix;
-    std::memset(array_mix.data(), 0, array_mix.max_size() * sizeof(float));
-    const int32_t frameStep = array_mix.max_size();//ignoring delta time for now
-
-    // making room for new samples
-    if (mImpl->mBuffer.max_size() - mImpl->mBuffer.size() < numeric_cast<int16_t>(frameStep))
-    {
-        int16_t read = numeric_cast<int16_t>(frameStep);
-        mImpl->mBuffer.read_ptr(&read);
-        if (read < frameStep)
-        {
-            read = numeric_cast<int16_t>(frameStep) - read;
-            mImpl->mBuffer.read_ptr(&read);
-        }
-    }
+    const int32_t frameStep = mImpl->samplesNeeded();
+    std::vector<float>& array_mix = mImpl->mFrameMixer;
+    array_mix.resize(frameStep);
+    const int32_t array_mix_size = numeric_cast<int32_t>(array_mix.size());
+    std::memset(array_mix.data(), 0, array_mix_size * sizeof(float));
 
     SoundFrame* nextFrame = mPlayFrame;
     SoundFrame* lastFrame = nullptr;
     for(SoundFrame* frame = nextFrame; frame != nullptr; frame = nextFrame)
     {
+        assert(0 == (mImpl->mAudioSpecObtained.samples % frame->mSample.max_size()));
         nextFrame = frame->mNext;
-        if(frame->mDelay < 0)
+        if(frame->mDelay <= -frameStep)
         {
             frame->mDelay += frameStep;
             lastFrame = frame;
             continue;
         } 
-        else if (frame->mDelay < frameStep)
+
+        if (frame->mDelay < frameStep)
         {
-            for(int32_t frameIdx = frame->mDelay, mixIdx = 0; frameIdx < frameStep; ++frameIdx, ++mixIdx)
+            const int32_t frameSize = frame->mSample.max_size();
+            const int32_t frameInit = std::max(0, frame->mDelay);
+            const int32_t mixInit = frame->mDelay < 0 ? std::abs(frame->mDelay) : 0;
+            int32_t frameIdx, mixIdx;
+            for(frameIdx = frameInit, mixIdx = mixInit; frameIdx < frameSize && mixIdx < array_mix_size; ++frameIdx, ++mixIdx)
             {
                 array_mix[mixIdx] += frame->mSample[frameIdx];
             }
-            frame->mDelay += frameStep;
+            if (frame->mDelay < 0)
+            {
+                frame->mDelay = 0;
+            }
+            frame->mDelay += frameIdx;
+            assert(0 < frame->mDelay);
         }
         
-        if (frameStep <= frame->mDelay)
+        if (frame->mSample.max_size() <= frame->mDelay)
         {
             if (lastFrame)
             {
@@ -416,12 +363,6 @@ void SoundSystem::Update(const float deltaTime)
         {
             lastFrame = frame;
         }
-    }
-
-    for(int32_t idx = 0; idx < frameStep; ++idx)
-    {
-        const float value = array_mix[idx];
-        mImpl->mBuffer.write(value);
     }
     mImpl->queueAudio();
 }
