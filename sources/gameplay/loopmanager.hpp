@@ -8,6 +8,8 @@
 
 union SDL_Event;
 
+class MusicEntity;
+
 namespace Gameplay {
 	
 class Seagull;
@@ -32,6 +34,7 @@ public:
 private:
     std::unique_ptr<Seagull> mSeagull;
     std::unique_ptr<Sea> mSea;
+    std::unique_ptr<MusicEntity> mMusic;
 };
 
 } // namespace

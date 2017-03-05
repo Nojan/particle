@@ -5,6 +5,7 @@
 
 #include "../root.hpp"
 #include "../camera.hpp"
+#include "../music_entity.hpp"
 #include "../visualdebug.hpp"
 
 #include "../opengl_includes.hpp"
@@ -18,6 +19,7 @@ namespace Gameplay {
 LoopManager::LoopManager()
 : mSeagull(new Seagull())
 , mSea(new Sea())
+, mMusic(new MusicEntity())
 {}
 
 LoopManager::~LoopManager()
@@ -27,12 +29,14 @@ void LoopManager::Init()
 {
 	mSeagull->Init();
     mSea->Init();
+    mMusic->Init();
 }
 
 void LoopManager::Terminate()
 {
 	mSeagull->Terminate();
     mSea->Terminate();
+    mMusic->Terminate();
 }
 
 void LoopManager::FrameStep()
@@ -44,6 +48,7 @@ void LoopManager::Update(const float deltaTime)
 {
     mSeagull->Update(deltaTime);
     mSea->Update(deltaTime);
+    mMusic->Update(deltaTime);
 }
 
 void LoopManager::Event(const SDL_Event & e)
