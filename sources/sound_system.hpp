@@ -20,6 +20,7 @@ struct SoundFrame {
 };
 
 class SoundSystem;
+struct SoundStream;
 
 class SoundComponent
 {
@@ -27,11 +28,17 @@ public:
     SoundComponent();
     SoundComponent(const SoundComponent& ref);
 
+    ~SoundComponent();
+
+    uint16_t AddResource(const std::shared_ptr<SoundStream>& resource);
+    void Play(uint16_t soundIdx);
+
     void Play(const float deltaTime, SoundSystem* system);
 
     bool isValid() const { return mValid; }
 
 private:
+    std::vector< std::shared_ptr<SoundStream> > mSoundStreams;
     bool mValid;
 };
 

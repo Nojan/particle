@@ -7,6 +7,7 @@
 #include "../physic_system.hpp"
 #include "../transform_system.hpp"
 #include "../rendering_system.hpp"
+#include "../sound_system.hpp"
 #include "../renderableMesh.hpp"
 #include "../renderableSkinMesh.hpp"
 #include "../visualdebug.hpp"
@@ -180,6 +181,7 @@ void Seagull::Init()
     const BoundingBox3D box(boxCenter - boxExtent, boxCenter + boxExtent);
 
     std::shared_ptr<SkinMesh> skinMesh = Global::resourceManager()->skinMesh("../asset/mesh/bird.assxml");
+    std::shared_ptr<SoundStream> soundStream = Global::resourceManager()->soundStream("../asset/sound/seagull1.ogg");
 
     std::default_random_engine generator;
 
@@ -200,6 +202,10 @@ void Seagull::Init()
         const float animationLoopTime = 1.25f;
         std::uniform_real_distribution<float> distribution(0.f, animationLoopTime);
         renderingComponent->mAnimationTime = distribution(generator);
+
+        gameSystem->getSystem<SoundSystem>()->attachEntity(entity);
+        SoundComponent* soundComponent = entity->getComponent<SoundComponent>();
+        soundComponent->AddResource(soundStream);
     }
 
     for (size_t idx = 0; idx < mTargets.size(); ++idx)
@@ -284,6 +290,9 @@ void Seagull::Update(const float deltaTime)
                 target.lifetime = -0;
                 GraphicMeshComponent* targetRenderingComponent = target.mEntity->getComponent<GraphicMeshComponent>();
                 targetRenderingComponent->mEnable = false;
+
+                SoundComponent* soundComponent = entity->getComponent<SoundComponent>();
+                soundComponent->Play(0); // There is only one sound so far
             }
             else
             {

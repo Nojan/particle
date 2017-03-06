@@ -2,6 +2,7 @@
 
 #include "config.hpp"
 #include "game_entity.hpp"
+#include "game_system.hpp"
 #include "sound_stream.hpp"
 #include "types.hpp"
 #include "vorbis.h"
@@ -18,12 +19,54 @@
 #include "platform/platform.hpp"
 
 SoundComponent::SoundComponent()
-: mValid(false)
+: mValid(true)
 {}
 
 SoundComponent::SoundComponent(const SoundComponent& ref)
 : mValid(ref.mValid)
+, mSoundStreams(ref.mSoundStreams)
 {}
+
+SoundComponent::~SoundComponent()
+{
+    mValid = false;
+}
+
+uint16_t SoundComponent::AddResource(const std::shared_ptr<SoundStream>& resource)
+{
+    const uint16_t index = numeric_cast<uint16_t>(mSoundStreams.size());
+    mSoundStreams.push_back(resource);
+    return index;
+}
+
+void SoundComponent::Play(uint16_t soundIdx)
+{
+    assert(soundIdx < mSoundStreams.size());
+    const SoundStream* soundStream = mSoundStreams[soundIdx].get();
+    const std::vector<float>& audio = soundStream->mAudio;
+
+    GameSystem* gameSystem = Global::gameSytem();
+    SoundSystem* soundSystem = gameSystem->getSystem<SoundSystem>();
+
+    SoundFrame* soundFrame = nullptr;
+    size_t frameIdx = 0;
+    for (size_t idx = 0; idx < audio.size(); ++idx)
+    {
+        if (nullptr != soundFrame && !(frameIdx < soundFrame->mSample.max_size()))
+        {
+            soundSystem->SubmitFrame(soundFrame);
+            soundFrame = nullptr;
+        }
+        if (nullptr == soundFrame)
+        {
+            soundFrame = soundSystem->RequestFrame();
+            soundFrame->mDelay = -numeric_cast<int32_t>(idx);
+            frameIdx = 0;
+        }
+        soundFrame->mSample[frameIdx] = audio[idx];
+        ++frameIdx;
+    }
+}
 
 void SoundComponent::Play(const float deltaTime, SoundSystem* system)
 {
@@ -326,10 +369,9 @@ void SoundSystem::Update(const float deltaTime)
             lastFrame = frame;
             continue;
         } 
-
+        const int32_t frameSize = frame->mSample.max_size();
         if (frame->mDelay < frameStep)
         {
-            const int32_t frameSize = frame->mSample.max_size();
             const int32_t frameInit = std::max(0, frame->mDelay);
             const int32_t mixInit = frame->mDelay < 0 ? std::abs(frame->mDelay) : 0;
             int32_t frameIdx, mixIdx;
@@ -345,7 +387,7 @@ void SoundSystem::Update(const float deltaTime)
             assert(0 < frame->mDelay);
         }
         
-        if (frame->mSample.max_size() <= frame->mDelay)
+        if (frameSize <= frame->mDelay)
         {
             if (lastFrame)
             {
