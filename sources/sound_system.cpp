@@ -52,7 +52,14 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
     for (size_t soundEffectIdx = 0; soundEffectIdx < mSoundPlay.size(); ++soundEffectIdx)
     {
         assert(soundEffectIdx < mSoundStreams.size());
-        const uint16_t soundIdx = mSoundPlay[soundEffectIdx].mIndex;
+        const SoundEffect& effect = mSoundPlay[soundEffectIdx];
+        const uint16_t soundIdx = effect.mIndex;
+        // distance attenuation
+        const float minDistance = 0.f;
+        const float maxDistance = 50.f;
+        const float distance = glm::distance(glm::vec3(listener.mPosition), glm::vec3(effect.mPosition));
+        const float distanceAttenuation = 1.f - glm::clamp(0.f, 1.f, (distance - minDistance) / (maxDistance - minDistance));
+
         assert(soundIdx < mSoundStreams.size());
         const SoundStream* soundStream = mSoundStreams[soundIdx].get();
         const std::vector<float>& audio = soundStream->mAudio;
@@ -72,7 +79,9 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
                 soundFrame->mDelay = -numeric_cast<int32_t>(idx);
                 frameIdx = 0;
             }
-            soundFrame->mSample[frameIdx] = audio[idx];
+            float sample = audio[idx];
+            sample = distanceAttenuation * sample;
+            soundFrame->mSample[frameIdx] = sample;
             ++frameIdx;
         }
     }
