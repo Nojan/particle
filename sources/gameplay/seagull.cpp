@@ -290,9 +290,10 @@ void Seagull::Update(const float deltaTime)
                 target.lifetime = -0;
                 GraphicMeshComponent* targetRenderingComponent = target.mEntity->getComponent<GraphicMeshComponent>();
                 targetRenderingComponent->mEnable = false;
-
+                const uint16_t soundIdx = 0; // There is only one sound so far
+                const SoundEffect effect = { soundIdx, transform->Position(), physic->LinearVelocity() };
                 SoundComponent* soundComponent = entity->getComponent<SoundComponent>();
-                soundComponent->Play(0); // There is only one sound so far
+                soundComponent->Play(effect); 
             }
             else
             {

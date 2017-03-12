@@ -17,6 +17,8 @@
 
 #include "global.hpp"
 #include "platform/platform.hpp"
+#include "root.hpp" //for the camera
+#include "camera.hpp"
 
 SoundComponent::SoundComponent()
 : mValid(true)
@@ -39,38 +41,42 @@ uint16_t SoundComponent::AddResource(const std::shared_ptr<SoundStream>& resourc
     return index;
 }
 
-void SoundComponent::Play(uint16_t soundIdx)
+void SoundComponent::Play(const SoundEffect& soundEffect)
 {
-    assert(soundIdx < mSoundStreams.size());
-    const SoundStream* soundStream = mSoundStreams[soundIdx].get();
-    const std::vector<float>& audio = soundStream->mAudio;
-
-    GameSystem* gameSystem = Global::gameSytem();
-    SoundSystem* soundSystem = gameSystem->getSystem<SoundSystem>();
-
-    SoundFrame* soundFrame = nullptr;
-    size_t frameIdx = 0;
-    for (size_t idx = 0; idx < audio.size(); ++idx)
-    {
-        if (nullptr != soundFrame && !(frameIdx < soundFrame->mSample.max_size()))
-        {
-            soundSystem->SubmitFrame(soundFrame);
-            soundFrame = nullptr;
-        }
-        if (nullptr == soundFrame)
-        {
-            soundFrame = soundSystem->RequestFrame();
-            soundFrame->mDelay = -numeric_cast<int32_t>(idx);
-            frameIdx = 0;
-        }
-        soundFrame->mSample[frameIdx] = audio[idx];
-        ++frameIdx;
-    }
+    assert(soundEffect.mIndex < mSoundStreams.size());
+    mSoundPlay.push_back(soundEffect);
 }
 
-void SoundComponent::Play(const float deltaTime, SoundSystem* system)
+void SoundComponent::Update(const float deltaTime, const SoundListener& listener, SoundSystem* soundSystem)
 {
+    for (size_t soundEffectIdx = 0; soundEffectIdx < mSoundPlay.size(); ++soundEffectIdx)
+    {
+        assert(soundEffectIdx < mSoundStreams.size());
+        const uint16_t soundIdx = mSoundPlay[soundEffectIdx].mIndex;
+        assert(soundIdx < mSoundStreams.size());
+        const SoundStream* soundStream = mSoundStreams[soundIdx].get();
+        const std::vector<float>& audio = soundStream->mAudio;
 
+        SoundFrame* soundFrame = nullptr;
+        size_t frameIdx = 0;
+        for (size_t idx = 0; idx < audio.size(); ++idx)
+        {
+            if (nullptr != soundFrame && !(frameIdx < soundFrame->mSample.max_size()))
+            {
+                soundSystem->SubmitFrame(soundFrame);
+                soundFrame = nullptr;
+            }
+            if (nullptr == soundFrame)
+            {
+                soundFrame = soundSystem->RequestFrame();
+                soundFrame->mDelay = -numeric_cast<int32_t>(idx);
+                frameIdx = 0;
+            }
+            soundFrame->mSample[frameIdx] = audio[idx];
+            ++frameIdx;
+        }
+    }
+    mSoundPlay.clear();
 }
 
 void SoundFrame::Reset() {
@@ -307,6 +313,7 @@ SoundSystem::~SoundSystem()
 
 void SoundSystem::FrameStep()
 {
+    return;
 #ifdef IMGUI_ENABLE
     if (ImGui::Begin("Debug_Sound"))
     {
@@ -346,9 +353,12 @@ void SoundSystem::Update(const float deltaTime)
 {
     assert(0 <= deltaTime);
     const float deltaTimeInv = 1.f / deltaTime;
+
+    const Camera* camera = Root::Instance().GetCamera();
+    const SoundListener listener = { glm::vec4(camera->Position(), 1.f), glm::vec4(camera->Direction(), 0.f) };
     for (auto& component : mComponents)
     {
-        component.Play(deltaTime, this);
+        component.Update(deltaTime, listener, this);
     }
 
     const int32_t frameStep = mImpl->samplesNeeded();

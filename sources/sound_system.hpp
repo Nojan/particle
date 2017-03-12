@@ -22,6 +22,17 @@ struct SoundFrame {
 class SoundSystem;
 struct SoundStream;
 
+struct SoundEffect {
+    uint16_t mIndex;
+    glm::vec4 mPosition;
+    glm::vec4 mVelocity;
+};
+
+struct SoundListener {
+    glm::vec4 mPosition;
+    glm::vec4 mVelocity;
+};
+
 class SoundComponent
 {
 public:
@@ -31,14 +42,15 @@ public:
     ~SoundComponent();
 
     uint16_t AddResource(const std::shared_ptr<SoundStream>& resource);
-    void Play(uint16_t soundIdx);
+    void Play(const SoundEffect& soundEffect);
 
-    void Play(const float deltaTime, SoundSystem* system);
+    void Update(const float deltaTime, const SoundListener& listener, SoundSystem* soundSystem);
 
     bool isValid() const { return mValid; }
 
 private:
     std::vector< std::shared_ptr<SoundStream> > mSoundStreams;
+    std::vector< SoundEffect > mSoundPlay;
     bool mValid;
 };
 
