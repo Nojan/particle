@@ -15,6 +15,7 @@ struct SoundFrame {
     using array = std::array<float, 2048>; 
     array mSample;
     int32_t mDelay;
+    float mPan;
     std::atomic_int* mCounter;
     SoundFrame* mNext;
 };
@@ -31,6 +32,8 @@ struct SoundEffect {
 struct SoundListener {
     glm::vec4 mPosition;
     glm::vec4 mVelocity;
+    glm::vec4 mDirection;
+    glm::vec4 mUp;
 };
 
 class SoundComponent

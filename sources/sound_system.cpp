@@ -49,17 +49,21 @@ void SoundComponent::Play(const SoundEffect& soundEffect)
 
 void SoundComponent::Update(const float deltaTime, const SoundListener& listener, SoundSystem* soundSystem)
 {
+    const glm::vec3 right = glm::normalize( glm::cross( glm::vec3(listener.mDirection), glm::vec3(listener.mUp) ) );
     for (size_t soundEffectIdx = 0; soundEffectIdx < mSoundPlay.size(); ++soundEffectIdx)
     {
         assert(soundEffectIdx < mSoundStreams.size());
         const SoundEffect& effect = mSoundPlay[soundEffectIdx];
         const uint16_t soundIdx = effect.mIndex;
+        // panning
+        const glm::vec3 toSource = glm::vec3(effect.mPosition) - glm::vec3(listener.mPosition);
+        const float distance = glm::length(toSource);
+        const glm::vec3 toSourceNormalized = toSource / distance;
+        const float pan = glm::dot(right, toSourceNormalized);
         // distance attenuation
         const float minDistance = 0.f;
         const float maxDistance = 50.f;
-        const float distance = glm::distance(glm::vec3(listener.mPosition), glm::vec3(effect.mPosition));
         const float distanceAttenuation = 1.f - glm::clamp(0.f, 1.f, (distance - minDistance) / (maxDistance - minDistance));
-
         assert(soundIdx < mSoundStreams.size());
         const SoundStream* soundStream = mSoundStreams[soundIdx].get();
         const std::vector<float>& audio = soundStream->mAudio;
@@ -70,6 +74,7 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
         {
             if (nullptr != soundFrame && !(frameIdx < soundFrame->mSample.max_size()))
             {
+                soundFrame->mPan = pan;
                 soundSystem->SubmitFrame(soundFrame);
                 soundFrame = nullptr;
             }
@@ -91,6 +96,7 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
 void SoundFrame::Reset() {
     std::memset(mSample.data(), 0, mSample.max_size() * sizeof(float));
     mDelay = 0;
+    mPan = 0;
     mCounter = nullptr;
     mNext = nullptr;
 }
@@ -361,7 +367,12 @@ void SoundSystem::Update(const float deltaTime)
     const float deltaTimeInv = 1.f / deltaTime;
 
     const Camera* camera = Root::Instance().GetCamera();
-    const SoundListener listener = { glm::vec4(camera->Position(), 1.f), glm::vec4(camera->Direction(), 0.f) };
+    const SoundListener listener = { 
+        glm::vec4(camera->Position(), 1.f), 
+        glm::vec4(camera->Direction(), 0.f), 
+        glm::vec4(camera->Direction(), 0.f), 
+        glm::vec4(camera->Up(), 0.f),
+    };
     for (auto& component : mComponents)
     {
         component.Update(deltaTime, listener, this);
@@ -391,13 +402,16 @@ void SoundSystem::Update(const float deltaTime)
         const int32_t frameSize = frame->mSample.max_size();
         if (frame->mDelay < frameStepMono)
         {
+            const float rightPan = glm::clamp(0.5f + frame->mPan * 0.5f, 0.f, 1.f);
+            const float leftPan = 1.f - rightPan;
             const int32_t frameInit = std::max(0, frame->mDelay);
             const int32_t mixInit = frame->mDelay < 0 ? std::abs(frame->mDelay) * channel : 0;
             int32_t frameIdx, mixIdx;
             for(frameIdx = frameInit, mixIdx = mixInit; frameIdx < frameSize && mixIdx < array_mix_size; ++frameIdx, mixIdx+=2)
             {
-                array_mix[mixIdx] += frame->mSample[frameIdx];
-                array_mix[mixIdx+1] += frame->mSample[frameIdx];
+                const float s = frame->mSample[frameIdx];
+                array_mix[mixIdx] += s * leftPan;
+                array_mix[mixIdx+1] += s * rightPan;
             }
             if (frame->mDelay < 0)
             {
