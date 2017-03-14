@@ -241,7 +241,7 @@ SoundSystemImpl::SoundSystemImpl()
     // Setup audio
     mAudioSpecRequest.freq = 48000;
     mAudioSpecRequest.format = AUDIO_F32;
-    mAudioSpecRequest.channels = 1;
+    mAudioSpecRequest.channels = 2;
     mAudioSpecRequest.samples = 2048;
     mAudioSpecRequest.callback = nullptr;
     mAudioSpecRequest.userdata = nullptr;
@@ -254,14 +254,14 @@ SoundSystemImpl::SoundSystemImpl()
         exit(EXIT_FAILURE);
     }
     printf("Audio: freq %d, format %d, channels %d, samples %d \n", mAudioSpecObtained.freq, mAudioSpecObtained.format, mAudioSpecObtained.channels, mAudioSpecObtained.samples);
-    mFrameMixer.reserve(mAudioSpecObtained.samples);
+    mFrameMixer.reserve(mAudioSpecObtained.samples * mAudioSpecObtained.channels);
     SDL_PauseAudioDevice(mAudioDeviceId, 0);
 }
 
 int16_t SoundSystemImpl::samplesNeeded() const
 {
     const int freq = mAudioSpecObtained.freq;
-    const int max_samples = mAudioSpecObtained.samples;
+    const int max_samples = mAudioSpecObtained.samples * mAudioSpecObtained.channels;
     const uint32_t bytePerSample = sizeof(float);
     const uint32_t alreadyQueuedByte = SDL_GetQueuedAudioSize(mAudioDeviceId);
     const int16_t alreadyQueued = numeric_cast<int16_t>(alreadyQueuedByte / bytePerSample);
@@ -271,16 +271,13 @@ int16_t SoundSystemImpl::samplesNeeded() const
 
 void SoundSystemImpl::queueAudio()
 {
-    const int freq = mAudioSpecObtained.freq;
-    const int max_samples = mAudioSpecObtained.samples;
+#ifdef IMGUI_ENABLE
+    const int max_samples = mAudioSpecObtained.samples * mAudioSpecObtained.channels;
     const uint32_t bytePerSample = sizeof(float);
     SDL_AudioDeviceID audioDeviceID = mAudioDeviceId;
     uint32_t alreadyQueuedByte = SDL_GetQueuedAudioSize(audioDeviceID);
     int16_t alreadyQueued = numeric_cast<int16_t>(alreadyQueuedByte / bytePerSample);
     int16_t toQueue = max_samples - alreadyQueued;
-    int16_t firstReadCount = toQueue;
-
-#ifdef IMGUI_ENABLE
     while (g_debug_sample_buffer.max_size() <= g_debug_sample_buffer.size())
     {
         g_debug_sample_buffer.read();
@@ -371,6 +368,9 @@ void SoundSystem::Update(const float deltaTime)
     }
 
     const int32_t frameStep = mImpl->samplesNeeded();
+    const int32_t channel = 2;
+    assert(0 <= frameStep);
+    const int32_t frameStepMono = frameStep / channel;
     std::vector<float>& array_mix = mImpl->mFrameMixer;
     array_mix.resize(frameStep);
     const int32_t array_mix_size = numeric_cast<int32_t>(array_mix.size());
@@ -382,21 +382,22 @@ void SoundSystem::Update(const float deltaTime)
     {
         assert(0 == (mImpl->mAudioSpecObtained.samples % frame->mSample.max_size()));
         nextFrame = frame->mNext;
-        if(frame->mDelay <= -frameStep)
+        if(frame->mDelay <= -frameStepMono)
         {
-            frame->mDelay += frameStep;
+            frame->mDelay += frameStepMono;
             lastFrame = frame;
             continue;
         } 
         const int32_t frameSize = frame->mSample.max_size();
-        if (frame->mDelay < frameStep)
+        if (frame->mDelay < frameStepMono)
         {
             const int32_t frameInit = std::max(0, frame->mDelay);
-            const int32_t mixInit = frame->mDelay < 0 ? std::abs(frame->mDelay) : 0;
+            const int32_t mixInit = frame->mDelay < 0 ? std::abs(frame->mDelay) * channel : 0;
             int32_t frameIdx, mixIdx;
-            for(frameIdx = frameInit, mixIdx = mixInit; frameIdx < frameSize && mixIdx < array_mix_size; ++frameIdx, ++mixIdx)
+            for(frameIdx = frameInit, mixIdx = mixInit; frameIdx < frameSize && mixIdx < array_mix_size; ++frameIdx, mixIdx+=2)
             {
                 array_mix[mixIdx] += frame->mSample[frameIdx];
+                array_mix[mixIdx+1] += frame->mSample[frameIdx];
             }
             if (frame->mDelay < 0)
             {
