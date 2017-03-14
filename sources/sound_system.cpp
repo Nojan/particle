@@ -506,7 +506,7 @@ void SoundSystem::ReleaseFrame(SoundFrame* frame)
     if(nullptr == mFreeFrame)
     {
         mFreeFrame = frame;
-        mFreeFrame->mNext = nullptr;
+        mFreeFrame->mNext = mFreeFrame;
     }
     else
     {
