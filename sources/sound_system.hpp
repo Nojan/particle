@@ -24,7 +24,41 @@ class SoundSystem;
 struct SoundStream;
 
 struct SoundEffect {
+    SoundEffect()
+        : mIndex(0)
+        , mSampleIndex(0)
+        , mQueuedSampleCount(0)
+    {};
+
+    SoundEffect(uint16_t index, const glm::vec4& position, const glm::vec4& velocity)
+        : mIndex(index)
+        , mSampleIndex(0)
+        , mQueuedSampleCount(0)
+        , mPosition(position)
+        , mVelocity(velocity)
+    {};
+
+    SoundEffect(const SoundEffect& ref)
+        : mIndex(ref.mIndex)
+        , mSampleIndex(ref.mSampleIndex)
+        , mQueuedSampleCount(ref.mQueuedSampleCount.load())
+        , mPosition(ref.mPosition)
+        , mVelocity(ref.mVelocity)
+    {};
+
+    SoundEffect& operator=(const SoundEffect& ref)
+    {
+        mIndex = ref.mIndex;
+        mSampleIndex = ref.mSampleIndex;
+        mQueuedSampleCount = ref.mQueuedSampleCount.load();
+        mPosition = ref.mPosition;
+        mVelocity = ref.mVelocity;
+        return *this;
+    }
+
     uint16_t mIndex;
+    uint16_t mSampleIndex;
+    std::atomic_int mQueuedSampleCount;
     glm::vec4 mPosition;
     glm::vec4 mVelocity;
 };
@@ -46,6 +80,7 @@ public:
 
     uint16_t AddResource(const std::shared_ptr<SoundStream>& resource);
     void Play(const SoundEffect& soundEffect);
+    SoundEffect& Play();
 
     void Update(const float deltaTime, const SoundListener& listener, SoundSystem* soundSystem);
 

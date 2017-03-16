@@ -47,14 +47,32 @@ void SoundComponent::Play(const SoundEffect& soundEffect)
     mSoundPlay.push_back(soundEffect);
 }
 
+SoundEffect& SoundComponent::Play()
+{
+    mSoundPlay.resize(mSoundPlay.size() + 1);
+    return mSoundPlay.back();
+}
+
 void SoundComponent::Update(const float deltaTime, const SoundListener& listener, SoundSystem* soundSystem)
 {
+    const size_t soundPlaySize = mSoundPlay.size();
+    if (soundPlaySize == 0)
+        return;
     const glm::vec3 right = glm::normalize( glm::cross( glm::vec3(listener.mDirection), glm::vec3(listener.mUp) ) );
-    for (size_t soundEffectIdx = 0; soundEffectIdx < mSoundPlay.size(); ++soundEffectIdx)
+    for (size_t soundEffectIdx = 0; soundEffectIdx < soundPlaySize; ++soundEffectIdx)
     {
-        assert(soundEffectIdx < mSoundStreams.size());
-        const SoundEffect& effect = mSoundPlay[soundEffectIdx];
+        SoundEffect& effect = mSoundPlay[soundEffectIdx];
+        const int sampleQueuedCount = effect.mQueuedSampleCount;
+        if (SoundFrame::sample_size <= sampleQueuedCount)
+            continue;
         const uint16_t soundIdx = effect.mIndex;
+        assert(soundIdx < mSoundStreams.size());
+        const SoundStream* soundStream = mSoundStreams[soundIdx].get();
+        const std::vector<float>& audio = soundStream->mAudio;
+        uint16_t sampleIdx = effect.mSampleIndex;
+        const uint16_t sampleCount = numeric_cast<uint16_t>(audio.size());
+        if (sampleCount <= sampleIdx)
+            continue;
         // panning
         const glm::vec3 toSource = glm::vec3(effect.mPosition) - glm::vec3(listener.mPosition);
         const float distance = glm::length(toSource);
@@ -64,33 +82,37 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
         const float minDistance = 0.f;
         const float maxDistance = 50.f;
         const float distanceAttenuation = 1.f - glm::clamp(0.f, 1.f, (distance - minDistance) / (maxDistance - minDistance));
-        assert(soundIdx < mSoundStreams.size());
-        const SoundStream* soundStream = mSoundStreams[soundIdx].get();
-        const std::vector<float>& audio = soundStream->mAudio;
-
-        SoundFrame* soundFrame = nullptr;
-        size_t frameIdx = 0;
-        for (size_t idx = 0; idx < audio.size(); ++idx)
+        
+        SoundFrame* soundFrame = soundSystem->RequestFrame();
+        soundFrame->mDelay = -numeric_cast<int32_t>(sampleQueuedCount);
+        soundFrame->mPan = pan;
+        soundFrame->mCounter = &(effect.mQueuedSampleCount);
+        
+        for (uint16_t frameIdx = 0; frameIdx < SoundFrame::sample_size && sampleIdx < sampleCount; ++sampleIdx, ++frameIdx)
         {
-            if (nullptr != soundFrame && !(frameIdx < soundFrame->mSample.max_size()))
-            {
-                soundFrame->mPan = pan;
-                soundSystem->SubmitFrame(soundFrame);
-                soundFrame = nullptr;
-            }
-            if (nullptr == soundFrame)
-            {
-                soundFrame = soundSystem->RequestFrame();
-                soundFrame->mDelay = -numeric_cast<int32_t>(idx);
-                frameIdx = 0;
-            }
-            float sample = audio[idx];
+            float sample = audio[sampleIdx];
             sample = distanceAttenuation * sample;
             soundFrame->mSample[frameIdx] = sample;
-            ++frameIdx;
+        }
+        effect.mSampleIndex = sampleIdx;
+        effect.mQueuedSampleCount += SoundFrame::sample_size;
+        soundSystem->SubmitFrame(soundFrame);
+    }
+    for (size_t soundEffectIdx = mSoundPlay.size()-1; soundEffectIdx < mSoundPlay.size(); --soundEffectIdx)
+    {
+        SoundEffect& effect = mSoundPlay[soundEffectIdx];
+        const int queueCount = effect.mQueuedSampleCount;
+        if (queueCount <= 0)
+        {
+            assert(effect.mIndex < mSoundStreams.size());
+            const SoundStream* soundStream = mSoundStreams[effect.mIndex].get();
+            if (soundStream->mAudio.size() <= effect.mSampleIndex)
+            {
+                std::swap(mSoundPlay[soundEffectIdx], mSoundPlay.back());
+                mSoundPlay.resize(mSoundPlay.size() - 1);
+            }
         }
     }
-    mSoundPlay.clear();
 }
 
 void SoundFrame::Reset() {
@@ -248,7 +270,7 @@ SoundSystemImpl::SoundSystemImpl()
     mAudioSpecRequest.freq = 48000;
     mAudioSpecRequest.format = AUDIO_F32;
     mAudioSpecRequest.channels = 2;
-    mAudioSpecRequest.samples = 2048;
+    mAudioSpecRequest.samples = SoundFrame::sample_size;
     mAudioSpecRequest.callback = nullptr;
     mAudioSpecRequest.userdata = nullptr;
     SDL_memset(&mAudioSpecObtained, 0, sizeof(mAudioSpecObtained));
