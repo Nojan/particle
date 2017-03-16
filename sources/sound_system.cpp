@@ -515,3 +515,18 @@ void SoundSystem::ReleaseFrame(SoundFrame* frame)
     }
     mSampleFrameLock.unlock();
 }
+
+int SoundSystem::FrameCount() const
+{
+    int res = 0;
+    if (nullptr == mFreeFrame)
+        return res;
+    SoundFrame* frame = mFreeFrame;
+    do
+    {
+        frame = frame->mNext;
+        ++res;
+    } while (res <= 64 && mFreeFrame != frame);
+    assert(res <= 64);
+    return res;
+}

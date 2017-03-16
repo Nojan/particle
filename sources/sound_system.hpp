@@ -90,6 +90,7 @@ public:
     SoundFrame* RequestFrame();
     void SubmitFrame(SoundFrame* frame);
     void ReleaseFrame(SoundFrame* frame);
+    int FrameCount() const;
 
 private:
     std::vector<SoundComponent> mComponents;
