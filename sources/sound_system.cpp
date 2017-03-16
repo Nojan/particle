@@ -419,6 +419,11 @@ void SoundSystem::Update(const float deltaTime)
             }
             frame->mDelay += frameIdx;
             assert(0 < frame->mDelay);
+            if (frame->mCounter)
+            {
+                std::atomic_int& counter = *(frame->mCounter);
+                counter -= frameIdx;
+            }
         }
         
         if (frameSize <= frame->mDelay)
@@ -497,11 +502,6 @@ void SoundSystem::SubmitFrame(SoundFrame* frame)
 void SoundSystem::ReleaseFrame(SoundFrame* frame)
 {
     assert(frame);
-    if (frame->mCounter)
-    {
-        std::atomic_int& counter = *(frame->mCounter);
-        --counter;
-    }
     mSampleFrameLock.lock();
     if(nullptr == mFreeFrame)
     {

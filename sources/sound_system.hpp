@@ -11,8 +11,8 @@
 
 struct SoundFrame {
     void Reset();
-
-    using array = std::array<float, 2048>; 
+    static const int sample_size = 2048;
+    using array = std::array<float, sample_size>;
     array mSample;
     int32_t mDelay;
     float mPan;
