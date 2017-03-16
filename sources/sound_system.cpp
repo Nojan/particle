@@ -84,6 +84,12 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
         const float distanceAttenuation = 1.f - glm::clamp(0.f, 1.f, (distance - minDistance) / (maxDistance - minDistance));
         
         SoundFrame* soundFrame = soundSystem->RequestFrame();
+        if (!soundFrame)
+        {
+            // no sound frame. Assume we played.
+            effect.mSampleIndex += SoundFrame::sample_size;
+            continue;
+        }
         soundFrame->mDelay = -numeric_cast<int32_t>(sampleQueuedCount);
         soundFrame->mPan = pan;
         soundFrame->mCounter = &(effect.mQueuedSampleCount);
@@ -482,8 +488,9 @@ void SoundSystem::detachEntity(GameEntity* entity)
 
 SoundFrame* SoundSystem::RequestFrame()
 {
-    SoundFrame* request;
-    assert(mFreeFrame);
+    SoundFrame* request = nullptr;
+    if (!mFreeFrame)
+        return request;
     mSampleFrameLock.lock();
     if(mFreeFrame->mNext == mFreeFrame)
     {

@@ -53,6 +53,8 @@ void MusicEntity::Update(const float deltaTime)
     while (musicDone < 2 && mSubmittedFrame < (2 * SoundFrame::sample_size))
     {
         SoundFrame* soundFrame = soundSystem->RequestFrame();
+        if (!soundFrame)
+            break;
         size_t idx = 0;
         while (idx < soundFrame->mSample.max_size())
         {
