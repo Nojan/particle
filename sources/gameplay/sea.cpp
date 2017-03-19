@@ -15,6 +15,7 @@
 #include "../rendering_system.hpp"
 #include "../renderableMesh.hpp"
 #include "../resourcemanager.hpp"
+#include "../sound_system.hpp"
 #include "../visualdebug.hpp"
 
 #include <glm/gtc/random.hpp>
@@ -76,6 +77,9 @@ Gameplay::Sea::Sea()
         std::shared_ptr<ShaderProgram> seaShader;
         renderingComponent->mRenderable->mMaterial = Material(seaShader, seaTexture);
         renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../asset/mesh/plane.assxml");
+        gameSystem->getSystem<SoundSystem>()->attachEntity(mEntity);
+        SoundComponent* soundComponent = mEntity->getComponent<SoundComponent>();
+        soundComponent->AddResource(Global::resourceManager()->soundStream("../asset/sound/wave1.ogg"));
     }
     //Setup dock
     {
@@ -204,6 +208,14 @@ void Gameplay::Sea::FrameStep()
                 const glm::vec3 wavePosition(seaBox.Min().x + normalizedPosition.x*seaBoxExtent.x, 0, seaBox.Min().z + normalizedPosition.y*seaBoxExtent.z);
                 Wave wave = { wavePosition, glm::vec3(1, 0, 0), Constant::WaveSpawnLifetime };
                 mWaves.push_back(wave);
+                const uint16_t soundIdx = 0; // There is only one sound so far
+                SoundComponent* soundComponent = mEntity->getComponent<SoundComponent>();
+                if (SoundEffect* effect = soundComponent->Play())
+                {
+                    effect->mIndex = soundIdx;
+                    effect->mPosition = glm::vec4(wave.mPosition, 1.f);
+                    effect->mVelocity = glm::vec4(wave.mDirection, 0.f) * Gameplay::Constant::WaveSpeed;
+                }
             }
         }
     }

@@ -41,6 +41,7 @@ void PlatformEmscripten::Init()
         "../asset/texture/wave2.png",
         "../asset/sound/music.ogg",
         "../asset/sound/seagull1.ogg",
+        "../asset/sound/wave1.ogg",
     };
 
     auto onLoadFunc = [](const char* filename) { gloPlatformEmscripten->OnLoad(filename); };
