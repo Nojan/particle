@@ -69,8 +69,8 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
         assert(soundIdx < mSoundStreams.size());
         const SoundStream* soundStream = mSoundStreams[soundIdx].get();
         const std::vector<float>& audio = soundStream->mAudio;
-        uint16_t sampleIdx = effect.mSampleIndex;
-        const uint16_t sampleCount = numeric_cast<uint16_t>(audio.size());
+        int32_t sampleIdx = effect.mSampleIndex;
+        const int32_t sampleCount = numeric_cast<int32_t>(audio.size());
         if (sampleCount <= sampleIdx)
             continue;
         // panning
