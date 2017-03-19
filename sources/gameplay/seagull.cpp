@@ -292,10 +292,12 @@ void Seagull::Update(const float deltaTime)
                 targetRenderingComponent->mEnable = false;
                 const uint16_t soundIdx = 0; // There is only one sound so far
                 SoundComponent* soundComponent = entity->getComponent<SoundComponent>();
-                SoundEffect& effect = soundComponent->Play();
-                effect.mIndex = soundIdx;
-                effect.mPosition = transform->Position();
-                effect.mVelocity = physic->LinearVelocity();
+                if (SoundEffect* effect = soundComponent->Play())
+                {
+                    effect->mIndex = soundIdx;
+                    effect->mPosition = transform->Position();
+                    effect->mVelocity = physic->LinearVelocity();
+                }
             }
             else
             {

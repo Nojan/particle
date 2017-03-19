@@ -56,11 +56,14 @@ struct SoundEffect {
         return *this;
     }
 
+    void Reset();
+
     uint16_t mIndex;
     int32_t mSampleIndex;
     std::atomic_int mQueuedSampleCount;
     glm::vec4 mPosition;
     glm::vec4 mVelocity;
+    SoundEffect* mNext;
 };
 
 struct SoundListener {
@@ -79,8 +82,7 @@ public:
     ~SoundComponent();
 
     uint16_t AddResource(const std::shared_ptr<SoundStream>& resource);
-    void Play(const SoundEffect& soundEffect);
-    SoundEffect& Play();
+    SoundEffect* Play();
 
     void Update(const float deltaTime, const SoundListener& listener, SoundSystem* soundSystem);
 
@@ -88,7 +90,7 @@ public:
 
 private:
     std::vector< std::shared_ptr<SoundStream> > mSoundStreams;
-    std::vector< SoundEffect > mSoundPlay;
+    std::vector< SoundEffect* > mSoundPlay;
     bool mValid;
 };
 
@@ -127,6 +129,9 @@ public:
     void ReleaseFrame(SoundFrame* frame);
     int FrameCount() const;
 
+    SoundEffect* RequestSoundEffect();
+    void ReleaseSoundEffect(SoundEffect* soundEffect);
+
 private:
     std::vector<SoundComponent> mComponents;
     std::unique_ptr<SoundSystemImpl> mImpl;
@@ -134,4 +139,6 @@ private:
     SoundFrame* mFreeFrame;
     SoundFrame* mPlayFrame;
     std::mutex mSampleFrameLock;
+    std::array<SoundEffect, 256> mSoundEffectPool;
+    SoundEffect* mFreeSoundEffect;
 };

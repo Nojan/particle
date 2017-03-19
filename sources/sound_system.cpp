@@ -22,7 +22,9 @@
 
 SoundComponent::SoundComponent()
 : mValid(true)
-{}
+{
+    mSoundPlay.reserve(8);
+}
 
 SoundComponent::SoundComponent(const SoundComponent& ref)
 : mValid(ref.mValid)
@@ -41,16 +43,17 @@ uint16_t SoundComponent::AddResource(const std::shared_ptr<SoundStream>& resourc
     return index;
 }
 
-void SoundComponent::Play(const SoundEffect& soundEffect)
+SoundEffect* SoundComponent::Play()
 {
-    assert(soundEffect.mIndex < mSoundStreams.size());
-    mSoundPlay.push_back(soundEffect);
-}
-
-SoundEffect& SoundComponent::Play()
-{
-    mSoundPlay.resize(mSoundPlay.size() + 1);
-    return mSoundPlay.back();
+    SoundEffect* request;
+    GameSystem* gameSystem = Global::gameSytem();
+    SoundSystem* soundSystem = gameSystem->getSystem<SoundSystem>();
+    request = soundSystem->RequestSoundEffect();
+    if (request)
+    {
+        mSoundPlay.push_back(request);
+    }
+    return request;
 }
 
 void SoundComponent::Update(const float deltaTime, const SoundListener& listener, SoundSystem* soundSystem)
@@ -61,7 +64,7 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
     const glm::vec3 right = glm::normalize( glm::cross( glm::vec3(listener.mDirection), glm::vec3(listener.mUp) ) );
     for (size_t soundEffectIdx = 0; soundEffectIdx < soundPlaySize; ++soundEffectIdx)
     {
-        SoundEffect& effect = mSoundPlay[soundEffectIdx];
+        SoundEffect& effect = *(mSoundPlay[soundEffectIdx]);
         const int sampleQueuedCount = effect.mQueuedSampleCount;
         if (SoundFrame::sample_size <= sampleQueuedCount)
             continue;
@@ -106,7 +109,7 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
     }
     for (size_t soundEffectIdx = mSoundPlay.size()-1; soundEffectIdx < mSoundPlay.size(); --soundEffectIdx)
     {
-        SoundEffect& effect = mSoundPlay[soundEffectIdx];
+        SoundEffect& effect = *(mSoundPlay[soundEffectIdx]);
         const int queueCount = effect.mQueuedSampleCount;
         if (queueCount <= 0)
         {
@@ -114,6 +117,7 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
             const SoundStream* soundStream = mSoundStreams[effect.mIndex].get();
             if (soundStream->mAudio.size() <= effect.mSampleIndex)
             {
+                soundSystem->ReleaseSoundEffect(mSoundPlay[soundEffectIdx]);
                 std::swap(mSoundPlay[soundEffectIdx], mSoundPlay.back());
                 mSoundPlay.resize(mSoundPlay.size() - 1);
             }
@@ -126,6 +130,14 @@ void SoundFrame::Reset() {
     mDelay = 0;
     mPan = 0;
     mCounter = nullptr;
+    mNext = nullptr;
+}
+
+void SoundEffect::Reset()
+{
+    mIndex = 0;
+    mSampleIndex = 0;
+    mQueuedSampleCount = 0;
     mNext = nullptr;
 }
 
@@ -346,6 +358,14 @@ SoundSystem::SoundSystem()
     }
     mSampleFrame.back().mNext = mFreeFrame;
     mPlayFrame = nullptr;
+    mFreeSoundEffect = mSoundEffectPool.data();
+    for (size_t idx = 1; idx < mSoundEffectPool.max_size(); ++idx)
+    {
+        SoundEffect& previous = mSoundEffectPool[idx - 1];
+        SoundEffect& current = mSoundEffectPool[idx];
+        previous.mNext = &current;
+    }
+    mSoundEffectPool.back().mNext = mFreeSoundEffect;
 }
 
 SoundSystem::~SoundSystem()
@@ -558,4 +578,37 @@ int SoundSystem::FrameCount() const
     } while (res <= 64 && mFreeFrame != frame);
     assert(res <= 64);
     return res;
+}
+
+SoundEffect * SoundSystem::RequestSoundEffect()
+{
+    SoundEffect* request = nullptr;
+    if (!mFreeSoundEffect)
+        return request;
+    if (mFreeSoundEffect->mNext == mFreeSoundEffect)
+    {
+        request = mFreeSoundEffect;
+        mFreeSoundEffect = nullptr;
+    }
+    else
+    {
+        request = mFreeSoundEffect->mNext;
+        mFreeSoundEffect->mNext = request->mNext;
+    }
+    request->Reset();
+    return request;
+}
+
+void SoundSystem::ReleaseSoundEffect(SoundEffect * soundEffect)
+{
+    if (nullptr == mFreeSoundEffect)
+    {
+        mFreeSoundEffect = soundEffect;
+        mFreeSoundEffect->mNext = mFreeSoundEffect;
+    }
+    else
+    {
+        soundEffect->mNext = mFreeSoundEffect->mNext;
+        mFreeSoundEffect->mNext = soundEffect;
+    }
 }
