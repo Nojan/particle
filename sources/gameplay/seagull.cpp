@@ -29,6 +29,7 @@ namespace Constant {
     IMGUI_VAR(History, false);
     IMGUI_VAR(CatchRadius, 1.f);
     IMGUI_VAR(TargetLifetime, 5.f);
+    IMGUI_VAR(TargetThrow, 1.f);
 
     IMGUI_VAR(PursuitMaxSpeed, 7.f);
     IMGUI_VAR(PursuitMaxSteering, 1.2f);
@@ -55,6 +56,7 @@ void Seagull::debug_GUI()
 {
     ImGui::SliderFloat("Catch Radius", &Constant::CatchRadius, 0.f, 5.f);
     ImGui::SliderFloat("Target Lifetime", &Constant::TargetLifetime, 1.f, 10.f);
+    ImGui::SliderFloat("Target Throw", &Constant::TargetThrow, 0.2f, 3.f);
 
     ImGui::SliderFloat("Pursuit Max Speed", &Constant::PursuitMaxSpeed, 1.f, 50.f);
     ImGui::SliderFloat("Pursuit Max Steering", &Constant::PursuitMaxSteering, 0.f, 5.f);
@@ -408,7 +410,7 @@ void Seagull::Update(const float deltaTime)
 
 void Seagull::SetTrackPosition(const glm::vec3& target)
 {
-    const glm::vec4 targetPosition(target, 0);
+    const glm::vec4 targetPosition(target, 1);
     const glm::vec4 position(0, 0, 0, 1);
 
     for (size_t idx = 0; idx < mTargets.size(); ++idx)
@@ -421,7 +423,13 @@ void Seagull::SetTrackPosition(const glm::vec3& target)
             target.lifetime = Constant::TargetLifetime;
             PhysicComponent* physic = target.mEntity->getComponent<PhysicComponent>();
             physic->Reset();
-            physic->SetLinearVelocity(targetPosition);
+            {
+                const glm::vec4 deltaP = (targetPosition - position) / Constant::TargetThrow;
+                const glm::vec4 drop = -0.5f * World::gravity * Constant::TargetThrow;
+                glm::vec4 velocity = deltaP + drop;
+                velocity.w = 0;
+                physic->SetLinearVelocity(velocity);
+            }
             physic->SetAngularVelocity(glm::vec4(glm::ballRand(3.f), 0.f));
             GraphicMeshComponent* renderingComponent = target.mEntity->getComponent<GraphicMeshComponent>();
             renderingComponent->mEnable = true;
