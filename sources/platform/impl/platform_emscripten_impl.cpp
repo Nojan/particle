@@ -8,7 +8,7 @@
 static PlatformEmscripten* gloPlatformEmscripten = nullptr;
 
 PlatformEmscripten::PlatformEmscripten()
-: mFileToLoad(7)
+: mFileToLoad(0)
 {
     assert(nullptr == gloPlatformEmscripten);
     gloPlatformEmscripten = this;
@@ -32,7 +32,7 @@ void PlatformEmscripten::Init()
 #endif
     printf("Emscripten FS init done\n");
     const size_t count = 7;
-    assert(count == mFileToLoad);
+    mFileToLoad = count;
     const char * url[] = {
         "../asset/mesh/bird.assxml",
         "../asset/mesh/bread.assxml",
