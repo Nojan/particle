@@ -36,8 +36,11 @@ namespace Particle {
     const float drag = 1.f;
 
     void UpdateParticleGravity(glm::vec3& position, glm::vec3& speed, float deltaTime);
+    void UpdateParticleGravity(ParticleData& data, float deltaTime);
+#ifndef __EMSCRIPTEN__
     void UpdateParticleGravitySIMD(ParticleData& data, float deltaTime);
     void UpdateParticleSIMD(ParticleData& data, const float gravityPositionX, const float gravityPositionY, const float gravityPositionZ, float deltaTime);
+#endif
 }
 
 #endif

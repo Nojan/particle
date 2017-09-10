@@ -20,6 +20,40 @@ void ParticleData::swap(const size_t a, const size_t b)
     std::swap(mTime[a], mTime[b]);
 }
 
+namespace Particle {
+
+void UpdateParticleGravity(glm::vec3& position, glm::vec3& speed, float deltaTime) {
+    const float dragFactor = 1.f - drag*deltaTime;
+    const glm::vec3 drag(dragFactor, dragFactor, 0);
+    const glm::vec3 gravitySpeed(0, -gravity*deltaTime, 0);
+    speed += gravitySpeed;
+    speed *= drag;
+    position += speed*deltaTime;
+}
+
+void UpdateParticleGravity(ParticleData & data, float deltaTime)
+{
+    const float dragFactor = 1.f - drag*deltaTime;
+    const float gravitySpeed[4] = { 0, -gravity*deltaTime, 0, 0 };
+    const float drag[4] = { dragFactor, dragFactor, 0, dragFactor };
+    const float deltaTimeV[4] = { deltaTime, deltaTime, deltaTime, deltaTime };
+    for (size_t i = 0; i<data.mCount; ++i) {
+        for (int idx = 0; idx < 4; ++idx)
+        {
+            data.mSpeed[i].v[idx] = (data.mSpeed[i].v[idx] + gravitySpeed[idx]) * drag[idx];
+            data.mPosition[i].v[idx] += (data.mSpeed[i].v[idx] * deltaTimeV[idx]);
+        }
+        data.mTime[i] -= deltaTime;
+        if (data.mTime[i] < 0.f)
+        {
+            data.swap(i--, --data.mCount);
+        }
+    }
+}
+
+} // namespace Particle 
+
+#ifndef __EMSCRIPTEN__
 #include <xmmintrin.h>
 #include <immintrin.h>
 #include <emmintrin.h>
@@ -35,15 +69,6 @@ __m128 normalizeSIMD(const __m128& m)
     const __m128 xxxx = _mm_shuffle_ps(squared, squared, 0x00);
     const __m128 squaredSum = _mm_add_ps(_mm_add_ps(xxxx, yyyy), _mm_add_ps(zzzz, wwww));
     return _mm_div_ps(m, _mm_sqrt_ps(squaredSum));
-}
-
-void UpdateParticleGravity(glm::vec3& position, glm::vec3& speed, float deltaTime) {
-    const float dragFactor = 1.f - drag*deltaTime;
-    const glm::vec3 drag(dragFactor, dragFactor, 0);
-    const glm::vec3 gravitySpeed(0, -gravity*deltaTime, 0);
-    speed += gravitySpeed;
-    speed *= drag;
-    position += speed*deltaTime;
 }
 
 void UpdateParticleGravitySIMD(ParticleData& data, const float deltaTime) {
@@ -85,3 +110,4 @@ void UpdateParticleSIMD(ParticleData& data, const float gravityPositionX, const 
 }
 
 } //namespace Particle
+#endif

@@ -4,7 +4,7 @@ from subprocess import call, check_call
 source_dir = os.path.normpath("../sources")
 build_dir = os.path.normpath("../emscripten_build")
 include_dir = ["-I" + os.path.normpath("../externals/glm"), "-I" + os.path.normpath("../externals")]
-build_flag = ["-s", "USE_SDL=2", "-Os", "-msse2"]
+build_flag = ["-s", "USE_SDL=2", "-Os"]
 link_flag = []#["-s", "WASM=1"]
 preload_data = [os.path.normpath("../shaders")]
 

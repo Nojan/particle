@@ -66,7 +66,11 @@ void Renderer::Update(const float deltaTime)
     const Camera * camera = Root::Instance().GetCamera();
     const glm::vec3 positonInWorldSpace = camera->Position() + camera->Direction()*100.f;
     HandleMousePosition(positonInWorldSpace.x, positonInWorldSpace.y, positonInWorldSpace.z);
+#ifndef __EMSCRIPTEN__
     Particle::UpdateParticleGravitySIMD(*(mParticleData.get()), deltaTime);
+#else
+    Particle::UpdateParticleGravity(*(mParticleData.get()), deltaTime);
+#endif
 }
 
 void Renderer::Render(const Scene * scene)
