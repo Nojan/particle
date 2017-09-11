@@ -16,7 +16,7 @@
 #include <assert.h>
 #include <algorithm>
 
-Renderer::Renderer()
+ParticleRenderer::ParticleRenderer()
 : mParticleData(new ParticleData(100000))
 , mVboPositionId(0)
 , mVboColorId(0)
@@ -55,13 +55,13 @@ Renderer::Renderer()
     mShaderProgram->Unbind();
 }
 
-Renderer::~Renderer()
+ParticleRenderer::~ParticleRenderer()
 {
     glDeleteBuffers(1, &mVboPositionId); 
     glDeleteBuffers(1, &mVboColorId); 
 }
 
-void Renderer::Update(const float deltaTime)
+void ParticleRenderer::Update(const float deltaTime)
 {
     const Camera * camera = Root::Instance().GetCamera();
     const glm::vec3 positonInWorldSpace = camera->Position() + camera->Direction()*100.f;
@@ -73,7 +73,7 @@ void Renderer::Update(const float deltaTime)
 #endif
 }
 
-void Renderer::Render(const Scene * scene)
+void ParticleRenderer::Render(const Scene * scene)
 {
     if (0 == mParticleData->mCount)
         return;
@@ -132,7 +132,7 @@ void Renderer::Render(const Scene * scene)
     mShaderProgram->Unbind();
 }
 
-void Renderer::spawnBallParticles(size_t pCount, const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float speed, const Color::rgbp color, const float lifetime)
+void ParticleRenderer::spawnBallParticles(size_t pCount, const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float speed, const Color::rgbp color, const float lifetime)
 {
     const size_t newParticleCount = std::min(mParticleData->mCount + pCount, mParticleData->mMaxCount);
     const Color::rgbap colorWalpha = { color.r, color.g, color.b, 1.f };
@@ -148,7 +148,7 @@ void Renderer::spawnBallParticles(size_t pCount, const glm::vec3& initialPositio
     mParticleData->mCount = newParticleCount;
 }
 
-void Renderer::spawnParticle(const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float lifetime, const Color::rgbp color)
+void ParticleRenderer::spawnParticle(const glm::vec3& initialPosition, const glm::vec3& initialSpeed, const float lifetime, const Color::rgbp color)
 {
     if (mParticleData->mMaxCount <= mParticleData->mCount + 1)
         return;
@@ -161,12 +161,12 @@ void Renderer::spawnParticle(const glm::vec3& initialPosition, const glm::vec3& 
     mParticleData->mCount += 1;
 }
 
-void Renderer::HandleMousePosition(float x, float y, float z) {
+void ParticleRenderer::HandleMousePosition(float x, float y, float z) {
     mMousePosition = glm::vec3(x, y, z);
 }
 
 #ifdef IMGUI_ENABLE
-void Renderer::debug_GUI() const {
+void ParticleRenderer::debug_GUI() const {
     ImGui::Text("Particle %d/%d", mParticleData->mCount, mParticleData->mMaxCount);
 }
 #endif

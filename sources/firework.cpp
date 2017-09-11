@@ -16,11 +16,11 @@
 #include <assert.h>
 #include <algorithm>
 
-void FireworkShellDescriptor::Update(const glm::vec3& position, const glm::vec3& speed, const float deltaTime, Renderer* renderer) const{
+void FireworkShellDescriptor::Update(const glm::vec3& position, const glm::vec3& speed, const float deltaTime, ParticleRenderer* renderer) const{
 
 }
 
-void PeonyDescriptor::Update(const glm::vec3& position, const glm::vec3& speed, const float deltaTime, Renderer* renderer) const {
+void PeonyDescriptor::Update(const glm::vec3& position, const glm::vec3& speed, const float deltaTime, ParticleRenderer* renderer) const {
     const float particulePerMs = 100.f;
     const size_t particuleCount = static_cast<size_t>(particulePerMs * deltaTime);
     const Color::rgbp color = { 1.f, 1.f, 1.f};
@@ -43,7 +43,7 @@ FireworkShell::FireworkShell(const FireworkShellDescriptor* descriptor, const gl
 
 }
 
-void FireworkShell::update(const float deltaTime, FireworksManager* manager, Renderer* renderer)
+void FireworkShell::update(const float deltaTime, FireworksManager* manager, ParticleRenderer* renderer)
 {
     if (0.f < mBeginTime && (mBeginTime - deltaTime) < 0.f) {
         onInit(mPosition, mSpeed, renderer);
@@ -83,13 +83,13 @@ float FireworkShell::timeToLive() const
     return mTimeToLive;
 }
 
-void FireworkShell::onInit(const glm::vec3& position, const glm::vec3& speed, Renderer* renderer)
+void FireworkShell::onInit(const glm::vec3& position, const glm::vec3& speed, ParticleRenderer* renderer)
 {
     mPosition = position;
     mSpeed = speed;
 }
 
-void FireworkShell::onUpdate(const float deltaTime, Renderer* renderer)
+void FireworkShell::onUpdate(const float deltaTime, ParticleRenderer* renderer)
 {
     Particle::UpdateParticleGravity(mPosition, mSpeed, deltaTime);
     mTimeToLive -= deltaTime;
@@ -107,16 +107,16 @@ PeonyShell::PeonyShell(const FireworkShellDescriptor* descriptor, const glm::vec
 
 }
 
-void PeonyShell::onInit(const glm::vec3& position, const glm::vec3& speed, Renderer* renderer) {
+void PeonyShell::onInit(const glm::vec3& position, const glm::vec3& speed, ParticleRenderer* renderer) {
 
 }
 
-void PeonyShell::onUpdate(const float deltaTime, Renderer* renderer) {
+void PeonyShell::onUpdate(const float deltaTime, ParticleRenderer* renderer) {
     parentType::onUpdate(deltaTime, renderer);
     mDescriptor->Update(mPosition, glm::vec3(0), deltaTime, renderer);
 }
 
-FireworksManager::FireworksManager(Renderer* renderer)
+FireworksManager::FireworksManager(ParticleRenderer* renderer)
     : mRenderer(renderer)
     , mPeonyDescriptor(new PeonyDescriptor())
 {

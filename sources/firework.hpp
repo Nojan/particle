@@ -14,12 +14,12 @@
 
 class FireworkShellDescriptor {
 public:
-    virtual void Update(const glm::vec3& position, const glm::vec3& speed, const float deltaTime, Renderer* renderer) const;
+    virtual void Update(const glm::vec3& position, const glm::vec3& speed, const float deltaTime, ParticleRenderer* renderer) const;
 };
 
 class PeonyDescriptor : public FireworkShellDescriptor {
 public:
-    void Update(const glm::vec3& position, const glm::vec3& speed, const float deltaTime, Renderer* renderer) const override;
+    void Update(const glm::vec3& position, const glm::vec3& speed, const float deltaTime, ParticleRenderer* renderer) const override;
 };
 
 class FireworkShell;
@@ -32,15 +32,15 @@ public:
     FireworkShell(const FireworkShellDescriptor* descriptor, const glm::vec3& position, const glm::vec3& speed, const float beginTime, const float lifetime);
     virtual ~FireworkShell() {}
 
-    void update(const float deltaTime, FireworksManager* manager, Renderer* renderer);
+    void update(const float deltaTime, FireworksManager* manager, ParticleRenderer* renderer);
     void addShell(std::unique_ptr<FireworkShell> shell);
 
     float beginTime() const;
     float timeToLive() const;
 
 protected:
-    virtual void onInit(const glm::vec3& position, const glm::vec3& speed, Renderer* renderer);
-    virtual void onUpdate(const float deltaTime, Renderer* renderer);
+    virtual void onInit(const glm::vec3& position, const glm::vec3& speed, ParticleRenderer* renderer);
+    virtual void onUpdate(const float deltaTime, ParticleRenderer* renderer);
 
 protected:
     const FireworkShellDescriptor* mDescriptor;
@@ -59,13 +59,13 @@ public:
     virtual ~PeonyShell() {}
 
 protected:
-    void onInit(const glm::vec3& position, const glm::vec3& speed, Renderer* renderer) override;
-    void onUpdate(const float deltaTime, Renderer* renderer) override;
+    void onInit(const glm::vec3& position, const glm::vec3& speed, ParticleRenderer* renderer) override;
+    void onUpdate(const float deltaTime, ParticleRenderer* renderer) override;
 };
 
 class FireworksManager : public IUpdater {
 public:
-    FireworksManager(Renderer* renderer);
+    FireworksManager(ParticleRenderer* renderer);
 
     void Update(const float deltaTime) override;
     void addShell(std::unique_ptr<FireworkShell> shell);
@@ -73,7 +73,7 @@ public:
     void spawnPeony(const glm::vec3& initialPosition, const float speed, const float lifetime);
 
 private:
-    Renderer* mRenderer;
+    ParticleRenderer* mRenderer;
     std::unique_ptr<PeonyDescriptor> mPeonyDescriptor;
     SubShells mShells;
 };

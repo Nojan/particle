@@ -17,10 +17,10 @@
 class ParticleData;
 class ShaderProgram; 
 
-class Renderer : public IRenderer, public IUpdater {
+class ParticleRenderer : public IRenderer, public IUpdater {
 public:
-    Renderer();
-    ~Renderer();
+    ParticleRenderer();
+    ~ParticleRenderer();
 
     void Update(const float deltaTime) override;
     void Render(const Scene * scene) override;

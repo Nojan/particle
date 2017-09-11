@@ -161,7 +161,7 @@ void Root::Init()
         renderList->addRenderer(renderer.get());
         mRendererList.push_back(renderer);
     }
-    std::shared_ptr<Renderer> particleRenderer = std::make_shared<Renderer>();
+    std::shared_ptr<ParticleRenderer> particleRenderer = std::make_shared<ParticleRenderer>();
     {
         renderList->addRenderer(particleRenderer.get());
         mRendererList.push_back(particleRenderer);
@@ -186,7 +186,7 @@ void Root::Init()
         renderList->addRenderer(renderer.get());
         mRendererList.push_back(renderer);
     }
-    mFireworkManager.reset(new FireworksManager(renderList->getRenderer<Renderer>()));
+    mFireworkManager.reset(new FireworksManager(renderList->getRenderer<ParticleRenderer>()));
     mGameplayLoopManager.reset(new Gameplay::LoopManager());
     mGameplayLoopManager->Init();
 
