@@ -1,5 +1,4 @@
-#ifndef RENDERER_HPP
-#define RENDERER_HPP
+#pragma once
 
 #include "config.hpp"
 #include "color.hpp"
@@ -44,5 +43,3 @@ private:
     glm::vec3 mMousePosition;
     Texture2D mParticleMask;
 };
-
-#endif

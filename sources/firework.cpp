@@ -3,7 +3,7 @@
 #include "camera.hpp"
 #include "particle.hpp"
 #include "shader.hpp"
-#include "renderer.hpp"
+#include "particle_renderer.hpp"
 #include "root.hpp"
 
 #include "opengl_includes.hpp"

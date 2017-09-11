@@ -2,7 +2,7 @@
 
 #include "color.hpp"
 #include "iupdater.hpp"
-#include "renderer.hpp"
+#include "particle_renderer.hpp"
 #include "texture.hpp"
 #include "vector.hpp"
 

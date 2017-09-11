@@ -1,4 +1,4 @@
-#include "renderer.hpp"
+#include "particle_renderer.hpp"
 
 #include "camera.hpp"
 #include "particle.hpp"
