@@ -31,8 +31,6 @@ void PlatformEmscripten::Init()
     );
 #endif
     printf("Emscripten FS init done\n");
-    const size_t count = 7;
-    mFileToLoad = count;
     const char * url[] = {
         "../asset/mesh/bird.assxml",
         "../asset/mesh/bread.assxml",
@@ -43,6 +41,8 @@ void PlatformEmscripten::Init()
         "../asset/sound/seagull1.ogg",
         "../asset/sound/wave1.ogg",
     };
+    const size_t count = (sizeof(url) / sizeof(url[0]));
+    mFileToLoad = count;
 
     auto onLoadFunc = [](const char* filename) { gloPlatformEmscripten->OnLoad(filename); };
     auto onErrorFunc = [](const char* filename) { gloPlatformEmscripten->OnLoadError(filename); };
