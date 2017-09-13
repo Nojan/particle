@@ -14,6 +14,7 @@
 #include <cassert>
 #include <cstring>
 #include <array>
+#include <glm/gtc/random.hpp>
 
 #include "global.hpp"
 #include "platform/platform.hpp"
@@ -36,21 +37,30 @@ SoundComponent::~SoundComponent()
     mValid = false;
 }
 
-uint16_t SoundComponent::AddResource(const std::shared_ptr<SoundStream>& resource)
+uint16_t SoundComponent::AddResource(const std::shared_ptr<SoundStreamVariation>& resource)
 {
     const uint16_t index = numeric_cast<uint16_t>(mSoundStreams.size());
     mSoundStreams.push_back(resource);
     return index;
 }
 
-SoundEffect* SoundComponent::Play()
+const std::shared_ptr<SoundStreamVariation>& SoundComponent::GetResource(uint16_t index) const
 {
+    return mSoundStreams[index];
+}
+
+SoundEffect* SoundComponent::Play(uint16_t soundIdx)
+{
+    assert(soundIdx < mSoundStreams.size());
     SoundEffect* request;
     GameSystem* gameSystem = Global::gameSytem();
     SoundSystem* soundSystem = gameSystem->getSystem<SoundSystem>();
     request = soundSystem->RequestSoundEffect();
     if (request)
     {
+        request->mIndex = soundIdx;
+        const SoundStreamVariation* soundStreamVariation = mSoundStreams[soundIdx].get();
+        request->mVariationIndex = glm::linearRand<uint16_t>(0, soundStreamVariation->m_soundStream.size() - 1);
         mSoundPlay.push_back(request);
     }
     return request;
@@ -69,8 +79,11 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
         if (SoundFrame::sample_size <= sampleQueuedCount)
             continue;
         const uint16_t soundIdx = effect.mIndex;
+        const uint16_t variationIdx = effect.mVariationIndex;
         assert(soundIdx < mSoundStreams.size());
-        const SoundStream* soundStream = mSoundStreams[soundIdx].get();
+        const SoundStreamVariation* soundStreamVariation = mSoundStreams[soundIdx].get();
+        assert(variationIdx < soundStreamVariation->m_soundStream.size());
+        const SoundStream* soundStream = soundStreamVariation->m_soundStream[variationIdx].get();
         const std::vector<float>& audio = soundStream->mAudio;
         int32_t sampleIdx = effect.mSampleIndex;
         const int32_t sampleCount = numeric_cast<int32_t>(audio.size());
@@ -114,7 +127,9 @@ void SoundComponent::Update(const float deltaTime, const SoundListener& listener
         if (queueCount <= 0)
         {
             assert(effect.mIndex < mSoundStreams.size());
-            const SoundStream* soundStream = mSoundStreams[effect.mIndex].get();
+            const SoundStreamVariation* soundStreamVariation = mSoundStreams[effect.mIndex].get();
+            assert(effect.mVariationIndex < soundStreamVariation->m_soundStream.size());
+            const SoundStream* soundStream = soundStreamVariation->m_soundStream[effect.mVariationIndex].get();
             if (soundStream->mAudio.size() <= effect.mSampleIndex)
             {
                 soundSystem->ReleaseSoundEffect(mSoundPlay[soundEffectIdx]);
@@ -136,6 +151,7 @@ void SoundFrame::Reset() {
 void SoundEffect::Reset()
 {
     mIndex = 0;
+    mVariationIndex = 0;
     mSampleIndex = 0;
     mQueuedSampleCount = 0;
     mNext = nullptr;

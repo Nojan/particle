@@ -15,6 +15,7 @@
 #include "../rendering_system.hpp"
 #include "../renderableMesh.hpp"
 #include "../resourcemanager.hpp"
+#include "../sound_stream.hpp"
 #include "../sound_system.hpp"
 #include "../visualdebug.hpp"
 
@@ -79,7 +80,13 @@ Gameplay::Sea::Sea()
         renderingComponent->mRenderable->mMesh = Global::resourceManager()->mesh("../asset/mesh/plane.assxml");
         gameSystem->getSystem<SoundSystem>()->attachEntity(mEntity);
         SoundComponent* soundComponent = mEntity->getComponent<SoundComponent>();
-        soundComponent->AddResource(Global::resourceManager()->soundStream("../asset/sound/wave1.ogg"));
+        std::shared_ptr<SoundStreamVariation> soundStreamVariation = std::make_shared<SoundStreamVariation>();
+        soundStreamVariation->m_soundStream.push_back(Global::resourceManager()->soundStream("../asset/sound/wave1.ogg"));
+        soundStreamVariation->m_soundStream.push_back(Global::resourceManager()->soundStream("../asset/sound/wave2.ogg"));
+        soundStreamVariation->m_soundStream.push_back(Global::resourceManager()->soundStream("../asset/sound/wave3.ogg"));
+        soundStreamVariation->m_soundStream.push_back(Global::resourceManager()->soundStream("../asset/sound/wave4.ogg"));
+        
+        soundComponent->AddResource(soundStreamVariation);
     }
     //Setup dock
     {
@@ -210,9 +217,8 @@ void Gameplay::Sea::FrameStep()
                 mWaves.push_back(wave);
                 const uint16_t soundIdx = 0; // There is only one sound so far
                 SoundComponent* soundComponent = mEntity->getComponent<SoundComponent>();
-                if (SoundEffect* effect = soundComponent->Play())
+                if (SoundEffect* effect = soundComponent->Play(soundIdx))
                 {
-                    effect->mIndex = soundIdx;
                     effect->mPosition = glm::vec4(wave.mPosition, 1.f);
                     effect->mVelocity = glm::vec4(wave.mDirection, 0.f) * Gameplay::Constant::WaveSpeed;
                 }

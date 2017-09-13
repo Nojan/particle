@@ -21,17 +21,20 @@ struct SoundFrame {
 };
 
 class SoundSystem;
+struct SoundStreamVariation;
 struct SoundStream;
 
 struct SoundEffect {
     SoundEffect()
         : mIndex(0)
+        , mVariationIndex(0)
         , mSampleIndex(0)
         , mQueuedSampleCount(0)
     {};
 
-    SoundEffect(uint16_t index, const glm::vec4& position, const glm::vec4& velocity)
+    SoundEffect(uint16_t index, uint16_t variationIndex, const glm::vec4& position, const glm::vec4& velocity)
         : mIndex(index)
+        , mVariationIndex(variationIndex)
         , mSampleIndex(0)
         , mQueuedSampleCount(0)
         , mPosition(position)
@@ -40,6 +43,7 @@ struct SoundEffect {
 
     SoundEffect(const SoundEffect& ref)
         : mIndex(ref.mIndex)
+        , mVariationIndex(ref.mVariationIndex)
         , mSampleIndex(ref.mSampleIndex)
         , mQueuedSampleCount(ref.mQueuedSampleCount.load())
         , mPosition(ref.mPosition)
@@ -49,6 +53,7 @@ struct SoundEffect {
     SoundEffect& operator=(const SoundEffect& ref)
     {
         mIndex = ref.mIndex;
+        mVariationIndex = ref.mVariationIndex;
         mSampleIndex = ref.mSampleIndex;
         mQueuedSampleCount = ref.mQueuedSampleCount.load();
         mPosition = ref.mPosition;
@@ -59,6 +64,7 @@ struct SoundEffect {
     void Reset();
 
     uint16_t mIndex;
+    uint16_t mVariationIndex;
     int32_t mSampleIndex;
     std::atomic_int mQueuedSampleCount;
     glm::vec4 mPosition;
@@ -81,15 +87,16 @@ public:
 
     ~SoundComponent();
 
-    uint16_t AddResource(const std::shared_ptr<SoundStream>& resource);
-    SoundEffect* Play();
+    uint16_t AddResource(const std::shared_ptr<SoundStreamVariation>& resource);
+    const std::shared_ptr<SoundStreamVariation>& GetResource(uint16_t index) const;
+    SoundEffect* Play(uint16_t soundIdx);
 
     void Update(const float deltaTime, const SoundListener& listener, SoundSystem* soundSystem);
 
     bool isValid() const { return mValid; }
 
 private:
-    std::vector< std::shared_ptr<SoundStream> > mSoundStreams;
+    std::vector< std::shared_ptr<SoundStreamVariation> > mSoundStreams;
     std::vector< SoundEffect* > mSoundPlay;
     bool mValid;
 };

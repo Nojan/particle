@@ -7,6 +7,7 @@
 #include "../physic_system.hpp"
 #include "../transform_system.hpp"
 #include "../rendering_system.hpp"
+#include "../sound_stream.hpp"
 #include "../sound_system.hpp"
 #include "../renderableMesh.hpp"
 #include "../renderableSkinMesh.hpp"
@@ -183,7 +184,12 @@ void Seagull::Init()
     const BoundingBox3D box(boxCenter - boxExtent, boxCenter + boxExtent);
 
     std::shared_ptr<SkinMesh> skinMesh = Global::resourceManager()->skinMesh("../asset/mesh/bird.assxml");
-    std::shared_ptr<SoundStream> soundStream = Global::resourceManager()->soundStream("../asset/sound/seagull1.ogg");
+    std::shared_ptr<SoundStreamVariation> soundStreamVariation = std::make_shared<SoundStreamVariation>();
+    soundStreamVariation->m_soundStream.push_back( Global::resourceManager()->soundStream("../asset/sound/seagull1.ogg") );
+    soundStreamVariation->m_soundStream.push_back( Global::resourceManager()->soundStream("../asset/sound/seagull2.ogg") );
+    soundStreamVariation->m_soundStream.push_back( Global::resourceManager()->soundStream("../asset/sound/seagull3.ogg") );
+    soundStreamVariation->m_soundStream.push_back( Global::resourceManager()->soundStream("../asset/sound/seagull4.ogg") );
+    soundStreamVariation->m_soundStream.push_back( Global::resourceManager()->soundStream("../asset/sound/seagull5.ogg") );
 
     std::default_random_engine generator;
 
@@ -207,7 +213,7 @@ void Seagull::Init()
 
         gameSystem->getSystem<SoundSystem>()->attachEntity(entity);
         SoundComponent* soundComponent = entity->getComponent<SoundComponent>();
-        soundComponent->AddResource(soundStream);
+        soundComponent->AddResource(soundStreamVariation);
     }
 
     for (size_t idx = 0; idx < mTargets.size(); ++idx)
@@ -294,9 +300,8 @@ void Seagull::Update(const float deltaTime)
                 targetRenderingComponent->mEnable = false;
                 const uint16_t soundIdx = 0; // There is only one sound so far
                 SoundComponent* soundComponent = entity->getComponent<SoundComponent>();
-                if (SoundEffect* effect = soundComponent->Play())
+                if (SoundEffect* effect = soundComponent->Play(soundIdx))
                 {
-                    effect->mIndex = soundIdx;
                     effect->mPosition = transform->Position();
                     effect->mVelocity = physic->LinearVelocity();
                 }

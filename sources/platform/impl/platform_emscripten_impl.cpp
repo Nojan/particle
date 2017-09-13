@@ -39,7 +39,14 @@ void PlatformEmscripten::Init()
         "../asset/texture/wave2.png",
         "../asset/sound/music.ogg",
         "../asset/sound/seagull1.ogg",
+        "../asset/sound/seagull2.ogg",
+        "../asset/sound/seagull3.ogg",
+        "../asset/sound/seagull4.ogg",
+        "../asset/sound/seagull5.ogg",
         "../asset/sound/wave1.ogg",
+        "../asset/sound/wave2.ogg",
+        "../asset/sound/wave3.ogg",
+        "../asset/sound/wave4.ogg",
     };
     const size_t count = (sizeof(url) / sizeof(url[0]));
     mFileToLoad = count;
