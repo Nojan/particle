@@ -85,7 +85,7 @@ void GenericMeshRenderer::Render(const MeshBuffer* mesh)
     {
         const VertexBufferLayout::Component& vertexComponent = meshLayout.GetComponent(componentIdx);
         const char* vertexComponentName = VertexSemantic::str[vertexComponent.mSemantic];
-        const GLint attributeID = mShaderProgram->GetAttribLocation(vertexComponentName);
+        const GLint attributeID = mShaderProgram->GetAttribLocation(HashedString(vertexComponentName));
         const GLint vertexComponentCount = VertexType::ComponentCount[vertexComponent.mType];
         const uint32_t vboId = meshBuffer.VboId(componentIdx);
         const GLenum glType = VertexType::ToGLType[vertexComponent.mType];

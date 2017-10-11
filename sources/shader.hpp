@@ -2,6 +2,7 @@
 #define SHADER_HPP
 
 #include "opengl_includes.hpp"
+#include "HashedString.hpp"
 
 #include <unordered_map>
 
@@ -16,10 +17,10 @@ public:
     void Bind();
     void Unbind();
 
-    void RegisterAttrib(const char* name);
-    GLint GetAttribLocation(const char* name) const;
-    void RegisterUniform(const char* name);
-    GLint GetUniformLocation(const char* name) const;
+    void RegisterAttrib(const HashedString& name);
+    GLint GetAttribLocation(const HashedString& name) const;
+    void RegisterUniform(const HashedString& name);
+    GLint GetUniformLocation(const HashedString& name) const;
 
     //operator
     bool operator== (const ShaderProgram & rhs) const;
@@ -29,7 +30,7 @@ private:
     GLuint mProgramID;
     static GLuint mCurrentProgramID;
 
-    std::unordered_map<const char*, GLint> mAttrib;
-    std::unordered_map<const char*, GLint> mUniform;
+    std::unordered_map<HashedString, GLint> mAttrib;
+    std::unordered_map<HashedString, GLint> mUniform;
 };
 #endif

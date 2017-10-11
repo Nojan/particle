@@ -41,28 +41,28 @@ void ShaderProgram::Unbind()
     mCurrentProgramID = 0;
 }
 
-void ShaderProgram::RegisterAttrib(const char* name)
+void ShaderProgram::RegisterAttrib(const HashedString& name)
 {
-    GLint location = glGetAttribLocation(mProgramID, name);
+    GLint location = glGetAttribLocation(mProgramID, name.string().c_str());
     assert(-1 != location);
     mAttrib[name] = location;
 }
 
-GLint ShaderProgram::GetAttribLocation(const char* name) const
+GLint ShaderProgram::GetAttribLocation(const HashedString& name) const
 {
     const auto itFind = mAttrib.find(name);
     assert(mAttrib.cend() != itFind);
     return itFind->second;
 }
 
-void ShaderProgram::RegisterUniform(const char* name)
+void ShaderProgram::RegisterUniform(const HashedString& name)
 {
-    GLint location = glGetUniformLocation(mProgramID, name);
+    GLint location = glGetUniformLocation(mProgramID, name.string().c_str());
     assert(-1 != location);
     mUniform[name] = location;
 }
 
-GLint ShaderProgram::GetUniformLocation(const char* name) const
+GLint ShaderProgram::GetUniformLocation(const HashedString& name) const
 {
     const auto itFind = mUniform.find(name);
     assert(mUniform.cend() != itFind);

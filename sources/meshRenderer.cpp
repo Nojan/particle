@@ -30,16 +30,16 @@ void MeshRenderer::debug_GUI() const
 MeshRenderer::MeshRenderer()
 {
     mShaderProgram = Global::resourceManager()->shader("texture");
-    mShaderProgram->RegisterAttrib("Position");
-    mShaderProgram->RegisterAttrib("Normal");
-    mShaderProgram->RegisterAttrib("TexCoord0");
-    mShaderProgram->RegisterUniform("textureSampler");
-    mShaderProgram->RegisterUniform("mvp");
-    mShaderProgram->RegisterUniform("mv");
-    mShaderProgram->RegisterUniform("viewNormal");
-    mShaderProgram->RegisterUniform("lightPosition");
-    mShaderProgram->RegisterUniform("lightDiffuse");
-    mShaderProgram->RegisterUniform("lightSpecular");
+    mShaderProgram->RegisterAttrib(HashedString("Position"));
+    mShaderProgram->RegisterAttrib(HashedString("Normal"));
+    mShaderProgram->RegisterAttrib(HashedString("TexCoord0"));
+    mShaderProgram->RegisterUniform(HashedString("textureSampler"));
+    mShaderProgram->RegisterUniform(HashedString("mvp"));
+    mShaderProgram->RegisterUniform(HashedString("mv"));
+    mShaderProgram->RegisterUniform(HashedString("viewNormal"));
+    mShaderProgram->RegisterUniform(HashedString("lightPosition"));
+    mShaderProgram->RegisterUniform(HashedString("lightDiffuse"));
+    mShaderProgram->RegisterUniform(HashedString("lightSpecular"));
 }
 
 MeshRenderer::~MeshRenderer()
@@ -104,21 +104,21 @@ void MeshRenderer::Render(const RenderableMesh& renderable, const Scene* scene)
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture->getWidth(), texture->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, texture->getData());
             glGenerateMipmap(GL_TEXTURE_2D);
         }
-        GLint textureSampler_ID = mShaderProgram->GetUniformLocation("textureSampler");
+        GLint textureSampler_ID = mShaderProgram->GetUniformLocation(HashedString("textureSampler"));
         glUniform1i(textureSampler_ID, 0);  
     }
     {
-        GLint matrixMVP_ID = mShaderProgram->GetUniformLocation("mvp");
+        GLint matrixMVP_ID = mShaderProgram->GetUniformLocation(HashedString("mvp"));
         glm::mat4 mvp = Root::Instance().GetCamera()->ProjectionView() * modelTransformAndScale;
         glUniformMatrix4fv(matrixMVP_ID, 1, GL_FALSE, glm::value_ptr(mvp)); 
     }
     {
-        GLint matrixMV_ID = mShaderProgram->GetUniformLocation("mv");
+        GLint matrixMV_ID = mShaderProgram->GetUniformLocation(HashedString("mv"));
         glm::mat4 mv = Root::Instance().GetCamera()->View() * modelTransformAndScale;
         glUniformMatrix4fv(matrixMV_ID, 1, GL_FALSE, glm::value_ptr(mv)); 
     }
     {
-        GLint matrixViewNormal_ID = mShaderProgram->GetUniformLocation("viewNormal");
+        GLint matrixViewNormal_ID = mShaderProgram->GetUniformLocation(HashedString("viewNormal"));
         glm::mat3 v = glm::mat3(Root::Instance().GetCamera()->View()) * glm::mat3(modelTransform);
         glUniformMatrix3fv(matrixViewNormal_ID, 1, GL_FALSE, glm::value_ptr(v)); 
     }
@@ -126,17 +126,17 @@ void MeshRenderer::Render(const RenderableMesh& renderable, const Scene* scene)
     {
         const glm::vec4 lightPosition(dirLight.mDirection, 1.f);
         const glm::vec4 lightPositionObjectSpace = glm::inverse(modelTransform) * lightPosition;
-        GLint lightPosition_ID = mShaderProgram->GetUniformLocation("lightPosition");
+        GLint lightPosition_ID = mShaderProgram->GetUniformLocation(HashedString("lightPosition"));
         glUniform4fv(lightPosition_ID, 1, glm::value_ptr(lightPositionObjectSpace)); 
     }
     {
         const Color::rgbap color = Color::rgbp2rgbap(dirLight.mDiffuseColor, 1.f);
-        GLint lightPosition_ID = mShaderProgram->GetUniformLocation("lightDiffuse");
+        GLint lightPosition_ID = mShaderProgram->GetUniformLocation(HashedString("lightDiffuse"));
         glUniform4fv(lightPosition_ID, 1, &(color.r));
     }
     {
         const Color::rgbap color = Color::rgbp2rgbap(dirLight.mSpecularColor, 1.f);
-        GLint lightPosition_ID = mShaderProgram->GetUniformLocation("lightSpecular");
+        GLint lightPosition_ID = mShaderProgram->GetUniformLocation(HashedString("lightSpecular"));
         glUniform4fv(lightPosition_ID, 1, &(color.r));
     }
     GenericMeshRenderer::Render(renderable.mMeshBuffer.get());

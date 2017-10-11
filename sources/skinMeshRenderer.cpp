@@ -40,19 +40,19 @@ void SkinMeshRenderer::debug_GUI() const
 SkinMeshRenderer::SkinMeshRenderer()
 {
     mShaderProgram = Global::resourceManager()->shader("skin");
-    mShaderProgram->RegisterAttrib("Position");
-    mShaderProgram->RegisterAttrib("Normal");
-    mShaderProgram->RegisterAttrib("TexCoord0");
-    mShaderProgram->RegisterAttrib("Index");
-    mShaderProgram->RegisterAttrib("Weigth");
-    mShaderProgram->RegisterUniform("textureSampler");
-    mShaderProgram->RegisterUniform("mvp");
-    mShaderProgram->RegisterUniform("mv");
-    mShaderProgram->RegisterUniform("viewNormal");
-    mShaderProgram->RegisterUniform("lightPosition");
-    mShaderProgram->RegisterUniform("bones");
-    mShaderProgram->RegisterUniform("lightDiffuse");
-    mShaderProgram->RegisterUniform("lightSpecular");
+    mShaderProgram->RegisterAttrib(HashedString("Position"));
+    mShaderProgram->RegisterAttrib(HashedString("Normal"));
+    mShaderProgram->RegisterAttrib(HashedString("TexCoord0"));
+    mShaderProgram->RegisterAttrib(HashedString("Index"));
+    mShaderProgram->RegisterAttrib(HashedString("Weigth"));
+    mShaderProgram->RegisterUniform(HashedString("textureSampler"));
+    mShaderProgram->RegisterUniform(HashedString("mvp"));
+    mShaderProgram->RegisterUniform(HashedString("mv"));
+    mShaderProgram->RegisterUniform(HashedString("viewNormal"));
+    mShaderProgram->RegisterUniform(HashedString("lightPosition"));
+    mShaderProgram->RegisterUniform(HashedString("bones"));
+    mShaderProgram->RegisterUniform(HashedString("lightDiffuse"));
+    mShaderProgram->RegisterUniform(HashedString("lightSpecular"));
     mTexture2D = std::move(Texture2D::generateCheckeredBoard(8, 128, 128, { 255, 255, 255 }, { 0, 0, 0 })); 
 }
 
@@ -115,26 +115,26 @@ void SkinMeshRenderer::Render(const RenderableSkinMesh& renderable, const Scene*
             glGenerateMipmap(GL_TEXTURE_2D);
         }
 
-        GLint textureSampler_ID = mShaderProgram->GetUniformLocation("textureSampler");
+        GLint textureSampler_ID = mShaderProgram->GetUniformLocation(HashedString("textureSampler"));
         glUniform1i(textureSampler_ID, 0);  
     }
     {
-        GLint matrixMVP_ID = mShaderProgram->GetUniformLocation("mvp");
+        GLint matrixMVP_ID = mShaderProgram->GetUniformLocation(HashedString("mvp"));
         glm::mat4 mvp = Root::Instance().GetCamera()->ProjectionView() * modelTransformAndScale;
         glUniformMatrix4fv(matrixMVP_ID, 1, GL_FALSE, glm::value_ptr(mvp)); 
     }
     {
-        GLint matrixMV_ID = mShaderProgram->GetUniformLocation("mv");
+        GLint matrixMV_ID = mShaderProgram->GetUniformLocation(HashedString("mv"));
         glm::mat4 mv = Root::Instance().GetCamera()->View() * modelTransformAndScale;
         glUniformMatrix4fv(matrixMV_ID, 1, GL_FALSE, glm::value_ptr(mv)); 
     }
     {
-        GLint matrixViewNormal_ID = mShaderProgram->GetUniformLocation("viewNormal");
+        GLint matrixViewNormal_ID = mShaderProgram->GetUniformLocation(HashedString("viewNormal"));
         glm::mat3 v = glm::mat3(Root::Instance().GetCamera()->View()) * glm::mat3(modelTransform);
         glUniformMatrix3fv(matrixViewNormal_ID, 1, GL_FALSE, glm::value_ptr(v)); 
     }
     {
-        GLint uniform_ID = mShaderProgram->GetUniformLocation("bones");
+        GLint uniform_ID = mShaderProgram->GetUniformLocation(HashedString("bones"));
         static std::vector<glm::mat4> bonesTransform(32);
         const glm::mat4& armatureTransform = renderable.mMesh->mArmature->transform;
         const std::vector<Bone>& bones = renderable.mMesh->mArmature->bones;
@@ -207,17 +207,17 @@ void SkinMeshRenderer::Render(const RenderableSkinMesh& renderable, const Scene*
     {
         const glm::vec4 lightPosition(dirLight.mDirection, 1.f);
         const glm::vec4 lightPositionObjectSpace = glm::inverse(modelTransform) * lightPosition;
-        GLint lightPosition_ID = mShaderProgram->GetUniformLocation("lightPosition");
+        GLint lightPosition_ID = mShaderProgram->GetUniformLocation(HashedString("lightPosition"));
         glUniform4fv(lightPosition_ID, 1, glm::value_ptr(lightPositionObjectSpace)); 
     }
     {
         const Color::rgbap color = Color::rgbp2rgbap(dirLight.mDiffuseColor, 1.f);
-        GLint lightPosition_ID = mShaderProgram->GetUniformLocation("lightDiffuse");
+        GLint lightPosition_ID = mShaderProgram->GetUniformLocation(HashedString("lightDiffuse"));
         glUniform4fv(lightPosition_ID, 1, &(color.r));
     }
     {
         const Color::rgbap color = Color::rgbp2rgbap(dirLight.mSpecularColor, 1.f);
-        GLint lightPosition_ID = mShaderProgram->GetUniformLocation("lightSpecular");
+        GLint lightPosition_ID = mShaderProgram->GetUniformLocation(HashedString("lightSpecular"));
         glUniform4fv(lightPosition_ID, 1, &(color.r));
     }
     GenericMeshRenderer::Render(renderable.mMeshBuffer.get());
