@@ -7,8 +7,14 @@
 class HashedString
 {
 public:
+    using hash_type = crc32_t;
+
     explicit HashedString(const std::string& string);
+    explicit HashedString(const char* string);
     ~HashedString() =default;
+
+    const std::string& string() const { return mString; }
+    hash_type hash() const { return mHash; }
 
     bool operator == (const HashedString& rhs) const { return mHash == rhs.mHash && mString == rhs.mString; }
     bool operator != (const HashedString& rhs) const { return mHash != rhs.mHash || mString != rhs.mString; }
@@ -22,5 +28,18 @@ public:
 
 private:
     std::string mString;
-    crc32_t mHash;
+    hash_type mHash;
 };
+
+namespace std
+{
+    template<> struct hash<HashedString>
+    {
+        typedef HashedString argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const& s) const noexcept
+        {
+            return s.hash();
+        }
+    };
+}

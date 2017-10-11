@@ -6,3 +6,9 @@ HashedString::HashedString(const std::string& string)
 {
 }
 
+HashedString::HashedString(const char * string)
+    : mString(string)
+    , mHash(crc::hash(string))
+{
+}
+
