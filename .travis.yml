@@ -8,8 +8,8 @@ services:
 - docker
 
 install:
-- docker pull nojandocker/seagull:1
+- docker pull nojandocker/seagull:2
 
 script:
-- docker run -v $(pwd):/workdir nojandocker/seagull:1
+- docker run -v $(pwd):/workdir nojandocker/seagull:2
 

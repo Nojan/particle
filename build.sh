@@ -1,8 +1,9 @@
 #!/bin/bash
 
 eval "rm -Rf build"
-eval "premake4 gmake"
+mkdir build
 cd build
+eval "cmake .."
 eval make
 ret_code=$?
 cd ..
