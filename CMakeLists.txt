@@ -10,9 +10,11 @@ link_directories(externals/SDL2)
 
 add_executable(particle ${sources_files})
 target_link_libraries(particle SDL2)
-add_definitions(-DNOMINMAX)
-add_custom_command(
-    TARGET particle POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_SOURCE_DIR}/externals/SDL2/SDL2.dll
-        ${CMAKE_CURRENT_BINARY_DIR}/SDL2.dll)
+if (CMAKE_HOST_WIN32)
+    add_definitions(-DNOMINMAX)
+    add_custom_command(
+        TARGET particle POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/externals/SDL2/SDL2.dll
+            ${CMAKE_CURRENT_BINARY_DIR}/SDL2.dll)
+endif (CMAKE_HOST_WIN32)
