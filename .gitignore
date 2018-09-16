@@ -1,5 +1,6 @@
+.vs/*
 bin/*
 build/*
-emscripten_build/*
+html/CMakeFiles/*
 externals/*
 CMakeFiles/*
