@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <glm/gtx/transform.hpp>
 #include <glm/ext.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include <algorithm>
 #include <iostream>
