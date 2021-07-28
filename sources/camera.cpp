@@ -8,7 +8,6 @@
 
 #include <algorithm>
 #include <iostream>
-#include <string>
 
 #define FREE_CAM
 #ifdef __EMSCRIPTEN__
